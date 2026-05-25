@@ -1,0 +1,41 @@
+<!--
+  SOS Feature — manifest additions.
+
+  Merge these into your existing AndroidManifest.xml.
+  Place the <uses-permission> blocks before <application>.
+  Place the <activity> and <service> blocks inside <application>.
+-->
+
+<!-- ── Permissions required by the SOS feature ─────────────────────────────
+
+  All three are "dangerous" permissions — they require a runtime grant from
+  the user on Android 6+. Request them together in a single permissions
+  dialog on first use (see SosPermissionsHelper.kt).
+
+  CALL_PHONE  — ACTION_CALL fires the call immediately without a dialer UI
+  SEND_SMS    — SmsManager sends the location message
+  ACCESS_FINE_LOCATION — FusedLocationProvider provides accurate GPS coords
+
+  Privacy policy note: these permissions MUST be disclosed in your Play
+  Store listing and privacy policy. Failure to do so is grounds for removal.
+-->
+<uses-permission android:name="android.permission.CALL_PHONE" />
+<uses-permission android:name="android.permission.SEND_SMS" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+<uses-permission android:name="android.permission.VIBRATE" />
+
+<!--
+  SOS Countdown Activity
+  Uses the existing navigation graph — no separate Activity needed.
+  The countdown runs as a Fragment within MainActivity.
+
+  If you want the SOS screen to appear above the lock screen
+  (so users who've fallen can use SOS without unlocking), add:
+
+  android:showOnLockScreen="true"
+  android:turnScreenOn="true"
+
+  ...to the MainActivity declaration. Requires DISABLE_KEYGUARD permission
+  on some devices — evaluate whether your target users need this.
+-->

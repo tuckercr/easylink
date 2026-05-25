@@ -1,0 +1,53 @@
+<resources>
+    <string name="app_name">EZ Launcher</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="apps">All Apps</string>
+    <string name="maps">Maps</string>
+    <string name="camera">Camera</string>
+    <string name="settings">Settings</string>
+    <string name="phone">Phone</string>
+    <string name="people">People</string>
+    <string name="gallery">Gallery</string>
+    <string name="calendar">Calendar</string>
+    <string name="email">Email</string>
+    <string name="magnifier">Magnifier</string>
+    <string name="music">Music</string>
+    <string name="internet">Internet</string>
+    <string name="sms">Text</string>
+    <string name="app_not_found">App Not Found</string>
+    <string name="home">Home</string>
+    <string name="favorite">Favorite</string>
+    <string name="clock">Clock</string>
+    <string name="sos">SOS</string>
+    <string name="flash_light">Flashlight</string>
+    <string name="all_applications">All Applications</string>
+    <string name="contacts">Contacts</string>
+    <string name="search">Search</string>
+
+    <!-- Battery -->
+    <string name="battery_level">%1$d%%</string>
+    <string name="battery_unknown">Battery unknown</string>
+
+    <!-- Flashlight -->
+    <string name="flashlight_on">Flashlight on</string>
+    <string name="flashlight_off">Flashlight off</string>
+
+    <!-- SOS -->
+    <string name="sos_countdown_label">Calling for help in…</string>
+    <string name="sos_dispatching">Sending SOS…</string>
+    <string name="sos_called">Called %1$s</string>
+    <string name="sos_call_failed">Call could not be connected</string>
+    <string name="sos_partial">SOS sent to %1$d contact(s)</string>
+    <string name="sos_failed">SOS failed: %1$s</string>
+    <string name="sos_no_contacts">No emergency contacts set up</string>
+    <string name="sos_location_included">Location included in message</string>
+
+    <!-- Magnifier -->
+    <string name="ez_magnifier">EZ Magnifier</string>
+
+    <plurals name="sos_sms_sent">
+        <item quantity="one">SMS sent to %1$d person</item>
+        <item quantity="other">SMS sent to %1$d people</item>
+    </plurals>
+</resources>

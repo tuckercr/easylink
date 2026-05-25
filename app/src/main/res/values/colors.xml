@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <color name="phone">#839B3B</color>
+    <color name="text">#738437</color>
+    <color name="camera">#197C72</color>
+    <color name="gallery">#1EA198</color>
+    <color name="calendar">#2B88C8</color>
+    <color name="clock">#2775A0</color>
+    <color name="contacts">#565989</color>
+    <color name="calculator">#6D6EB2</color>
+    <color name="internet">#D63182</color>
+    <color name="email">#A8296C</color>
+    <color name="map">#B42925</color>
+    <color name="sos">#DE3226</color>
+    <color name="magnifier">#D0942B</color>
+    <color name="flashlight">#DAB129</color>
+    <color name="all_apps">#333333</color>
+
+    <color name="darkGrey">#212121</color>
+    <color name="lighterIndigo">#3C6478</color>
+    <color name="darkerRubyRed">#ad2a1a</color>
+    <color name="black">#000000</color>
+
+    <!-- Surface text colors (Material-style, dark theme) -->
+    <color name="on_surface">#FFFFFF</color>
+    <color name="on_surface_variant">#AAAAAA</color>
+
+    <!-- Medication status chip colors -->
+    <color name="status_upcoming_bg">#0D47A1</color>
+    <color name="status_upcoming_text">#90CAF9</color>
+    <color name="status_taken_bg">#1B5E20</color>
+    <color name="status_taken_text">#A5D6A7</color>
+    <color name="status_snoozed_bg">#E65100</color>
+    <color name="status_snoozed_text">#FFCC80</color>
+    <color name="status_missed_bg">#BF360C</color>
+    <color name="status_missed_text">#FFAB91</color>
+    <color name="status_overdue_bg">#B71C1C</color>
+    <color name="status_overdue_text">#EF9A9A</color>
+</resources>

@@ -1,0 +1,57 @@
+<!--
+  Speed Dial — AndroidManifest.xml additions
+  ===========================================
+  Merge these snippets into your existing AndroidManifest.xml.
+
+  ══════════════════════════════════════════════════════════════════════════════
+  1. PERMISSIONS  — add inside <manifest>
+  ══════════════════════════════════════════════════════════════════════════════
+-->
+
+<!--
+  READ_CONTACTS — required to search the device contacts database in the
+  "Add favourite" picker. Requested at runtime in SpeedDialFragment before
+  navigating to AddSpeedDialFragment.
+-->
+<uses-permission android:name="android.permission.READ_CONTACTS" />
+
+<!--
+  CALL_PHONE — required to place a call directly via ACTION_CALL without
+  routing through the dialler confirmation screen. This is intentional for
+  a speed-dial experience (one tap = immediate call).
+
+  Note: CALL_PHONE is a dangerous permission; the user must grant it at
+  runtime. SpeedDialFragment requests it via ActivityResultContracts and
+  shows a rationale dialog if denied. If the user denies permanently,
+  SpeedDialViewModel falls back gracefully (ACTION_DIAL opens the dialler
+  with the number pre-filled, requiring one more tap).
+
+  CALL_PHONE was already added for the SOS feature — included here for
+  documentation completeness.
+-->
+<uses-permission android:name="android.permission.CALL_PHONE" />
+
+<!--
+  ══════════════════════════════════════════════════════════════════════════════
+  2. PROGUARD — add to proguard-rules.pro
+  ══════════════════════════════════════════════════════════════════════════════
+
+  # Coil — keep OkHttp and Coroutines internals that Coil depends on
+  -dontwarn okhttp3.**
+  -dontwarn okio.**
+  -keep class coil.** { *; }
+
+  ══════════════════════════════════════════════════════════════════════════════
+  3. COIL INITIALISATION (optional)
+  ══════════════════════════════════════════════════════════════════════════════
+  Coil auto-initialises via its AppInitializer on API 24+. No code changes to
+  EZLauncherApplication are required unless you want to customise the image
+  loader (e.g. add logging or a custom cache size):
+
+  // In EZLauncherApplication.onCreate() — only if customisation is needed:
+  Coil.setImageLoader {
+      ImageLoader.Builder(this)
+          .crossfade(true)
+          .build()
+  }
+-->

@@ -1,0 +1,88 @@
+<!--
+  Medication Reminder — AndroidManifest.xml additions
+  =====================================================
+  Merge these snippets into your existing AndroidManifest.xml.
+
+  1. PERMISSIONS  — add inside <manifest> alongside existing permissions
+  2. RECEIVERS    — add inside <application>
+  3. APPLICATION  — add createChannel() call to EZLauncherApplication.onCreate()
+
+  ══════════════════════════════════════════════════════════════════════════════
+  1. PERMISSIONS
+  ══════════════════════════════════════════════════════════════════════════════
+-->
+
+<!-- Required to show notification on Android 13+ (API 33+) -->
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+<!--
+  SCHEDULE_EXACT_ALARM — required on Android 12+ (API 31+) to call
+  AlarmManager.setExactAndAllowWhileIdle().
+
+  On Android 12 the user must grant this in Settings → Special app access
+  → Alarms & reminders. AlarmScheduler falls back to an inexact alarm if
+  this permission is not granted (see canScheduleExactAlarms() check).
+
+  On Android 13+ you can alternatively use USE_EXACT_ALARM (which is
+  granted automatically for clock/reminder apps), but SCHEDULE_EXACT_ALARM
+  is the safer choice for a launcher-style app.
+-->
+<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"
+    tools:ignore="ExactAlarm" />
+
+<!-- Required for BootCompletedReceiver to restore alarms after reboot -->
+<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+<!--
+  ══════════════════════════════════════════════════════════════════════════════
+  2. RECEIVERS  — add inside <application>
+  ══════════════════════════════════════════════════════════════════════════════
+-->
+
+<!-- Fires when an AlarmManager alarm triggers for a scheduled dose -->
+<receiver
+    android:name=".data.alarm.ReminderAlarmReceiver"
+    android:exported="false" />
+
+<!--
+  Handles "TAKEN" and "SNOOZE 15 MIN" notification action buttons.
+  exported="false" — only our own app sends these intents.
+  The intent-filter is required so the system can route the action strings.
+-->
+<receiver
+    android:name=".data.alarm.ReminderActionReceiver"
+    android:exported="false">
+    <intent-filter>
+        <action android:name="com.tuckercr.ezlauncher.ACTION_TAKEN" />
+        <action android:name="com.tuckercr.ezlauncher.ACTION_SNOOZE" />
+    </intent-filter>
+</receiver>
+
+<!-- Restores all alarms after a device reboot -->
+<receiver
+    android:name=".data.alarm.BootCompletedReceiver"
+    android:exported="true">
+    <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED" />
+    </intent-filter>
+</receiver>
+
+<!--
+  ══════════════════════════════════════════════════════════════════════════════
+  3. EZLauncherApplication.kt — add this call inside onCreate()
+  ══════════════════════════════════════════════════════════════════════════════
+
+  @HiltAndroidApp
+  class EZLauncherApplication : Application() {
+
+      @Inject lateinit var notificationHelper: ReminderNotificationHelper
+
+      override fun onCreate() {
+          super.onCreate()
+          notificationHelper.createChannel()   // ← add this
+      }
+  }
+
+  Note: createChannel() is idempotent — safe to call on every app start.
+  The channel must exist before any notification is posted.
+-->

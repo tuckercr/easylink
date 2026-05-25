@@ -1,0 +1,65 @@
+<!--
+  Inbox — AndroidManifest.xml additions
+  =======================================
+  Merge these snippets into your existing AndroidManifest.xml.
+
+  ══════════════════════════════════════════════════════════════════════════════
+  1. PERMISSIONS — add inside <manifest> alongside existing permissions
+  ══════════════════════════════════════════════════════════════════════════════
+-->
+
+<!--
+  READ_CALL_LOG — reads recent call history from CallLog.Calls.
+  Separated from READ_CONTACTS since Android 9 (API 28).
+  Classified as a dangerous permission; requested at runtime in InboxFragment.
+  Google Play requires a declaration in the Play Console Data Safety section.
+-->
+<uses-permission android:name="android.permission.READ_CALL_LOG" />
+
+<!--
+  READ_SMS — reads the SMS database via Telephony.Sms.
+  Dangerous permission; requested at runtime.
+  Note: apps that only read SMS for their own use-case may need to apply
+  for the SMS permission via Play Console's Permissions Declaration Form.
+  EZ Launcher reads SMS purely to display a simplified inbox — no sending,
+  no data upload, no third-party sharing.
+-->
+<uses-permission android:name="android.permission.READ_SMS" />
+
+<!--
+  READ_CONTACTS — already added for Speed Dial; included here for reference.
+  SmsReader.resolveContact() uses ContactsContract.PhoneLookup to resolve
+  SMS sender addresses to display names and photos.
+-->
+<!-- <uses-permission android:name="android.permission.READ_CONTACTS" /> -->
+
+<!--
+  CALL_PHONE — already added for SOS and Speed Dial; included here for reference.
+  InboxViewModel.onCallTapped() uses ACTION_CALL to dial back.
+-->
+<!-- <uses-permission android:name="android.permission.CALL_PHONE" /> -->
+
+<!--
+  ══════════════════════════════════════════════════════════════════════════════
+  2. GOOGLE PLAY — Data Safety section (required declarations)
+  ══════════════════════════════════════════════════════════════════════════════
+
+  EZ Launcher uses the following data in the Data Safety form:
+  ┌──────────────────────────────────────────────────────────────────────────┐
+  │ Data type            │ Collected? │ Shared? │ Required? │ Purpose        │
+  ├──────────────────────┼────────────┼─────────┼───────────┼────────────────┤
+  │ Phone number (calls) │ No         │ No      │ Optional  │ App feature    │
+  │ SMS messages         │ No         │ No      │ Optional  │ App feature    │
+  │ Contacts             │ No         │ No      │ Optional  │ App feature    │
+  └──────────────────────────────────────────────────────────────────────────┘
+  Data is read on-device only — never uploaded, stored on a server, or shared
+  with third parties. This must be declared honestly in Play Console.
+
+  ══════════════════════════════════════════════════════════════════════════════
+  3. PROGUARD — add to proguard-rules.pro
+  ══════════════════════════════════════════════════════════════════════════════
+
+  # Keep Telephony constants used by SmsReader
+  -keep class android.provider.Telephony { *; }
+  -keep class android.provider.CallLog { *; }
+-->

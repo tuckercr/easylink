@@ -1,0 +1,92 @@
+name: Release — Signed AAB to Play Store
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'   # Trigger on semantic version tags, e.g. v2.1.0
+
+jobs:
+  release:
+    name: Build & Sign Release AAB
+    runs-on: ubuntu-latest
+    environment: production              # Requires manual approval in GitHub Environments
+    permissions:
+      contents: write                    # Needed to create GitHub Release
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0                 # Full history for changelog generation
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', '**/libs.versions.toml') }}
+
+      # ── Decode keystore from secret ────────────────────────────────────────
+      # The keystore is stored as a base64 secret in GitHub Settings → Secrets.
+      # To encode: base64 -i release.jks | pbcopy
+      - name: Decode keystore
+        run: |
+          mkdir -p app/keystore
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/keystore/release.jks
+
+      # ── Run full test suite before releasing ───────────────────────────────
+      - name: Run tests
+        run: ./gradlew testReleaseUnitTest --stacktrace
+
+      # ── Build signed release AAB ───────────────────────────────────────────
+      # AAB (Android App Bundle) is required for Play Store; APK is for sideloading.
+      - name: Build release AAB
+        env:
+          KEYSTORE_PATH:     app/keystore/release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS:         ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD:      ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew bundleRelease --stacktrace
+
+      - name: Build release APK (for GitHub Release asset)
+        env:
+          KEYSTORE_PATH:     app/keystore/release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS:         ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD:      ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew assembleRelease --stacktrace
+
+      # ── Create GitHub Release ──────────────────────────────────────────────
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "EZ Launcher ${{ github.ref_name }}"
+          generate_release_notes: true
+          files: |
+            app/build/outputs/bundle/release/app-release.aab
+            app/build/outputs/apk/release/app-release.apk
+
+      # ── Upload to Play Store internal track ────────────────────────────────
+      # Requires the Google Play Android Developer API service account JSON
+      # stored in PLAY_SERVICE_ACCOUNT_JSON secret.
+      # Remove or comment this step until you have Play Console access.
+      # - name: Upload to Play Store (internal testing)
+      #   uses: r0adkll/upload-google-play@v1
+      #   with:
+      #     serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+      #     packageName: com.tuckercr.ezlauncher
+      #     releaseFiles: app/build/outputs/bundle/release/app-release.aab
+      #     track: internal
+      #     status: completed
+
+      # ── Cleanup keystore from runner ───────────────────────────────────────
+      - name: Clean up keystore
+        if: always()
+        run: rm -f app/keystore/release.jks
