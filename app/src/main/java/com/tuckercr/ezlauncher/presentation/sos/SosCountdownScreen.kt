@@ -15,7 +15,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,6 +32,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tuckercr.ezlauncher.R
 import com.tuckercr.ezlauncher.domain.model.SosResult
 import com.tuckercr.ezlauncher.ui.theme.ColorSos
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun SosCountdownScreen(
@@ -44,7 +44,7 @@ fun SosCountdownScreen(
     // Navigate away automatically when cancelled or done
     LaunchedEffect(state) {
         if (state is SosUiState.Cancelled || state is SosUiState.Done) {
-            kotlinx.coroutines.delay(2_000)
+            kotlinx.coroutines.delay(2_000.milliseconds)
             onFinished()
         }
     }
@@ -111,7 +111,10 @@ private fun CountingContent(secondsRemaining: Int, onCancel: () -> Unit) {
         Spacer(Modifier.height(16.dp))
         Button(
             onClick = onCancel,
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF555555)),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF555555),
+                contentColor   = Color.White,
+            ),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(72.dp),

@@ -21,6 +21,9 @@
         </intent>
     </queries>
 
+    <!-- ── Voice commands ───────────────────────────────────────────────────── -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
     <!-- ── SOS ────────────────────────────────────────────────────────────── -->
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.SEND_SMS" />
@@ -44,8 +47,10 @@
 
     <!-- ── Fall detection ────────────────────────────────────────────────────── -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <!-- Required on API 34+ for TYPE_ACCELEROMETER health-monitoring services -->
+    <!-- Required on API 34+ for foregroundServiceType="health" -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
+    <!-- Companion permission required by health FGS type (install-time, API 31+, ignored below) -->
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
 
     <uses-feature
         android:name="android.hardware.camera"

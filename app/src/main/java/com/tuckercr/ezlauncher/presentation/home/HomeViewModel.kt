@@ -25,7 +25,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val repository: AppRepository,
+    repository: AppRepository,
     private val launchAppUseCase: LaunchAppUseCase,
     private val homePrefs: HomePreferencesDataSource,
     private val weatherService: WeatherService,
@@ -89,6 +89,11 @@ class HomeViewModel @Inject constructor(
 
     fun toggleFlashlight() {
         _isFlashlightOn.update { !it }
+    }
+
+    /** Set the flashlight to a specific on/off state (used by voice commands). */
+    fun setFlashlightEnabled(enabled: Boolean) {
+        _isFlashlightOn.value = enabled
     }
 
     fun onAppTapped(packageName: String) {
