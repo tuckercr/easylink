@@ -3,6 +3,8 @@ package com.tuckercr.ezlauncher.data.inbox
 import android.content.ContentResolver
 import android.database.ContentObserver
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -38,7 +40,7 @@ fun observeUri(
     uri: Uri,
 ): Flow<Unit> =
     callbackFlow {
-        val observer = object : ContentObserver(null) {
+        val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
             override fun onChange(selfChange: Boolean) {
                 trySend(Unit)
             }

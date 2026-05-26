@@ -10,9 +10,12 @@ import com.tuckercr.ezlauncher.domain.model.InboxItem
 import com.tuckercr.ezlauncher.domain.usecase.GetRecentInboxItemsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -36,13 +39,26 @@ import javax.inject.Inject
  * correct thread. We let the system handle it rather than building a full
  * in-app messaging view — simplicity wins for elderly users.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class InboxViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    getRecentItems: GetRecentInboxItemsUseCase,
+    private val getRecentItems: GetRecentInboxItemsUseCase,
 ) : ViewModel() {
 
-    val uiState: StateFlow<InboxUiState> = getRecentItems()
+    /**
+     * Incrementing this counter cancels the current [getRecentItems] subscription
+     * and starts a fresh one via [flatMapLatest], re-registering the ContentObservers
+     * and running a new query immediately.  Called every time the screen becomes visible.
+     */
+    private val refreshTick = MutableStateFlow(0)
+
+    fun refresh() {
+        refreshTick.value++
+    }
+
+    val uiState: StateFlow<InboxUiState> = refreshTick
+        .flatMapLatest { getRecentItems() }
         .map { items ->
             if (items.isEmpty()) {
                 InboxUiState.Empty

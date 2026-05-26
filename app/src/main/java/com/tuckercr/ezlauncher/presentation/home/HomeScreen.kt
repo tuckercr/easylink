@@ -1,15 +1,15 @@
 package com.tuckercr.ezlauncher.presentation.home
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
 import android.provider.MediaStore
 import android.view.HapticFeedbackConstants
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -48,7 +48,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tuckercr.ezlauncher.R
 import com.tuckercr.ezlauncher.domain.model.HomeButton
@@ -572,29 +571,34 @@ private fun HomeActionButton(
 
 @Composable
 private fun FlashlightEffect(enabled: Boolean) {
-    if (!enabled) return
-
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
 
-    DisposableEffect(Unit) {
-        var provider: ProcessCameraProvider? = null
-        val future = ProcessCameraProvider.getInstance(context)
-        future.addListener({
-            provider = future.get()
+    DisposableEffect(enabled) {
+        val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        val torchCameraId = try {
+            cameraManager.cameraIdList.firstOrNull { id ->
+                cameraManager
+                    .getCameraCharacteristics(id)
+                    .get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
+            }
+        } catch (_: Exception) {
+            null
+        }
+
+        if (torchCameraId != null) {
             try {
-                val preview = Preview.Builder().build()
-                provider?.unbindAll()
-                val cam = provider?.bindToLifecycle(
-                    lifecycleOwner,
-                    CameraSelector.DEFAULT_BACK_CAMERA,
-                    preview,
-                )
-                cam?.cameraControl?.enableTorch(true)
+                cameraManager.setTorchMode(torchCameraId, enabled)
             } catch (_: Exception) {
             }
-        }, ContextCompat.getMainExecutor(context))
+        }
 
-        onDispose { provider?.unbindAll() }
+        onDispose {
+            if (torchCameraId != null) {
+                try {
+                    cameraManager.setTorchMode(torchCameraId, false)
+                } catch (_: Exception) {
+                }
+            }
+        }
     }
 }
