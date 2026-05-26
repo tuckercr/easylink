@@ -1,6 +1,5 @@
 package com.tuckercr.ezlauncher.presentation.apps
 
-import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -8,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,13 +17,10 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -39,12 +36,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tuckercr.ezlauncher.R
 import com.tuckercr.ezlauncher.domain.model.AppInfo
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppsScreen(
     onBack: () -> Unit,
@@ -52,60 +48,70 @@ fun AppsScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("All Apps", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_home),
-                            contentDescription = "Back",
-                        )
-                    }
-                },
-            )
-        },
-    ) { innerPadding ->
-        Box(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+    ) {
+        // ── Header ────────────────────────────────────────────────────────────
+        // Plain Row instead of TopAppBar+Scaffold — avoids double status-bar
+        // padding from the outer NavHost Scaffold.
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            when (val s = state) {
-                is AppsUiState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            IconButton(onClick = onBack) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_home),
+                    contentDescription = "Home",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.size(28.dp),
+                )
+            }
+            Text(
+                text = "All Apps",
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+        }
+
+        // ── Content ───────────────────────────────────────────────────────────
+        when (val s = state) {
+            is AppsUiState.Loading -> {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
-                is AppsUiState.Error -> {
+            }
+            is AppsUiState.Error -> {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
                         text = s.message,
                         color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(16.dp),
+                        modifier = Modifier.padding(16.dp),
                         textAlign = TextAlign.Center,
                     )
                 }
-                is AppsUiState.Success -> {
-                    if (s.apps.isEmpty()) {
-                        Text(
-                            text = "No apps found",
-                            modifier = Modifier.align(Alignment.Center),
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                    } else {
-                        LazyVerticalGrid(
-                            columns = GridCells.Fixed(3),
-                            contentPadding = PaddingValues(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            items(s.apps, key = { it.packageName }) { app ->
-                                AppGridItem(
-                                    app = app,
-                                    onClick = { viewModel.onAppTapped(app.packageName) },
-                                )
-                            }
+            }
+            is AppsUiState.Success -> {
+                if (s.apps.isEmpty()) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("No apps found", color = MaterialTheme.colorScheme.onBackground)
+                    }
+                } else {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(3),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        items(s.apps, key = { it.packageName }) { app ->
+                            AppGridItem(
+                                app = app,
+                                onClick = { viewModel.onAppTapped(app.packageName) },
+                            )
                         }
                     }
                 }
@@ -119,42 +125,43 @@ private fun AppGridItem(
     app: AppInfo,
     onClick: () -> Unit,
 ) {
+    // Render at 2× pixel density so icons are sharp on hdpi+ screens
+    val bitmap: ImageBitmap? = remember(app.packageName) {
+        app.icon?.let { drawable ->
+            runCatching { drawable.toBitmap(128, 128).asImageBitmap() }.getOrNull()
+        }
+    }
+
     Column(
         modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
-            .padding(8.dp),
+            .padding(vertical = 14.dp, horizontal = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        val bitmap: ImageBitmap? = remember(app.packageName) {
-            app.icon?.let { drawable ->
-                runCatching { drawable.toBitmap(96, 96).asImageBitmap() }.getOrNull()
-            }
-        }
         if (bitmap != null) {
             Image(
                 bitmap = bitmap,
-                contentDescription = app.label,
-                modifier = Modifier.size(56.dp),
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
             )
         } else {
             Icon(
                 painter = painterResource(R.drawable.ic_home),
-                contentDescription = app.label,
-                modifier = Modifier.size(56.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.size(64.dp),
             )
         }
         Text(
             text = app.label,
-            fontSize = 12.sp,
+            fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.fillMaxWidth(),
         )
     }
