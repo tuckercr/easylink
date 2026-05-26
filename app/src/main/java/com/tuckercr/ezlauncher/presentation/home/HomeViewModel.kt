@@ -2,6 +2,10 @@ package com.tuckercr.ezlauncher.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tuckercr.ezlauncher.data.preferences.HomePreferencesDataSource
+import com.tuckercr.ezlauncher.data.weather.WeatherService
+import com.tuckercr.ezlauncher.domain.model.HomeButton
+import com.tuckercr.ezlauncher.domain.model.WeatherInfo
 import com.tuckercr.ezlauncher.domain.repository.AppRepository
 import com.tuckercr.ezlauncher.domain.usecase.LaunchAppUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,46 +23,40 @@ import java.util.Timer
 import java.util.TimerTask
 import javax.inject.Inject
 
-/**
- * ViewModel for the Home (launcher) screen.
- *
- * Key design decisions:
- *  - All state is exposed as [StateFlow] (not LiveData) — works better
- *    with Kotlin coroutines and is lifecycle-aware via [repeatOnLifecycle].
- *  - The ViewModel never references the View or Fragment. It only produces
- *    [HomeUiState] and receives user intent via plain function calls.
- *  - Hilt injects dependencies — no manual factory boilerplate needed.
- */
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val repository: AppRepository,
     private val launchAppUseCase: LaunchAppUseCase,
+    private val homePrefs: HomePreferencesDataSource,
+    private val weatherService: WeatherService,
 ) : ViewModel() {
 
     // ── Private mutable state ─────────────────────────────────────────────────
 
     private val _isFlashlightOn = MutableStateFlow(false)
-    private val _currentTime = MutableStateFlow(formatTime())
+    private val _currentTime    = MutableStateFlow(formatTime())
+    private val _weather        = MutableStateFlow<WeatherInfo>(WeatherInfo.Loading)
 
     // ── Public UI state (read-only) ───────────────────────────────────────────
 
-    /**
-     * Single source of truth for the Home screen.
-     * The Fragment observes this; all rendering decisions are driven by it.
-     */
     val uiState: StateFlow<HomeUiState> = combine(
         repository.observeBatteryState(),
         _isFlashlightOn,
         _currentTime,
-    ) { batteryState, flashlight, time ->
+        homePrefs.enabledButtons,
+        _weather,
+    ) { battery, flashlight, time, buttons, weather ->
         HomeUiState.Success(
-            batteryState = batteryState,
+            batteryState   = battery,
             isFlashlightOn = flashlight,
-            currentTime = time,
+            currentTime    = time,
+            // Preserve the canonical enum order so the grid is stable
+            enabledButtons = HomeButton.entries.filter { it in buttons },
+            weather        = weather,
         )
     }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
+        scope        = viewModelScope,
+        started      = SharingStarted.WhileSubscribed(5_000),
         initialValue = HomeUiState.Loading,
     )
 
@@ -66,29 +64,40 @@ class HomeViewModel @Inject constructor(
 
     private val clockTimer = Timer().also { timer ->
         timer.scheduleAtFixedRate(object : TimerTask() {
-            override fun run() {
-                _currentTime.value = formatTime()
-            }
-        }, 0L, 60_000L) // update every minute
+            override fun run() { _currentTime.value = formatTime() }
+        }, 0L, 60_000L)
     }
 
     private fun formatTime(): String =
         SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
 
-    // ── User intents ──────────────────────────────────────────────────────────
+    // ── Weather ───────────────────────────────────────────────────────────────
 
-    /** Called when the user taps the flashlight toggle button. */
-    fun toggleFlashlight() {
-        _isFlashlightOn.update { !it }
-        // Actual camera torch control happens in the Fragment via CameraX
-        // because it needs a lifecycle owner. The ViewModel only tracks state.
+    init { fetchWeather() }
+
+    /** Re-fetch weather (called on init and when the user grants location). */
+    fun refreshWeather() { fetchWeather() }
+
+    private fun fetchWeather() {
+        viewModelScope.launch {
+            _weather.value = WeatherInfo.Loading
+            _weather.value = weatherService.fetch()
+        }
     }
 
-    /** Called when the user taps a quick-launch app tile. */
+    // ── User intents ──────────────────────────────────────────────────────────
+
+    fun toggleFlashlight() {
+        _isFlashlightOn.update { !it }
+    }
+
     fun onAppTapped(packageName: String) {
-        viewModelScope.launch {
-            launchAppUseCase(packageName)
-        }
+        viewModelScope.launch { launchAppUseCase(packageName) }
+    }
+
+    /** Toggle a home button on/off; persisted to DataStore. */
+    fun setButtonEnabled(button: HomeButton, enabled: Boolean) {
+        viewModelScope.launch { homePrefs.setButtonEnabled(button, enabled) }
     }
 
     // ── Cleanup ───────────────────────────────────────────────────────────────

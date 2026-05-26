@@ -23,6 +23,7 @@ import com.tuckercr.ezlauncher.R
 import com.tuckercr.ezlauncher.presentation.apps.AppsScreen
 import com.tuckercr.ezlauncher.presentation.clock.ClockScreen
 import com.tuckercr.ezlauncher.presentation.home.HomeScreen
+import com.tuckercr.ezlauncher.presentation.home.customize.CustomizeHomeScreen
 import com.tuckercr.ezlauncher.presentation.inbox.InboxScreen
 import com.tuckercr.ezlauncher.presentation.magnifier.MagnifierScreen
 import com.tuckercr.ezlauncher.presentation.medications.MedicationsScreen
@@ -45,6 +46,7 @@ object Routes {
     const val ADD_MEDICATION  = "add_medication"
     const val EDIT_MEDICATION = "edit_medication/{medicationId}"
     const val CLOCK           = "clock"
+    const val CUSTOMIZE_HOME  = "customize_home"
 
     fun editMedication(id: Long) = "edit_medication/$id"
 }
@@ -120,7 +122,11 @@ fun EzLauncherNavHost() {
                     onNavigateToApps      = { navController.navigate(Routes.APPS) },
                     onNavigateToMagnifier = { navController.navigate(Routes.MAGNIFIER) },
                     onNavigateToSos       = { navController.navigate(Routes.SOS_COUNTDOWN) },
+                    onNavigateToCustomize = { navController.navigate(Routes.CUSTOMIZE_HOME) },
                 )
+            }
+            composable(Routes.CUSTOMIZE_HOME) {
+                CustomizeHomeScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.APPS) {
                 AppsScreen(onBack = { navController.popBackStack() })
