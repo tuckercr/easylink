@@ -2,11 +2,15 @@ package com.tuckercr.ezlauncher.presentation.home.customize
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tuckercr.ezlauncher.data.fall.FallDetectionManager
+import com.tuckercr.ezlauncher.data.preferences.FallDetectionPreferences
 import com.tuckercr.ezlauncher.data.preferences.HomePreferencesDataSource
+import com.tuckercr.ezlauncher.domain.model.FallSensitivity
 import com.tuckercr.ezlauncher.domain.model.HomeButton
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -18,28 +22,53 @@ data class ButtonToggleItem(
     val isEnabled: Boolean,
 )
 
+data class CustomizeUiState(
+    val buttons: List<ButtonToggleItem>  = emptyList(),
+    val fallDetectionEnabled: Boolean    = false,
+    val fallSensitivity: FallSensitivity = FallSensitivity.MEDIUM,
+)
+
 @HiltViewModel
 class CustomizeHomeViewModel @Inject constructor(
-    private val homePrefs: HomePreferencesDataSource,
+    private val homePrefs:   HomePreferencesDataSource,
+    private val fallPrefs:   FallDetectionPreferences,
+    private val fallManager: FallDetectionManager,
 ) : ViewModel() {
 
-    val items: StateFlow<List<ButtonToggleItem>> = homePrefs.enabledButtons
-        .map { enabled ->
-            HomeButton.entries.map { btn ->
-                ButtonToggleItem(
-                    button    = btn,
-                    label     = btn.defaultLabel,
-                    isEnabled = btn in enabled,
-                )
-            }
-        }
-        .stateIn(
-            scope        = viewModelScope,
-            started      = SharingStarted.WhileSubscribed(5_000),
-            initialValue = HomeButton.entries.map { ButtonToggleItem(it, it.defaultLabel, true) },
+    val uiState: StateFlow<CustomizeUiState> = combine(
+        homePrefs.enabledButtons,
+        fallPrefs.isEnabled,
+        fallPrefs.sensitivity,
+    ) { enabled, fallEnabled, sensitivity ->
+        CustomizeUiState(
+            buttons = HomeButton.entries.map { btn ->
+                ButtonToggleItem(btn, btn.defaultLabel, btn in enabled)
+            },
+            fallDetectionEnabled = fallEnabled,
+            fallSensitivity      = sensitivity,
         )
+    }.stateIn(
+        scope        = viewModelScope,
+        started      = SharingStarted.WhileSubscribed(5_000),
+        initialValue = CustomizeUiState(),
+    )
+
+    // ── Home buttons ──────────────────────────────────────────────────────────
 
     fun toggle(button: HomeButton, enabled: Boolean) {
         viewModelScope.launch { homePrefs.setButtonEnabled(button, enabled) }
+    }
+
+    // ── Fall detection ────────────────────────────────────────────────────────
+
+    fun setFallDetectionEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            fallPrefs.setEnabled(enabled)
+            if (enabled) fallManager.start() else fallManager.stop()
+        }
+    }
+
+    fun setFallSensitivity(sensitivity: FallSensitivity) {
+        viewModelScope.launch { fallPrefs.setSensitivity(sensitivity) }
     }
 }

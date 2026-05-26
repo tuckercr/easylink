@@ -44,6 +44,11 @@
     <!-- Required for BootCompletedReceiver to restore alarms after reboot -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <!-- ── Fall detection ────────────────────────────────────────────────────── -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Required on API 34+ for TYPE_ACCELEROMETER health-monitoring services -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -91,6 +96,20 @@
         <receiver
             android:name=".data.alarm.ReminderActionReceiver"
             android:exported="false" />
+
+        <!-- ── Fall detection ─────────────────────────────────────────────── -->
+        <service
+            android:name=".data.fall.FallDetectionService"
+            android:exported="false"
+            android:foregroundServiceType="health" />
+
+        <activity
+            android:name=".presentation.fall.FallAlertActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <receiver
             android:name=".data.alarm.BootCompletedReceiver"
