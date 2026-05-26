@@ -11,7 +11,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -23,15 +22,15 @@ data class ButtonToggleItem(
 )
 
 data class CustomizeUiState(
-    val buttons: List<ButtonToggleItem>  = emptyList(),
-    val fallDetectionEnabled: Boolean    = false,
+    val buttons: List<ButtonToggleItem> = emptyList(),
+    val fallDetectionEnabled: Boolean = false,
     val fallSensitivity: FallSensitivity = FallSensitivity.MEDIUM,
 )
 
 @HiltViewModel
 class CustomizeHomeViewModel @Inject constructor(
-    private val homePrefs:   HomePreferencesDataSource,
-    private val fallPrefs:   FallDetectionPreferences,
+    private val homePrefs: HomePreferencesDataSource,
+    private val fallPrefs: FallDetectionPreferences,
     private val fallManager: FallDetectionManager,
 ) : ViewModel() {
 
@@ -45,11 +44,11 @@ class CustomizeHomeViewModel @Inject constructor(
                 ButtonToggleItem(btn, btn.defaultLabel, btn in enabled)
             },
             fallDetectionEnabled = fallEnabled,
-            fallSensitivity      = sensitivity,
+            fallSensitivity = sensitivity,
         )
     }.stateIn(
-        scope        = viewModelScope,
-        started      = SharingStarted.WhileSubscribed(5_000),
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
         initialValue = CustomizeUiState(),
     )
 

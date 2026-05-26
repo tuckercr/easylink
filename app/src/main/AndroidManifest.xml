@@ -41,8 +41,6 @@
         android:name="android.permission.SCHEDULE_EXACT_ALARM"
         tools:ignore="ExactAlarm" />
 
-    <!-- Required for BootCompletedReceiver to restore alarms after reboot -->
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!-- ── Fall detection ────────────────────────────────────────────────────── -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
