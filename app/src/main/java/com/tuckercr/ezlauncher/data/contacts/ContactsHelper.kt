@@ -1,14 +1,18 @@
 package com.tuckercr.ezlauncher.data.contacts
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.ContactsContract
+import androidx.core.content.ContextCompat
 import com.tuckercr.ezlauncher.domain.model.DeviceContact
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import androidx.core.net.toUri
 
 /**
  * Reads contacts from the Android [ContactsContract] content provider.
@@ -35,6 +39,13 @@ class ContactsHelper @Inject constructor(
      */
     suspend fun searchContacts(query: String, limit: Int = 50): List<DeviceContact> =
         withContext(Dispatchers.IO) {
+            val hasPermission = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.READ_CONTACTS
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (!hasPermission) return@withContext emptyList()
+
             val results = mutableListOf<DeviceContact>()
 
             val selection = if (query.isBlank()) {
@@ -78,7 +89,7 @@ class ContactsHelper @Inject constructor(
                         contactId   = contactId,
                         name        = name,
                         phoneNumber = number,
-                        photoUri    = photoUriStr?.let { s -> Uri.parse(s) },
+                        photoUri    = photoUriStr?.toUri(),
                     )
                 }
             }

@@ -1,9 +1,12 @@
 package com.tuckercr.ezlauncher.presentation.voice
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.MediaStore
+import androidx.core.content.ContextCompat
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -229,6 +232,10 @@ class VoiceCommandViewModel @Inject constructor(
     }
 
     private suspend fun executeCall(raw: String, name: String) {
+        if (!hasContactsPermission()) {
+            _uiState.value = VoiceUiState.Error("Contacts permission required for \"Call\" commands")
+            return
+        }
         val contact = contactsHelper.searchContacts(name, limit = 1).firstOrNull()
         if (contact == null) {
             _uiState.value = VoiceUiState.Error("Can't find contact \"$name\"")
@@ -243,6 +250,10 @@ class VoiceCommandViewModel @Inject constructor(
     }
 
     private suspend fun executeText(raw: String, name: String) {
+        if (!hasContactsPermission()) {
+            _uiState.value = VoiceUiState.Error("Contacts permission required for \"Text\" commands")
+            return
+        }
         val contact = contactsHelper.searchContacts(name, limit = 1).firstOrNull()
         if (contact == null) {
             _uiState.value = VoiceUiState.Error("Can't find contact \"$name\"")
@@ -255,6 +266,11 @@ class VoiceCommandViewModel @Inject constructor(
         )
         autoDismiss()
     }
+
+    private fun hasContactsPermission(): Boolean =
+        ContextCompat.checkSelfPermission(
+            context, Manifest.permission.READ_CONTACTS
+        ) == PackageManager.PERMISSION_GRANTED
 
     private suspend fun executeOpenApp(raw: String, appName: String) {
         val apps = appRepository.getInstalledApps().first()

@@ -81,6 +81,7 @@ fun HomeScreen(
     onNavigateToMagnifier: () -> Unit,
     onNavigateToSos: () -> Unit,
     onNavigateToCustomize: () -> Unit,
+    onNavigateToForecast: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val voiceState by voiceViewModel.uiState.collectAsStateWithLifecycle()
@@ -188,7 +189,7 @@ fun HomeScreen(
                         // Gear icon → customise screen
                         IconButton(onClick = onNavigateToCustomize) {
                             Icon(
-                                painter = painterResource(R.drawable.ic_home),
+                                painter = painterResource(R.drawable.ic_settings),
                                 contentDescription = "Customise buttons",
                                 tint = Color.White.copy(alpha = 0.7f),
                                 modifier = Modifier.size(24.dp),
@@ -203,6 +204,7 @@ fun HomeScreen(
                             locationLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
                         },
                         onRefresh = { viewModel.refreshWeather() },
+                        onNavigateToForecast = onNavigateToForecast,
                     )
 
                     Spacer(Modifier.weight(1f))
@@ -316,6 +318,7 @@ private fun WeatherCard(
     weather: WeatherInfo,
     onRequestPermission: () -> Unit,
     onRefresh: () -> Unit,
+    onNavigateToForecast: () -> Unit,
 ) {
     val cardModifier = Modifier
         .fillMaxWidth()
@@ -337,7 +340,7 @@ private fun WeatherCard(
 
         is WeatherInfo.Available -> {
             Row(
-                modifier = cardModifier.clickable(onClick = onRefresh),
+                modifier = cardModifier.clickable(onClick = onNavigateToForecast),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
@@ -354,12 +357,15 @@ private fun WeatherCard(
                             fontWeight = FontWeight.Bold,
                         )
                         Text(
-                            text = weather.description,
+                            text = weather.city?.let { "$it · ${weather.description}" }
+                                ?: weather.description,
                             color = Color.White.copy(alpha = 0.8f),
                             fontSize = 13.sp,
                         )
                     }
                 }
+                // Chevron hint — tapping opens forecast
+                Text("›", color = Color.White.copy(alpha = 0.5f), fontSize = 22.sp)
             }
         }
 
@@ -480,7 +486,7 @@ private fun SingleHomeButton(
 
         HomeButton.CAMERA -> HomeActionButton(
             label = "Camera",
-            iconRes = R.drawable.ic_home,
+            iconRes = R.drawable.ic_camera,
             color = ColorCamera,
             modifier = modifier,
             onClick = onCamera,
@@ -489,7 +495,7 @@ private fun SingleHomeButton(
 
         HomeButton.MAGNIFIER -> HomeActionButton(
             label = "Magnifier",
-            iconRes = R.drawable.ic_home,
+            iconRes = R.drawable.ic_magnifier,
             color = ColorMagnifier,
             modifier = modifier,
             onClick = onMagnifier,
@@ -507,7 +513,7 @@ private fun SingleHomeButton(
 
         HomeButton.FLASHLIGHT -> HomeActionButton(
             label = if (isFlashlightOn) "Light On" else "Flashlight",
-            iconRes = R.drawable.ic_home,
+            iconRes = R.drawable.ic_flashlight,
             color = if (isFlashlightOn) ColorFlashlight else ColorFlashlight.copy(alpha = 0.6f),
             modifier = modifier,
             onClick = onFlashlight,

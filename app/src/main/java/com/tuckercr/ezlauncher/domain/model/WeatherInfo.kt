@@ -18,6 +18,8 @@ sealed class WeatherInfo {
         val temperatureCelsius: Double,
         val description: String,
         val emoji: String,
+        /** Reverse-geocoded city name, or null if geocoding is unavailable. */
+        val city: String? = null,
     ) : WeatherInfo() {
         val displayTemp: String get() = "${temperatureCelsius.toInt()}°C"
     }

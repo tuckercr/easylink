@@ -1,10 +1,13 @@
 package com.tuckercr.ezlauncher.data.inbox
 
 import android.content.ContentResolver
+import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.CallLog
 import com.tuckercr.ezlauncher.domain.model.CallType
 import com.tuckercr.ezlauncher.domain.model.InboxItem
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -26,16 +29,22 @@ import javax.inject.Singleton
  *
  * ## Photo URI
  * [CallLog.Calls.CACHED_PHOTO_URI] is available on API 21+.
- *
- * @param limit Maximum number of rows to return (ordered by date DESC).
  */
 @Singleton
-class CallLogReader @Inject constructor() {
+class CallLogReader @Inject constructor(
+    @ApplicationContext private val context: Context,
+) {
 
     suspend fun readRecentCalls(
         contentResolver: ContentResolver,
         limit: Int,
     ): List<InboxItem.Call> = withContext(Dispatchers.IO) {
+        val hasPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.READ_CALL_LOG
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (!hasPermission) return@withContext emptyList()
 
         val projection = arrayOf(
             CallLog.Calls._ID,

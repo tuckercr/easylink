@@ -1,10 +1,15 @@
 package com.tuckercr.ezlauncher.data.inbox
 
+import android.Manifest
 import android.content.ContentResolver
+import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.ContactsContract
 import android.provider.Telephony
+import androidx.core.content.ContextCompat
 import com.tuckercr.ezlauncher.domain.model.InboxItem
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -29,18 +34,23 @@ import javax.inject.Singleton
  * We look up the display name and photo for each unique address via
  * [ContactsContract.PhoneLookup] after deduplication, so we only make
  * one query per distinct conversation rather than one per SMS row.
- *
- * @param limit Maximum number of raw SMS rows to scan before deduplication.
- *              Set generously (e.g. 200) so dedup still yields enough threads.
  */
 @Singleton
-class SmsReader @Inject constructor() {
+class SmsReader @Inject constructor(
+    @ApplicationContext private val context: Context,
+) {
 
     suspend fun readRecentThreads(
         contentResolver: ContentResolver,
         limit: Int,
         maxThreads: Int,
     ): List<InboxItem.Message> = withContext(Dispatchers.IO) {
+        val hasSmsPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.READ_SMS
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (!hasSmsPermission) return@withContext emptyList()
 
         val projection = arrayOf(
             Telephony.Sms._ID,
@@ -112,12 +122,19 @@ class SmsReader @Inject constructor() {
 
     /**
      * Looks up [address] in the device contacts and returns (displayName, photoUri).
-     * Returns (null, null) if the address is not found in contacts.
+     * Returns (null, null) if the address is not found in contacts or permission is missing.
      */
     private fun resolveContact(
         contentResolver: ContentResolver,
         address: String,
     ): Pair<String?, Uri?> {
+        val hasPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.READ_CONTACTS
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (!hasPermission) return Pair(null, null)
+
         val uri = Uri.withAppendedPath(
             ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
             Uri.encode(address),

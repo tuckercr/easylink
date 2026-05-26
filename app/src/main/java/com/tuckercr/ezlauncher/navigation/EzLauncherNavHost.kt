@@ -1,7 +1,11 @@
 package com.tuckercr.ezlauncher.navigation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -11,6 +15,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -20,6 +28,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.tuckercr.ezlauncher.R
+import com.tuckercr.ezlauncher.data.preferences.OnboardingPreferences
 import com.tuckercr.ezlauncher.presentation.apps.AppsScreen
 import com.tuckercr.ezlauncher.presentation.clock.ClockScreen
 import com.tuckercr.ezlauncher.presentation.home.HomeScreen
@@ -28,13 +37,22 @@ import com.tuckercr.ezlauncher.presentation.inbox.InboxScreen
 import com.tuckercr.ezlauncher.presentation.magnifier.MagnifierScreen
 import com.tuckercr.ezlauncher.presentation.medications.MedicationsScreen
 import com.tuckercr.ezlauncher.presentation.medications.add.AddMedicationScreen
+import com.tuckercr.ezlauncher.presentation.forecast.ForecastScreen
+import com.tuckercr.ezlauncher.presentation.onboarding.OnboardingScreen
 import com.tuckercr.ezlauncher.presentation.sos.SosCountdownScreen
 import com.tuckercr.ezlauncher.presentation.speeddial.SpeedDialScreen
 import com.tuckercr.ezlauncher.presentation.speeddial.add.AddSpeedDialScreen
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 // ── Route constants ───────────────────────────────────────────────────────────
 
 object Routes {
+    const val ONBOARDING      = "onboarding"
     const val HOME            = "home"
     const val APPS            = "apps"
     const val SPEED_DIAL      = "speed_dial"
@@ -47,11 +65,36 @@ object Routes {
     const val EDIT_MEDICATION = "edit_medication/{medicationId}"
     const val CLOCK           = "clock"
     const val CUSTOMIZE_HOME  = "customize_home"
+    const val FORECAST        = "weather_forecast"
 
     fun editMedication(id: Long) = "edit_medication/$id"
 }
 
-// Bottom-nav tabs (order determines display position left→right)
+// ── Startup ViewModel — determines first screen ───────────────────────────────
+
+/**
+ * Resolves the start destination before the NavHost is built.
+ *
+ * [isOnboardingComplete] emits:
+ *  - null  → still reading DataStore (show a blank loading screen)
+ *  - false → first launch → show onboarding
+ *  - true  → returning user → go straight to home
+ */
+@HiltViewModel
+class StartupViewModel @Inject constructor(
+    prefs: OnboardingPreferences,
+) : ViewModel() {
+    val isOnboardingComplete: StateFlow<Boolean?> = prefs.isComplete
+        .map { it as Boolean? }
+        .stateIn(
+            scope   = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = null,
+        )
+}
+
+// ── Bottom-nav tabs ───────────────────────────────────────────────────────────
+
 private data class BottomNavItem(
     val route: String,
     val labelRes: String,
@@ -71,12 +114,29 @@ private val bottomNavRoutes = bottomNavItems.map { it.route }.toSet()
 // ── Nav host ──────────────────────────────────────────────────────────────────
 
 @Composable
-fun EzLauncherNavHost() {
+fun EzLauncherNavHost(
+    startupViewModel: StartupViewModel = hiltViewModel(),
+) {
+    val isOnboardingComplete by startupViewModel.isOnboardingComplete
+        .collectAsStateWithLifecycle()
+
+    // Show a blank background while DataStore loads (typically < 50 ms)
+    if (isOnboardingComplete == null) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        )
+        return
+    }
+
+    val startDestination =
+        if (isOnboardingComplete == true) Routes.HOME else Routes.ONBOARDING
+
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Only show the bottom bar on the four top-level tabs
     val showBottomBar = currentRoute in bottomNavRoutes
 
     Scaffold(
@@ -101,7 +161,7 @@ fun EzLauncherNavHost() {
                             },
                             icon  = {
                                 Icon(
-                                    painter = painterResource(item.iconRes),
+                                    painter            = painterResource(item.iconRes),
                                     contentDescription = item.labelRes,
                                 )
                             },
@@ -114,15 +174,28 @@ fun EzLauncherNavHost() {
     ) { innerPadding ->
         NavHost(
             navController    = navController,
-            startDestination = Routes.HOME,
+            startDestination = startDestination,
             modifier         = Modifier.padding(innerPadding),
         ) {
+            // ── Onboarding (shown once on first launch) ───────────────────────
+            composable(Routes.ONBOARDING) {
+                OnboardingScreen(
+                    onComplete = {
+                        navController.navigate(Routes.HOME) {
+                            popUpTo(Routes.ONBOARDING) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            // ── Main screens ──────────────────────────────────────────────────
             composable(Routes.HOME) {
                 HomeScreen(
                     onNavigateToApps      = { navController.navigate(Routes.APPS) },
                     onNavigateToMagnifier = { navController.navigate(Routes.MAGNIFIER) },
                     onNavigateToSos       = { navController.navigate(Routes.SOS_COUNTDOWN) },
                     onNavigateToCustomize = { navController.navigate(Routes.CUSTOMIZE_HOME) },
+                    onNavigateToForecast  = { navController.navigate(Routes.FORECAST) },
                 )
             }
             composable(Routes.CUSTOMIZE_HOME) {
@@ -142,7 +215,9 @@ fun EzLauncherNavHost() {
             composable(Routes.MEDICATIONS) {
                 MedicationsScreen(
                     onNavigateToAddMedication  = { navController.navigate(Routes.ADD_MEDICATION) },
-                    onNavigateToEditMedication = { id -> navController.navigate(Routes.editMedication(id)) },
+                    onNavigateToEditMedication = { id ->
+                        navController.navigate(Routes.editMedication(id))
+                    },
                 )
             }
             composable(Routes.MAGNIFIER) {
@@ -159,6 +234,9 @@ fun EzLauncherNavHost() {
             }
             composable(Routes.CLOCK) {
                 ClockScreen()
+            }
+            composable(Routes.FORECAST) {
+                ForecastScreen(onBack = { navController.popBackStack() })
             }
             composable(
                 route = Routes.EDIT_MEDICATION,
