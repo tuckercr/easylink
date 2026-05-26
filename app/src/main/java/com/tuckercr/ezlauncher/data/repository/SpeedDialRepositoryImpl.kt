@@ -60,8 +60,5 @@ class SpeedDialRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun searchDeviceContacts(
-        query: String,
-        limit: Int,
-    ): List<DeviceContact> = contactsHelper.searchContacts(query, limit)
+    override suspend fun searchDeviceContacts(query: String): List<DeviceContact> = contactsHelper.searchContacts(query)
 }

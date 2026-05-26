@@ -1,7 +1,6 @@
 package com.tuckercr.ezlauncher.domain.repository
 
 import com.tuckercr.ezlauncher.domain.model.AppInfo
-import com.tuckercr.ezlauncher.domain.model.BatteryState
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -19,12 +18,6 @@ interface AppRepository {
      * Re-emits whenever a package is installed or removed.
      */
     fun getInstalledApps(): Flow<List<AppInfo>>
-
-    /**
-     * Emits the current battery state and re-emits on every change.
-     * The first emission arrives quickly (it queries the sticky broadcast).
-     */
-    fun observeBatteryState(): Flow<BatteryState>
 
     /**
      * Launches the app identified by [packageName].

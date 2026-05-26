@@ -76,18 +76,9 @@ private val STEPS: List<OnboardingStep> = buildList {
         OnboardingStep(
             emoji = "💬",
             title = "Text Messages",
-            description = "Sends SOS alert messages to your emergency contacts and shows " +
-                "unread texts in your Inbox tab.",
-            permissions = listOf(Manifest.permission.SEND_SMS, Manifest.permission.READ_SMS),
-        ),
-    )
-    add(
-        OnboardingStep(
-            emoji = "📋",
-            title = "Recent Calls",
-            description = "Shows missed calls in your Inbox so you never overlook an " +
-                "important call.",
-            permissions = listOf(Manifest.permission.READ_CALL_LOG),
+            description = "Allows EZ Launcher to send SOS alert messages to your emergency " +
+                "contacts when you trigger an SOS.",
+            permissions = listOf(Manifest.permission.SEND_SMS),
         ),
     )
     add(

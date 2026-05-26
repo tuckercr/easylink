@@ -13,6 +13,13 @@ sealed class WeatherInfo {
     /** Location permission not granted. User must tap to grant it. */
     data object PermissionNeeded : WeatherInfo()
 
+    /**
+     * Location services are turned off at the device level (not a permission issue).
+     * Only shown when there are no cached coordinates to fall back on.
+     * Tapping should open system location settings.
+     */
+    data object LocationDisabled : WeatherInfo()
+
     /** Weather data successfully retrieved. */
     data class Available(
         val temperatureCelsius: Double,
@@ -20,6 +27,11 @@ sealed class WeatherInfo {
         val emoji: String,
         /** Reverse-geocoded city name, or null if geocoding is unavailable. */
         val city: String? = null,
+        /**
+         * True when weather was fetched using a cached location because
+         * live location is currently off or unavailable.
+         */
+        val usingCachedLocation: Boolean = false,
     ) : WeatherInfo() {
         val displayTemp: String get() = "${temperatureCelsius.toInt()}°C"
     }

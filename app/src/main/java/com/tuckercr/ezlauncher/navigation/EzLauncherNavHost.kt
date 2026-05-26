@@ -34,11 +34,11 @@ import com.tuckercr.ezlauncher.presentation.clock.ClockScreen
 import com.tuckercr.ezlauncher.presentation.forecast.ForecastScreen
 import com.tuckercr.ezlauncher.presentation.home.HomeScreen
 import com.tuckercr.ezlauncher.presentation.home.customize.CustomizeHomeScreen
-import com.tuckercr.ezlauncher.presentation.inbox.InboxScreen
 import com.tuckercr.ezlauncher.presentation.magnifier.MagnifierScreen
 import com.tuckercr.ezlauncher.presentation.medications.MedicationsScreen
 import com.tuckercr.ezlauncher.presentation.medications.add.AddMedicationScreen
 import com.tuckercr.ezlauncher.presentation.onboarding.OnboardingScreen
+import com.tuckercr.ezlauncher.presentation.settings.EmergencyContactsScreen
 import com.tuckercr.ezlauncher.presentation.sos.SosCountdownScreen
 import com.tuckercr.ezlauncher.presentation.speeddial.SpeedDialScreen
 import com.tuckercr.ezlauncher.presentation.speeddial.add.AddSpeedDialScreen
@@ -56,7 +56,6 @@ object Routes {
     const val HOME = "home"
     const val APPS = "apps"
     const val SPEED_DIAL = "speed_dial"
-    const val INBOX = "inbox"
     const val MEDICATIONS = "medications"
     const val MAGNIFIER = "magnifier"
     const val SOS_COUNTDOWN = "sos_countdown"
@@ -66,6 +65,7 @@ object Routes {
     const val CLOCK = "clock"
     const val CUSTOMIZE_HOME = "customize_home"
     const val FORECAST = "weather_forecast"
+    const val EMERGENCY_CONTACTS = "emergency_contacts"
 
     fun editMedication(id: Long) = "edit_medication/$id"
 }
@@ -104,9 +104,9 @@ private data class BottomNavItem(
 private val bottomNavItems = listOf(
     BottomNavItem(Routes.HOME, "Home", R.drawable.ic_home),
     BottomNavItem(Routes.SPEED_DIAL, "Speed Dial", R.drawable.ic_call),
-    BottomNavItem(Routes.INBOX, "Inbox", R.drawable.ic_sms),
     BottomNavItem(Routes.MEDICATIONS, "Meds", R.drawable.ic_pill),
     BottomNavItem(Routes.CLOCK, "Clock", R.drawable.ic_alarm),
+    BottomNavItem(Routes.CUSTOMIZE_HOME, "Settings", R.drawable.ic_settings),
 )
 
 private val bottomNavRoutes = bottomNavItems.map { it.route }.toSet()
@@ -193,12 +193,18 @@ fun EzLauncherNavHost(startupViewModel: StartupViewModel = hiltViewModel()) {
                     onNavigateToApps = { navController.navigate(Routes.APPS) },
                     onNavigateToMagnifier = { navController.navigate(Routes.MAGNIFIER) },
                     onNavigateToSos = { navController.navigate(Routes.SOS_COUNTDOWN) },
-                    onNavigateToCustomize = { navController.navigate(Routes.CUSTOMIZE_HOME) },
                     onNavigateToForecast = { navController.navigate(Routes.FORECAST) },
                 )
             }
             composable(Routes.CUSTOMIZE_HOME) {
-                CustomizeHomeScreen(onBack = { navController.popBackStack() })
+                CustomizeHomeScreen(
+                    onNavigateToEmergencyContacts = {
+                        navController.navigate(Routes.EMERGENCY_CONTACTS)
+                    },
+                )
+            }
+            composable(Routes.EMERGENCY_CONTACTS) {
+                EmergencyContactsScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.APPS) {
                 AppsScreen(onBack = { navController.popBackStack() })
@@ -207,9 +213,6 @@ fun EzLauncherNavHost(startupViewModel: StartupViewModel = hiltViewModel()) {
                 SpeedDialScreen(
                     onNavigateToAddContact = { navController.navigate(Routes.ADD_SPEED_DIAL) },
                 )
-            }
-            composable(Routes.INBOX) {
-                InboxScreen()
             }
             composable(Routes.MEDICATIONS) {
                 MedicationsScreen(

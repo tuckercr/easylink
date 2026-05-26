@@ -6,7 +6,6 @@ import com.tuckercr.ezlauncher.data.preferences.HomePreferencesDataSource
 import com.tuckercr.ezlauncher.data.weather.WeatherService
 import com.tuckercr.ezlauncher.domain.model.HomeButton
 import com.tuckercr.ezlauncher.domain.model.WeatherInfo
-import com.tuckercr.ezlauncher.domain.repository.AppRepository
 import com.tuckercr.ezlauncher.domain.usecase.LaunchAppUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,16 +15,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.Timer
-import java.util.TimerTask
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    repository: AppRepository,
     private val launchAppUseCase: LaunchAppUseCase,
     private val homePrefs: HomePreferencesDataSource,
     private val weatherService: WeatherService,
@@ -34,22 +27,17 @@ class HomeViewModel @Inject constructor(
     // ── Private mutable state ─────────────────────────────────────────────────
 
     private val isFlashlightOn = MutableStateFlow(false)
-    private val currentTime = MutableStateFlow(formatTime())
     private val weather = MutableStateFlow<WeatherInfo>(WeatherInfo.Loading)
 
     // ── Public UI state (read-only) ───────────────────────────────────────────
 
     val uiState: StateFlow<HomeUiState> = combine(
-        repository.observeBatteryState(),
         isFlashlightOn,
-        currentTime,
         homePrefs.enabledButtons,
         weather,
-    ) { battery, flashlight, time, buttons, weather ->
+    ) { flashlight, buttons, weather ->
         HomeUiState.Success(
-            batteryState = battery,
             isFlashlightOn = flashlight,
-            currentTime = time,
             // Preserve the canonical enum order so the grid is stable
             enabledButtons = HomeButton.entries.filter { it in buttons },
             weather = weather,
@@ -59,22 +47,6 @@ class HomeViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = HomeUiState.Loading,
     )
-
-    // ── Clock ─────────────────────────────────────────────────────────────────
-
-    private val clockTimer = Timer().also { timer ->
-        timer.scheduleAtFixedRate(
-            object : TimerTask() {
-                override fun run() {
-                    currentTime.value = formatTime()
-                }
-            },
-            0L,
-            60_000L,
-        )
-    }
-
-    private fun formatTime(): String = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
 
     // ── Weather ───────────────────────────────────────────────────────────────
 
@@ -115,12 +87,5 @@ class HomeViewModel @Inject constructor(
         enabled: Boolean,
     ) {
         viewModelScope.launch { homePrefs.setButtonEnabled(button, enabled) }
-    }
-
-    // ── Cleanup ───────────────────────────────────────────────────────────────
-
-    override fun onCleared() {
-        super.onCleared()
-        clockTimer.cancel()
     }
 }

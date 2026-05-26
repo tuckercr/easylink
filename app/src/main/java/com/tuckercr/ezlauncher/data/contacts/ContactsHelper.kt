@@ -34,12 +34,12 @@ class ContactsHelper @Inject constructor(
      * Returns contacts whose display name contains [query] (case-insensitive).
      * An empty query returns all contacts with at least one phone number.
      *
-     * @param limit Maximum number of results to return.
+     * Note: the query targets [ContactsContract.CommonDataKinds.Phone.CONTENT_URI]
+     * which has one row per phone number, not per contact. Deduplication by
+     * contactId is applied so each person appears only once, using whichever
+     * phone number row the provider returns first for them.
      */
-    suspend fun searchContacts(
-        query: String,
-        limit: Int = 50,
-    ): List<DeviceContact> =
+    suspend fun searchContacts(query: String): List<DeviceContact> =
         withContext(Dispatchers.IO) {
             val hasPermission = ContextCompat.checkSelfPermission(
                 context,
@@ -67,7 +67,7 @@ class ContactsHelper @Inject constructor(
                 ),
                 selection,
                 selectionArgs,
-                "${ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME} ASC LIMIT $limit",
+                "${ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME} ASC",
             ) ?: return@withContext emptyList()
 
             cursor.use {
@@ -82,7 +82,7 @@ class ContactsHelper @Inject constructor(
                 // Deduplicate by contactId — a contact can have multiple phone rows
                 val seen = mutableSetOf<Long>()
 
-                while (it.moveToNext() && results.size < limit) {
+                while (it.moveToNext()) {
                     val contactId = it.getLong(idCol)
                     if (!seen.add(contactId)) continue
 

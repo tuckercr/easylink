@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -46,7 +47,10 @@ fun ClockScreen(viewModel: ClockViewModel = hiltViewModel()) {
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Clock & Timer", fontWeight = FontWeight.Bold) })
+            TopAppBar(
+                title = { Text("Clock & Timer", fontWeight = FontWeight.Bold) },
+                windowInsets = WindowInsets(0),
+            )
         },
     ) { innerPadding ->
         Column(

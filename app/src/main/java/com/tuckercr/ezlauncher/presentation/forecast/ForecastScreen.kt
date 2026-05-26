@@ -1,5 +1,7 @@
 package com.tuckercr.ezlauncher.presentation.forecast
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,11 +10,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -24,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -36,6 +41,7 @@ import androidx.lifecycle.viewModelScope
 import com.tuckercr.ezlauncher.R
 import com.tuckercr.ezlauncher.data.weather.WeatherService
 import com.tuckercr.ezlauncher.domain.model.ForecastDay
+import com.tuckercr.ezlauncher.domain.model.ForecastResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -43,7 +49,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// ── ViewModel ─────────────────────────────────────────────────────────────────
+// ── UI state ──────────────────────────────────────────────────────────────────
 
 sealed class ForecastUiState {
     data object Loading : ForecastUiState()
@@ -51,12 +57,25 @@ sealed class ForecastUiState {
     data class Success(
         val city: String?,
         val days: List<ForecastDay>,
+        val usingCachedLocation: Boolean = false,
     ) : ForecastUiState()
 
+    /** Location permission not granted. */
+    data object PermissionNeeded : ForecastUiState()
+
+    /**
+     * Location services are off and there is no saved location to fall back on.
+     * The UI should offer a button to open system location settings.
+     */
+    data object LocationDisabled : ForecastUiState()
+
+    /** Network error or no location fix (and no saved location). */
     data class Error(
         val message: String,
     ) : ForecastUiState()
 }
+
+// ── ViewModel ─────────────────────────────────────────────────────────────────
 
 @HiltViewModel
 class ForecastViewModel @Inject constructor(
@@ -70,18 +89,25 @@ class ForecastViewModel @Inject constructor(
         load()
     }
 
+    fun retry() {
+        load()
+    }
+
     private fun load() {
         _uiState.value = ForecastUiState.Loading
         viewModelScope.launch {
-            try {
-                val (city, days) = weatherService.fetchForecast()
-                _uiState.value = if (days.isEmpty()) {
-                    ForecastUiState.Error("Location unavailable — make sure location permission is granted")
-                } else {
-                    ForecastUiState.Success(city = city, days = days)
-                }
-            } catch (e: Exception) {
-                _uiState.value = ForecastUiState.Error(e.message ?: "Failed to load forecast")
+            _uiState.value = when (val result = weatherService.fetchForecast()) {
+                is ForecastResult.Success -> ForecastUiState.Success(
+                    city = result.city,
+                    days = result.days,
+                    usingCachedLocation = result.usingCachedLocation,
+                )
+
+                is ForecastResult.PermissionNeeded -> ForecastUiState.PermissionNeeded
+                is ForecastResult.LocationDisabled -> ForecastUiState.LocationDisabled
+                is ForecastResult.Unavailable -> ForecastUiState.Error(
+                    "Could not get a location fix. Make sure location services are on and try again.",
+                )
             }
         }
     }
@@ -97,6 +123,7 @@ fun ForecastScreen(
     viewModel: ForecastViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -118,15 +145,27 @@ fun ForecastScreen(
                     modifier = Modifier.size(28.dp),
                 )
             }
-            Text(
-                text = when (val s = state) {
-                    is ForecastUiState.Success -> s.city ?: "7-Day Forecast"
-                    else -> "7-Day Forecast"
-                },
-                fontWeight = FontWeight.Bold,
-                fontSize = 22.sp,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
+            Column {
+                Text(
+                    text = when (val s = state) {
+                        is ForecastUiState.Success -> s.city ?: "7-Day Forecast"
+                        else -> "7-Day Forecast"
+                    },
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp,
+                    color = MaterialTheme.colorScheme.onBackground,
+                )
+                // Subtle "saved location" note when using cached coords
+                if (state is ForecastUiState.Success &&
+                    (state as ForecastUiState.Success).usingCachedLocation
+                ) {
+                    Text(
+                        text = "📍 Saved location",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                    )
+                }
+            }
         }
 
         // ── Content ───────────────────────────────────────────────────────────
@@ -137,21 +176,8 @@ fun ForecastScreen(
                 }
             }
 
-            is ForecastUiState.Error -> {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = s.message,
-                        color = MaterialTheme.colorScheme.error,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(24.dp),
-                    )
-                }
-            }
-
             is ForecastUiState.Success -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                ) {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(s.days) { day ->
                         ForecastRow(day = day)
                         HorizontalDivider(
@@ -160,6 +186,83 @@ fun ForecastScreen(
                         )
                     }
                 }
+            }
+
+            is ForecastUiState.LocationDisabled -> {
+                ForecastInfoBox(
+                    emoji = "📍",
+                    title = "Location is off",
+                    body = "Turn on location services so the forecast can use your current position.",
+                    actionLabel = "Open Location Settings",
+                    onAction = {
+                        context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                    },
+                )
+            }
+
+            is ForecastUiState.PermissionNeeded -> {
+                ForecastInfoBox(
+                    emoji = "🌤️",
+                    title = "Location permission needed",
+                    body = "Grant location permission to EZ Launcher so the forecast knows where you are.",
+                    actionLabel = "Open App Settings",
+                    onAction = {
+                        context.startActivity(
+                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                data =
+                                    android.net.Uri.fromParts("package", context.packageName, null)
+                            },
+                        )
+                    },
+                )
+            }
+
+            is ForecastUiState.Error -> {
+                ForecastInfoBox(
+                    emoji = "🌡️",
+                    title = "Forecast unavailable",
+                    body = s.message,
+                    actionLabel = "Retry",
+                    onAction = { viewModel.retry() },
+                )
+            }
+        }
+    }
+}
+
+// ── Shared info/error box ─────────────────────────────────────────────────────
+
+@Composable
+private fun ForecastInfoBox(
+    emoji: String,
+    title: String,
+    body: String,
+    actionLabel: String,
+    onAction: () -> Unit,
+) {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(
+            modifier = Modifier.padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(emoji, fontSize = 52.sp)
+            Text(
+                text = title,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                text = body,
+                fontSize = 15.sp,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f),
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(4.dp))
+            Button(onClick = onAction) {
+                Text(actionLabel, fontSize = 16.sp)
             }
         }
     }
@@ -175,15 +278,10 @@ private fun ForecastRow(day: ForecastDay) {
             .padding(horizontal = 20.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Emoji
-        Text(
-            text = day.emoji,
-            fontSize = 34.sp,
-        )
+        Text(text = day.emoji, fontSize = 34.sp)
 
         Spacer(Modifier.width(14.dp))
 
-        // Day label + description
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = day.dayLabel,
@@ -198,7 +296,6 @@ private fun ForecastRow(day: ForecastDay) {
             )
         }
 
-        // Rain chance
         if (day.precipitationChance > 0) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -217,7 +314,6 @@ private fun ForecastRow(day: ForecastDay) {
             Spacer(Modifier.width(52.dp))
         }
 
-        // High / Low
         Column(horizontalAlignment = Alignment.End) {
             Text(
                 text = day.displayMax,

@@ -5,9 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.os.BatteryManager
 import com.tuckercr.ezlauncher.domain.model.AppInfo
-import com.tuckercr.ezlauncher.domain.model.BatteryState
 import com.tuckercr.ezlauncher.domain.repository.AppRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
@@ -82,41 +80,6 @@ class AppRepositoryImpl @Inject constructor(
                     icon = resolveInfo.loadIcon(packageManager),
                 )
             }.sorted()
-    }
-
-    // ── Battery ───────────────────────────────────────────────────────────────
-
-    override fun observeBatteryState(): Flow<BatteryState> =
-        callbackFlow {
-            // Immediately emit current level from the sticky broadcast
-            trySend(readStickyBatteryState())
-
-            val receiver = object : BroadcastReceiver() {
-                override fun onReceive(
-                    context: Context,
-                    intent: Intent,
-                ) {
-                    trySend(intent.toBatteryState())
-                }
-            }
-            context.registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-            awaitClose { context.unregisterReceiver(receiver) }
-        }
-
-    /** Reads the sticky battery broadcast without registering a persistent receiver. */
-    private fun readStickyBatteryState(): BatteryState {
-        val intent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-        return intent?.toBatteryState() ?: BatteryState.Unknown
-    }
-
-    private fun Intent.toBatteryState(): BatteryState {
-        val level = getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-        val scale = getIntExtra(BatteryManager.EXTRA_SCALE, 100)
-        val status = getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN)
-        val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-            status == BatteryManager.BATTERY_STATUS_FULL
-        val percent = if (scale > 0) (level * 100) / scale else -1
-        return BatteryState(levelPercent = percent, isCharging = isCharging)
     }
 
     // ── App launching ─────────────────────────────────────────────────────────

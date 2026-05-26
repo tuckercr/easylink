@@ -7,7 +7,7 @@ A full-featured Android home screen replacement designed for elderly users. Larg
 ## Features
 
 ### Home Screen
-The home screen shows up to six large, colour-coded buttons. Each button can be individually shown or hidden from the Customize screen (tap the gear icon in the top-right corner).
+The home screen shows up to six large, colour-coded quick-action buttons. Each button can be individually shown or hidden from the **Settings** tab.
 
 | Button | What it does |
 |---|---|
@@ -20,7 +20,10 @@ The home screen shows up to six large, colour-coded buttons. Each button can be 
 
 Long-pressing any button reads its label aloud via text-to-speech.
 
-A **weather card** at the top of the screen shows the current temperature and conditions using the [Open-Meteo](https://open-meteo.com/) API (no account or API key required). Tap it to refresh. Location permission is requested on first use; if denied, the card shows a tap-to-enable prompt.
+---
+
+### Weather
+A **weather card** at the top of the home screen shows the current temperature, conditions, and city name using the [Open-Meteo](https://open-meteo.com/) API (no account or API key required). Tapping the card opens a **7-day forecast screen** showing high/low temperatures, weather conditions, and precipitation chance for each day. Location permission is requested on first use; if denied, the card shows a tap-to-enable prompt.
 
 ---
 
@@ -55,7 +58,7 @@ Emergency contacts are configured in **Settings → Emergency Contacts**.
 ---
 
 ### Fall Detection
-When enabled (Settings → Customize → Fall Detection), a foreground service monitors the accelerometer continuously in the background and survives device reboots.
+When enabled (Settings → Fall Detection), a foreground service monitors the accelerometer continuously in the background and survives device reboots.
 
 When a fall is detected:
 1. A full-screen alert appears (even on the lock screen)
@@ -72,11 +75,6 @@ A dedicated tab shows saved contacts as large tap-to-call cards. Contacts are ad
 
 ---
 
-### Inbox
-Shows recent missed calls and unread SMS messages in a single combined list, so nothing important gets buried.
-
----
-
 ### Medication Reminders
 Add medications with one or more daily reminder times. At each scheduled time a notification appears with **Take** and **Snooze** actions. Alarms are rescheduled automatically after a reboot.
 
@@ -88,7 +86,28 @@ A full-screen camera preview with pinch-to-zoom. Useful for reading small print,
 ---
 
 ### Clock
-A large full-screen clock display.
+A large full-screen clock display, accessible from the bottom navigation bar.
+
+---
+
+### Settings
+Accessible at any time from the **Settings** tab in the bottom navigation bar. Lets the user:
+- Show or hide any of the six home screen quick-action buttons
+- Enable / disable fall detection and adjust its sensitivity
+
+---
+
+## Navigation
+
+The bottom navigation bar provides access to five top-level destinations:
+
+| Tab | Description |
+|---|---|
+| **Home** | Quick-action buttons, weather, SOS, and voice commands |
+| **Speed Dial** | One-tap calling for saved contacts |
+| **Meds** | Medication reminder schedule |
+| **Clock** | Full-screen clock |
+| **Settings** | Home button customisation and fall detection |
 
 ---
 
@@ -103,14 +122,12 @@ A large full-screen clock display.
 | `CALL_PHONE` | SOS and voice "Call" command |
 | `SEND_SMS` | SOS alert messages |
 | `READ_CONTACTS` | Speed Dial contact picker and voice "Call/Text" lookup |
-| `READ_CALL_LOG` | Inbox missed-call list |
-| `READ_SMS` | Inbox unread-SMS list |
 | `POST_NOTIFICATIONS` | Medication reminders and fall detection alerts |
 | `FOREGROUND_SERVICE_HEALTH` | Fall detection background service |
 | `HIGH_SAMPLING_RATE_SENSORS` | Accelerometer access for fall detection |
 | `RECEIVE_BOOT_COMPLETED` | Restore alarms and fall detection after reboot |
 
-All dangerous permissions are requested at runtime with a plain-language explanation before the system dialog appears.
+All dangerous permissions are requested at first launch with a plain-language explanation before the system dialog appears.
 
 ---
 
@@ -125,3 +142,4 @@ All dangerous permissions are requested at runtime with a plain-language explana
 - **Speech:** Android `SpeechRecognizer` (on-device, no third-party SDK)
 - **Weather:** [Open-Meteo](https://open-meteo.com/) REST API — free, no API key
 - **Location:** `FusedLocationProviderClient`
+- **Torch:** Android `CameraManager.setTorchMode()` — direct system API, no camera binding required

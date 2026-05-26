@@ -34,11 +34,8 @@ interface SpeedDialRepository {
 
     /**
      * Search the device Contacts database for contacts matching [query].
-     * Returns up to [limit] results, sorted by name.
+     * Returns all matching results sorted by name.
      * Requires [android.Manifest.permission.READ_CONTACTS].
      */
-    suspend fun searchDeviceContacts(
-        query: String,
-        limit: Int = 50,
-    ): List<DeviceContact>
+    suspend fun searchDeviceContacts(query: String): List<DeviceContact>
 }

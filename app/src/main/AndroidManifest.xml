@@ -31,10 +31,6 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
-    <!-- ── Inbox ──────────────────────────────────────────────────────────── -->
-    <uses-permission android:name="android.permission.READ_CALL_LOG" />
-    <uses-permission android:name="android.permission.READ_SMS" />
-
     <!-- ── Speed Dial ─────────────────────────────────────────────────────── -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 

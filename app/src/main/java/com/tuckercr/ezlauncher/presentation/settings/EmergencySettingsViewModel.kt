@@ -26,6 +26,13 @@ class EmergencySettingsViewModel @Inject constructor(
     // Internal state that isn't driven by the DB
     private data class LocalState(
         val editingContact: EmergencyContact? = null,
+        /**
+         * Monotonically-increasing key, incremented every time the dialog is opened.
+         * Used as a Compose `remember` key so the dialog fields always reset to the
+         * contact's current values — even when opening "Add Contact" twice in a row
+         * (where contact.id would be 0 both times and wouldn't act as a changed key).
+         */
+        val dialogKey: Int = 0,
         val validationError: String? = null,
         val snackbarMessage: String? = null,
     )
@@ -39,6 +46,7 @@ class EmergencySettingsViewModel @Inject constructor(
         EmergencySettingsUiState.Ready(
             contacts = contacts,
             editingContact = local.editingContact,
+            dialogKey = local.dialogKey,
             validationError = local.validationError,
             snackbarMessage = local.snackbarMessage,
         )
@@ -54,17 +62,22 @@ class EmergencySettingsViewModel @Inject constructor(
     fun onAddContactClicked() {
         localState.update {
             it.copy(
-                editingContact = EmergencyContact(
-                    name = "",
-                    phoneNumber = "",
-                ),
+                editingContact = EmergencyContact(name = "", phoneNumber = ""),
+                dialogKey = it.dialogKey + 1,
+                validationError = null,
             )
         }
     }
 
     /** Open the edit dialog pre-populated with an existing contact. */
     fun onEditContactClicked(contact: EmergencyContact) {
-        localState.update { it.copy(editingContact = contact, validationError = null) }
+        localState.update {
+            it.copy(
+                editingContact = contact,
+                dialogKey = it.dialogKey + 1,
+                validationError = null,
+            )
+        }
     }
 
     /** Close the dialog without saving. */

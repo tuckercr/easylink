@@ -25,10 +25,6 @@
     <string name="contacts">Contacts</string>
     <string name="search">Search</string>
 
-    <!-- Battery -->
-    <string name="battery_level">%1$d%%</string>
-    <string name="battery_unknown">Battery unknown</string>
-
     <!-- Flashlight -->
     <string name="flashlight_on">Flashlight on</string>
     <string name="flashlight_off">Flashlight off</string>

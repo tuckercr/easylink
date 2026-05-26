@@ -5,14 +5,25 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
+import android.location.LocationManager
+import android.os.Looper
+import android.util.Log
 import androidx.core.content.ContextCompat
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.tuckercr.ezlauncher.data.preferences.WeatherPreferencesDataSource
+import com.tuckercr.ezlauncher.data.weather.WeatherService.Companion.LOCATION_TIMEOUT_MS
 import com.tuckercr.ezlauncher.domain.model.ForecastDay
+import com.tuckercr.ezlauncher.domain.model.ForecastResult
 import com.tuckercr.ezlauncher.domain.model.WeatherInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -24,63 +35,146 @@ import kotlin.coroutines.resume
 /**
  * Fetches weather data from Open-Meteo (open-source, no API key required).
  *
- * Provides two entry points:
- *  - [fetch]          → current conditions + city name (for the home card)
- *  - [fetchForecast]  → 7-day daily forecast (for the forecast screen)
+ * ## Location strategy
  *
- * City name is resolved via Android's [Geocoder] (reverse geocoding).
+ * Each fetch attempt goes through up to four stages, short-circuiting as soon
+ * as a usable coordinate pair is found:
+ *
+ * 1. **FusedLocation cache** – instant, zero battery cost. Empty after a reboot.
+ * 2. **LocationManager caches** – each provider keeps its own last-known fix.
+ *    Populated by other apps (Maps, Camera …) even when FusedLocation's cache
+ *    is empty.
+ * 3. **Active `requestLocationUpdates`** – actually wakes the location hardware
+ *    and waits up to [LOCATION_TIMEOUT_MS] for a fix.
+ * 4. **Saved coordinates (DataStore)** – used when all live-location stages fail
+ *    (location services off, or just no signal). Weather is fetched normally but
+ *    the card shows a "saved location" note.
+ *
+ * Coordinates from a successful live fetch are persisted after every call so the
+ * saved-location fallback stays fresh.
  */
 @Singleton
 class WeatherService @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val weatherPrefs: WeatherPreferencesDataSource,
 ) {
+
+    companion object {
+        private const val TAG = "WeatherService"
+        private const val LOCATION_TIMEOUT_MS = 12_000L
+        private const val MAX_CACHE_AGE_MS = 30 * 60 * 1_000L // 30 minutes
+    }
 
     // ── Public API ────────────────────────────────────────────────────────────
 
-    /** Returns current weather including reverse-geocoded city name. */
     suspend fun fetch(): WeatherInfo =
         withContext(Dispatchers.IO) {
-            if (!hasLocationPermission()) return@withContext WeatherInfo.PermissionNeeded
+            Log.d(TAG, "fetch() called")
 
-            val location = getLastLocation()
-                ?: return@withContext WeatherInfo.Unavailable("No location fix yet")
+            if (!hasLocationPermission()) {
+                Log.d(TAG, "Permission not granted → PermissionNeeded")
+                return@withContext WeatherInfo.PermissionNeeded
+            }
 
-            val city = reverseGeocodeCity(location.latitude, location.longitude)
+            val locationDisabled = !isLocationEnabled()
+            Log.d(TAG, "Location services enabled: ${!locationDisabled}")
+
+            // Attempt to get a live location (skipped quickly if location is off)
+            val liveLocation: Location? = if (locationDisabled) {
+                Log.d(TAG, "Location is off — skipping live fetch")
+                null
+            } else {
+                getLocation()
+            }
+
+            // Determine the coordinate source and whether we're using cache
+            val (lat, lon, city, fromCache) = if (liveLocation != null) {
+                // Save fresh coords for future fallback
+                val resolvedCity = reverseGeocodeCity(liveLocation.latitude, liveLocation.longitude)
+                Log.d(
+                    TAG,
+                    "Live location: ${liveLocation.latitude}, ${liveLocation.longitude}, city=$resolvedCity",
+                )
+                weatherPrefs.saveLocation(
+                    liveLocation.latitude,
+                    liveLocation.longitude,
+                    resolvedCity,
+                )
+                Quad(liveLocation.latitude, liveLocation.longitude, resolvedCity, false)
+            } else {
+                // Try the DataStore cache
+                val cached = weatherPrefs.getCachedLocation()
+                if (cached != null) {
+                    Log.d(
+                        TAG,
+                        "Using saved location: ${cached.latitude}, ${cached.longitude}, city=${cached.city}",
+                    )
+                    Quad(cached.latitude, cached.longitude, cached.city, true)
+                } else {
+                    // No location at all — return the right error state
+                    return@withContext if (locationDisabled) {
+                        Log.w(TAG, "Location disabled and no cached location → LocationDisabled")
+                        WeatherInfo.LocationDisabled
+                    } else {
+                        Log.w(TAG, "No location fix and no cached location → Unavailable")
+                        WeatherInfo.Unavailable("No location fix yet")
+                    }
+                }
+            }
 
             return@withContext try {
-                val url = buildCurrentUrl(location.latitude, location.longitude)
+                val url = buildCurrentUrl(lat, lon)
+                Log.d(TAG, "Fetching weather: $url (fromCache=$fromCache)")
                 val json = httpGet(url) ?: return@withContext WeatherInfo.Unavailable("No response")
                 val current = json.getJSONObject("current")
                 val temp = current.getDouble("temperature_2m")
                 val code = current.getInt("weather_code")
+                Log.d(TAG, "Weather: temp=$temp, code=$code, city=$city, fromCache=$fromCache")
 
                 WeatherInfo.Available(
                     temperatureCelsius = temp,
                     description = codeToDescription(code),
                     emoji = codeToEmoji(code),
                     city = city,
+                    usingCachedLocation = fromCache,
                 )
             } catch (e: Exception) {
+                Log.e(TAG, "Weather fetch failed", e)
                 WeatherInfo.Unavailable(e.message ?: "Network error")
             }
         }
 
-    /**
-     * Returns a 7-day daily forecast plus the city name.
-     * Returns an empty list if location permission is denied or no fix is available.
-     */
-    suspend fun fetchForecast(): Pair<String?, List<ForecastDay>> =
+    suspend fun fetchForecast(): ForecastResult =
         withContext(Dispatchers.IO) {
-            if (!hasLocationPermission()) return@withContext Pair(null, emptyList())
+            if (!hasLocationPermission()) return@withContext ForecastResult.PermissionNeeded
 
-            val location = getLastLocation()
-                ?: return@withContext Pair(null, emptyList())
+            val locationDisabled = !isLocationEnabled()
+            val liveLocation = if (locationDisabled) null else getLocation()
+            val fromCache: Boolean
 
-            val city = reverseGeocodeCity(location.latitude, location.longitude)
+            val (lat, lon, city) = if (liveLocation != null) {
+                fromCache = false
+                val resolvedCity = reverseGeocodeCity(liveLocation.latitude, liveLocation.longitude)
+                weatherPrefs.saveLocation(
+                    liveLocation.latitude,
+                    liveLocation.longitude,
+                    resolvedCity,
+                )
+                Triple(liveLocation.latitude, liveLocation.longitude, resolvedCity)
+            } else {
+                fromCache = true
+                val cached = weatherPrefs.getCachedLocation()
+                    ?: return@withContext if (locationDisabled) {
+                        ForecastResult.LocationDisabled
+                    } else {
+                        ForecastResult.Unavailable
+                    }
+                Triple(cached.latitude, cached.longitude, cached.city)
+            }
 
             return@withContext try {
-                val url = buildForecastUrl(location.latitude, location.longitude)
-                val json = httpGet(url) ?: return@withContext Pair(city, emptyList())
+                val url = buildForecastUrl(lat, lon)
+                val json = httpGet(url) ?: return@withContext ForecastResult.Unavailable
 
                 val daily = json.getJSONObject("daily")
                 val times = daily.getJSONArray("time")
@@ -100,10 +194,124 @@ class WeatherService @Inject constructor(
                         precipitationChance = if (precip.isNull(i)) 0 else precip.getInt(i),
                     )
                 }
+                ForecastResult.Success(city = city, days = days, usingCachedLocation = fromCache)
+            } catch (e: Exception) {
+                Log.e(TAG, "fetchForecast network error", e)
+                ForecastResult.Unavailable
+            }
+        }
 
-                Pair(city, days)
-            } catch (_: Exception) {
-                Pair(city, emptyList())
+    // ── Location helpers ──────────────────────────────────────────────────────
+
+    private fun hasLocationPermission() =
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+        ) == PackageManager.PERMISSION_GRANTED
+
+    private fun isLocationEnabled(): Boolean {
+        val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return lm.isLocationEnabled
+    }
+
+    /**
+     * Three-stage live location fetch with a hard timeout.
+     *
+     * Stage 1 — FusedLocation cache (instant)
+     * Stage 2 — LocationManager provider caches (populated by other apps)
+     * Stage 3 — requestLocationUpdates (wakes hardware, waits up to timeout)
+     */
+    private suspend fun getLocation(): Location? =
+        withTimeoutOrNull(LOCATION_TIMEOUT_MS) {
+            getFusedLastLocation()
+                ?: getLocationManagerCached()
+                ?: requestFreshLocation()
+        }
+
+    @Suppress("MissingPermission")
+    private suspend fun getFusedLastLocation(): Location? =
+        suspendCancellableCoroutine { cont ->
+            try {
+                LocationServices
+                    .getFusedLocationProviderClient(context)
+                    .lastLocation
+                    .addOnSuccessListener { loc ->
+                        Log.d(
+                            TAG,
+                            if (loc != null) "Stage 1 hit: ${loc.latitude}, ${loc.longitude}" else "Stage 1 miss",
+                        )
+                        if (cont.isActive) cont.resume(loc)
+                    }.addOnFailureListener { e ->
+                        Log.e(TAG, "Stage 1 failed", e)
+                        if (cont.isActive) cont.resume(null)
+                    }
+            } catch (e: Exception) {
+                Log.e(TAG, "Stage 1 exception", e)
+                if (cont.isActive) cont.resume(null)
+            }
+        }
+
+    @Suppress("MissingPermission")
+    private fun getLocationManagerCached(): Location? =
+        try {
+            val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+            val now = System.currentTimeMillis()
+            val best = lm
+                .getProviders(true)
+                .mapNotNull { provider -> runCatching { lm.getLastKnownLocation(provider) }.getOrNull() }
+                .filter { loc -> (now - loc.time) <= MAX_CACHE_AGE_MS }
+                .maxByOrNull { it.time }
+            Log.d(
+                TAG,
+                if (best !=
+                    null
+                ) {
+                    "Stage 2 hit: ${best.latitude}, ${best.longitude}, age=${(now - best.time) / 60_000}min"
+                } else {
+                    "Stage 2 miss"
+                },
+            )
+            best
+        } catch (e: Exception) {
+            Log.e(TAG, "Stage 2 exception", e)
+            null
+        }
+
+    @Suppress("MissingPermission")
+    private suspend fun requestFreshLocation(): Location? =
+        suspendCancellableCoroutine { cont ->
+            try {
+                Log.d(TAG, "Stage 3: starting requestLocationUpdates…")
+                val client = LocationServices.getFusedLocationProviderClient(context)
+                val request =
+                    LocationRequest
+                        .Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 5_000L)
+                        .setMaxUpdates(1)
+                        .setWaitForAccurateLocation(false)
+                        .build()
+
+                val callback = object : LocationCallback() {
+                    override fun onLocationResult(result: LocationResult) {
+                        val loc = result.lastLocation
+                        Log.d(
+                            TAG,
+                            if (loc != null) "Stage 3 hit: ${loc.latitude}, ${loc.longitude}" else "Stage 3: null lastLocation",
+                        )
+                        client.removeLocationUpdates(this)
+                        if (cont.isActive) cont.resume(loc)
+                    }
+                }
+
+                cont.invokeOnCancellation { client.removeLocationUpdates(callback) }
+                client
+                    .requestLocationUpdates(request, callback, Looper.getMainLooper())
+                    .addOnFailureListener { e ->
+                        Log.e(TAG, "Stage 3 failed to register", e)
+                        if (cont.isActive) cont.resume(null)
+                    }
+            } catch (e: Exception) {
+                Log.e(TAG, "Stage 3 exception", e)
+                if (cont.isActive) cont.resume(null)
             }
         }
 
@@ -130,33 +338,22 @@ class WeatherService @Inject constructor(
     // ── HTTP helper ───────────────────────────────────────────────────────────
 
     private fun httpGet(urlStr: String): JSONObject? {
-        val conn = URL(urlStr).openConnection() as HttpURLConnection
-        conn.connectTimeout = 6_000
-        conn.readTimeout = 6_000
-        if (conn.responseCode != 200) return null
-        return JSONObject(conn.inputStream.bufferedReader().readText())
-    }
-
-    // ── Location ──────────────────────────────────────────────────────────────
-
-    private fun hasLocationPermission(): Boolean =
-        ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-        ) == PackageManager.PERMISSION_GRANTED
-
-    @Suppress("MissingPermission")
-    private suspend fun getLastLocation(): Location? =
-        suspendCancellableCoroutine { cont ->
-            try {
-                val task = LocationServices.getFusedLocationProviderClient(context).lastLocation
-                task.addOnSuccessListener { loc -> if (cont.isActive) cont.resume(loc) }
-                task.addOnFailureListener { if (cont.isActive) cont.resume(null) }
-                task.addOnCanceledListener { if (cont.isActive) cont.cancel() }
-            } catch (_: Exception) {
-                if (cont.isActive) cont.resume(null)
+        return try {
+            val conn = URL(urlStr).openConnection() as HttpURLConnection
+            conn.connectTimeout = 6_000
+            conn.readTimeout = 6_000
+            val code = conn.responseCode
+            Log.d(TAG, "HTTP $code")
+            if (code != 200) {
+                Log.e(TAG, "Non-200: $code")
+                return null
             }
+            JSONObject(conn.inputStream.bufferedReader().readText())
+        } catch (e: Exception) {
+            Log.e(TAG, "httpGet failed", e)
+            null
         }
+    }
 
     // ── Reverse geocoding ─────────────────────────────────────────────────────
 
@@ -167,11 +364,10 @@ class WeatherService @Inject constructor(
         return try {
             if (!Geocoder.isPresent()) return null
             @Suppress("DEPRECATION")
-            val addresses = Geocoder(context, Locale.getDefault())
+            Geocoder(context, Locale.getDefault())
                 .getFromLocation(lat, lon, 1)
-            addresses?.firstOrNull()?.let { addr ->
-                addr.locality ?: addr.subAdminArea ?: addr.adminArea
-            }
+                ?.firstOrNull()
+                ?.let { it.locality ?: it.subAdminArea ?: it.adminArea }
         } catch (_: Exception) {
             null
         }
@@ -213,3 +409,11 @@ class WeatherService @Inject constructor(
             else -> "Unknown"
         }
 }
+
+/** Tiny data class to destructure four values from a single expression. */
+private data class Quad<A, B, C, D>(
+    val first: A,
+    val second: B,
+    val third: C,
+    val fourth: D,
+)

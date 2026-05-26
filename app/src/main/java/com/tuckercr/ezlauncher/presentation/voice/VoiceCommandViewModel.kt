@@ -262,7 +262,7 @@ class VoiceCommandViewModel @Inject constructor(
                 VoiceUiState.Error("Contacts permission required for \"Call\" commands")
             return
         }
-        val contact = contactsHelper.searchContacts(name, limit = 1).firstOrNull()
+        val contact = contactsHelper.searchContacts(name).firstOrNull()
         if (contact == null) {
             _uiState.value = VoiceUiState.Error("Can't find contact \"$name\"")
             return
@@ -284,7 +284,7 @@ class VoiceCommandViewModel @Inject constructor(
                 VoiceUiState.Error("Contacts permission required for \"Text\" commands")
             return
         }
-        val contact = contactsHelper.searchContacts(name, limit = 1).firstOrNull()
+        val contact = contactsHelper.searchContacts(name).firstOrNull()
         if (contact == null) {
             _uiState.value = VoiceUiState.Error("Can't find contact \"$name\"")
             return

@@ -1,6 +1,5 @@
 package com.tuckercr.ezlauncher.presentation.home
 
-import com.tuckercr.ezlauncher.domain.model.BatteryState
 import com.tuckercr.ezlauncher.domain.model.HomeButton
 import com.tuckercr.ezlauncher.domain.model.WeatherInfo
 
@@ -12,9 +11,7 @@ sealed class HomeUiState {
     data object Loading : HomeUiState()
 
     data class Success(
-        val batteryState: BatteryState,
         val isFlashlightOn: Boolean = false,
-        val currentTime: String = "",
         /** Ordered list of buttons the user has enabled (display order preserved). */
         val enabledButtons: List<HomeButton> = HomeButton.entries.toList(),
         val weather: WeatherInfo = WeatherInfo.Loading,

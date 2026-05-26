@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.provider.MediaStore
+import android.provider.Settings
 import android.view.HapticFeedbackConstants
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,7 +27,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -79,7 +79,6 @@ fun HomeScreen(
     onNavigateToApps: () -> Unit,
     onNavigateToMagnifier: () -> Unit,
     onNavigateToSos: () -> Unit,
-    onNavigateToCustomize: () -> Unit,
     onNavigateToForecast: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -147,60 +146,6 @@ fun HomeScreen(
                 }
 
                 is HomeUiState.Success -> {
-                    // ── Header: battery + time + customize gear ─────────────
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                painter = painterResource(
-                                    when {
-                                        s.batteryState.isCharging -> R.drawable.ic_battery_charging
-                                        s.batteryState.levelPercent <= 20 -> R.drawable.ic_battery_low
-                                        else -> R.drawable.ic_battery_full
-                                    },
-                                ),
-                                contentDescription = null,
-                                modifier = Modifier.size(28.dp),
-                                tint = Color.White,
-                            )
-                            Text(
-                                text = if (s.batteryState.levelPercent >= 0) {
-                                    stringResource(
-                                        R.string.battery_level,
-                                        s.batteryState.levelPercent,
-                                    )
-                                } else {
-                                    stringResource(R.string.battery_unknown)
-                                },
-                                color = Color.White,
-                                fontSize = 20.sp,
-                                modifier = Modifier.padding(start = 4.dp),
-                            )
-                        }
-
-                        Text(
-                            text = s.currentTime,
-                            color = Color.White,
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
-
-                        // Gear icon → customise screen
-                        IconButton(onClick = onNavigateToCustomize) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_settings),
-                                contentDescription = "Customise buttons",
-                                tint = Color.White.copy(alpha = 0.7f),
-                                modifier = Modifier.size(24.dp),
-                            )
-                        }
-                    }
-
                     // ── Weather card ────────────────────────────────────────
                     WeatherCard(
                         weather = s.weather,
@@ -362,12 +307,25 @@ private fun WeatherCard(
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
                         )
+                        val subtitle = if (weather.usingCachedLocation) {
+                            weather.city?.let { "$it · ${weather.description}" }
+                                ?: weather.description
+                        } else {
+                            weather.city?.let { "$it · ${weather.description}" }
+                                ?: weather.description
+                        }
                         Text(
-                            text = weather.city?.let { "$it · ${weather.description}" }
-                                ?: weather.description,
+                            text = subtitle,
                             color = Color.White.copy(alpha = 0.8f),
                             fontSize = 13.sp,
                         )
+                        if (weather.usingCachedLocation) {
+                            Text(
+                                text = "📍 Saved location",
+                                color = Color.White.copy(alpha = 0.5f),
+                                fontSize = 11.sp,
+                            )
+                        }
                     }
                 }
                 // Chevron hint — tapping opens forecast
@@ -387,6 +345,32 @@ private fun WeatherCard(
                     color = Color.White.copy(alpha = 0.7f),
                     fontSize = 14.sp,
                 )
+            }
+        }
+
+        is WeatherInfo.LocationDisabled -> {
+            val ctx = LocalContext.current
+            Row(
+                modifier = cardModifier.clickable {
+                    ctx.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text("📍", fontSize = 22.sp)
+                Column {
+                    Text(
+                        "Location is off",
+                        color = Color.White.copy(alpha = 0.85f),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                    )
+                    Text(
+                        "Tap to open location settings",
+                        color = Color.White.copy(alpha = 0.55f),
+                        fontSize = 12.sp,
+                    )
+                }
             }
         }
 
