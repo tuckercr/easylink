@@ -19,6 +19,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -114,7 +115,11 @@ private val bottomNavRoutes = bottomNavItems.map { it.route }.toSet()
 // ── Nav host ──────────────────────────────────────────────────────────────────
 
 @Composable
-fun EzLauncherNavHost(startupViewModel: StartupViewModel = hiltViewModel()) {
+fun EzLauncherNavHost(
+    startupViewModel: StartupViewModel = hiltViewModel(),
+    pendingNavTarget: String? = null,
+    onNavTargetConsumed: () -> Unit = {},
+) {
     val isOnboardingComplete by startupViewModel.isOnboardingComplete
         .collectAsStateWithLifecycle()
 
@@ -132,6 +137,15 @@ fun EzLauncherNavHost(startupViewModel: StartupViewModel = hiltViewModel()) {
         if (isOnboardingComplete == true) Routes.HOME else Routes.ONBOARDING
 
     val navController = rememberNavController()
+
+    // Navigate to the pending target (e.g. from FallAlertActivity → Emergency Contacts)
+    LaunchedEffect(pendingNavTarget) {
+        if (pendingNavTarget != null) {
+            navController.navigate(pendingNavTarget)
+            onNavTargetConsumed()
+        }
+    }
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 

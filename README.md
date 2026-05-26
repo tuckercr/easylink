@@ -20,10 +20,14 @@ The home screen shows up to six large, colour-coded quick-action buttons. Each b
 
 Long-pressing any button reads its label aloud via text-to-speech.
 
+![Home screen](screenshots/home_page.png)
+
 ---
 
 ### Weather
 A **weather card** at the top of the home screen shows the current temperature, conditions, and city name using the [Open-Meteo](https://open-meteo.com/) API (no account or API key required). Tapping the card opens a **7-day forecast screen** showing high/low temperatures, weather conditions, and precipitation chance for each day. Location permission is requested on first use; if denied, the card shows a tap-to-enable prompt.
+
+![Weather forecast](screenshots/weather_forecast.png)
 
 ---
 
@@ -55,6 +59,10 @@ When the countdown completes:
 
 Emergency contacts are configured in **Settings → Emergency Contacts**.
 
+![SOS initiated](screenshots/sos_initiated.png)
+
+![Emergency contacts](screenshots/emergency_contacts.png)
+
 ---
 
 ### Fall Detection
@@ -73,20 +81,28 @@ Sensitivity is adjustable: **Low** (fewer false alerts), **Medium** (recommended
 ### Speed Dial
 A dedicated tab shows saved contacts as large tap-to-call cards. Contacts are added from the device's address book and stored locally.
 
+![Speed dial](screenshots/speed_dial.png)
+
 ---
 
 ### Medication Reminders
 Add medications with one or more daily reminder times. At each scheduled time a notification appears with **Take** and **Snooze** actions. Alarms are rescheduled automatically after a reboot.
+
+![Medications](screenshots/medications.png)
 
 ---
 
 ### Magnifier
 A full-screen camera preview with pinch-to-zoom. Useful for reading small print, labels, or menus.
 
+![Magnifier](screenshots/magnifier.png)
+
 ---
 
 ### Clock
 A large full-screen clock display, accessible from the bottom navigation bar.
+
+![Clock and timer](screenshots/clock_and_timer.png)
 
 ---
 
@@ -94,6 +110,10 @@ A large full-screen clock display, accessible from the bottom navigation bar.
 Accessible at any time from the **Settings** tab in the bottom navigation bar. Lets the user:
 - Show or hide any of the six home screen quick-action buttons
 - Enable / disable fall detection and adjust its sensitivity
+
+![Settings](screenshots/settings_1.png)
+
+![Settings](screenshots/settings_2.png)
 
 ---
 

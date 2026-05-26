@@ -1,10 +1,13 @@
 package com.tuckercr.ezlauncher.presentation.fall
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import com.tuckercr.ezlauncher.navigation.Routes
+import com.tuckercr.ezlauncher.presentation.main.MainActivity
 import com.tuckercr.ezlauncher.ui.theme.EzLauncherTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -39,7 +42,18 @@ class FallAlertActivity : ComponentActivity() {
 
         setContent {
             EzLauncherTheme {
-                FallAlertScreen(onDismiss = { finish() })
+                FallAlertScreen(
+                    onDismiss = { finish() },
+                    onNavigateToSettings = {
+                        startActivity(
+                            Intent(this, MainActivity::class.java).apply {
+                                putExtra(MainActivity.EXTRA_NAVIGATE_TO, Routes.EMERGENCY_CONTACTS)
+                                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                            },
+                        )
+                        finish()
+                    },
+                )
             }
         }
     }

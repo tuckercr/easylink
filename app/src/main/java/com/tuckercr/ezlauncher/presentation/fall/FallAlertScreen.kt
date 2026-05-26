@@ -41,6 +41,7 @@ private val ColorCallButton = Color(0xFFEF5350) // bright red — "Call Now"
 @Composable
 fun FallAlertScreen(
     onDismiss: () -> Unit,
+    onNavigateToSettings: () -> Unit = {},
     viewModel: FallAlertViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -140,11 +141,25 @@ fun FallAlertScreen(
                     )
                 } else {
                     Text(
-                        "No emergency contact set.\nSet one in the SOS settings.",
-                        color = Color.White.copy(alpha = 0.9f),
-                        fontSize = 16.sp,
+                        "No emergency contact set.",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
                     )
+                    Spacer(Modifier.height(10.dp))
+                    Button(
+                        onClick = onNavigateToSettings,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                        shape = RoundedCornerShape(12.dp),
+                    ) {
+                        Text(
+                            "Set Emergency Contact",
+                            color = ColorAlertBg,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
                 }
             }
 

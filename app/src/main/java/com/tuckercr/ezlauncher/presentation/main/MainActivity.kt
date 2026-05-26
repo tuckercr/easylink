@@ -11,6 +11,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.tuckercr.ezlauncher.navigation.EzLauncherNavHost
 import com.tuckercr.ezlauncher.ui.theme.EzLauncherTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -22,14 +25,34 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.StartActivityForResult(),
     ) { /* re-checked on next onResume */ }
 
+    /** Route to navigate to on startup, set via [EXTRA_NAVIGATE_TO] intent extra. */
+    private var pendingNavTarget by mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        pendingNavTarget = intent.getStringExtra(EXTRA_NAVIGATE_TO)
         setContent {
             EzLauncherTheme {
-                EzLauncherNavHost()
+                EzLauncherNavHost(
+                    pendingNavTarget = pendingNavTarget,
+                    onNavTargetConsumed = { pendingNavTarget = null },
+                )
             }
         }
+    }
+
+    /**
+     * Called when this Activity is already running and receives a new intent
+     * (e.g. from [FallAlertActivity] with [FLAG_ACTIVITY_SINGLE_TOP]).
+     */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        pendingNavTarget = intent.getStringExtra(EXTRA_NAVIGATE_TO)
+    }
+
+    companion object {
+        const val EXTRA_NAVIGATE_TO = "navigate_to"
     }
 
     override fun onResume() {
