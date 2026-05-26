@@ -19,7 +19,6 @@ class VoiceCommandParser @Inject constructor() {
     fun parse(raw: String): VoiceCommand {
         val t = raw.trim().lowercase()
         return when {
-
             // ── Call ──────────────────────────────────────────────────────────
             t.startsWith("call ") ->
                 VoiceCommand.Call(t.removePrefix("call ").trim())
@@ -27,40 +26,59 @@ class VoiceCommandParser @Inject constructor() {
             // ── Text / SMS ────────────────────────────────────────────────────
             t.startsWith("text ") ->
                 VoiceCommand.Text(t.removePrefix("text ").trim())
+
             t.startsWith("message ") ->
                 VoiceCommand.Text(t.removePrefix("message ").trim())
+
             t.startsWith("sms ") ->
                 VoiceCommand.Text(t.removePrefix("sms ").trim())
+
             t.startsWith("send a text to ") ->
                 VoiceCommand.Text(t.removePrefix("send a text to ").trim())
+
             t.startsWith("send text to ") ->
                 VoiceCommand.Text(t.removePrefix("send text to ").trim())
 
             // ── Camera (must precede "open [app]") ────────────────────────────
-            t == "camera" || t == "open camera" ||
-            t == "take a photo" || t == "take photo" ||
-            t == "take a picture" || t == "take picture" ->
+            t == "camera" ||
+                t == "open camera" ||
+                t == "take a photo" ||
+                t == "take photo" ||
+                t == "take a picture" ||
+                t == "take picture" ->
                 VoiceCommand.OpenCamera
 
             // ── Flashlight ────────────────────────────────────────────────────
-            t == "flashlight on" || t == "torch on" ||
-            t == "turn on flashlight" || t == "turn on the flashlight" ||
-            t == "turn on torch" || t == "turn on the torch" ||
-            t == "turn the flashlight on" || t == "turn the torch on" ->
+            t == "flashlight on" ||
+                t == "torch on" ||
+                t == "turn on flashlight" ||
+                t == "turn on the flashlight" ||
+                t == "turn on torch" ||
+                t == "turn on the torch" ||
+                t == "turn the flashlight on" ||
+                t == "turn the torch on" ->
                 VoiceCommand.FlashlightOn
 
-            t == "flashlight off" || t == "torch off" ||
-            t == "turn off flashlight" || t == "turn off the flashlight" ||
-            t == "turn off torch" || t == "turn off the torch" ||
-            t == "turn the flashlight off" || t == "turn the torch off" ->
+            t == "flashlight off" ||
+                t == "torch off" ||
+                t == "turn off flashlight" ||
+                t == "turn off the flashlight" ||
+                t == "turn off torch" ||
+                t == "turn off the torch" ||
+                t == "turn the flashlight off" ||
+                t == "turn the torch off" ->
                 VoiceCommand.FlashlightOff
 
             t == "flashlight" || t == "torch" || t == "toggle flashlight" ->
                 VoiceCommand.ToggleFlashlight
 
             // ── All apps (must precede "open [app]") ─────────────────────────
-            t == "apps" || t == "all apps" || t == "show apps" ||
-            t == "open apps" || t == "show all apps" || t == "open all apps" ->
+            t == "apps" ||
+                t == "all apps" ||
+                t == "show apps" ||
+                t == "open apps" ||
+                t == "show all apps" ||
+                t == "open all apps" ->
                 VoiceCommand.OpenAllApps
 
             // ── Home ──────────────────────────────────────────────────────────
@@ -70,8 +88,10 @@ class VoiceCommandParser @Inject constructor() {
             // ── Open / launch app (generic — must be after specific cases) ────
             t.startsWith("open ") ->
                 VoiceCommand.OpenApp(t.removePrefix("open ").trim())
+
             t.startsWith("launch ") ->
                 VoiceCommand.OpenApp(t.removePrefix("launch ").trim())
+
             t.startsWith("start ") ->
                 VoiceCommand.OpenApp(t.removePrefix("start ").trim())
 

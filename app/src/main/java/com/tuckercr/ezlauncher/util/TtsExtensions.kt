@@ -32,17 +32,6 @@ import com.tuckercr.ezlauncher.presentation.tts.TtsViewModel
  *  - Returning true to consume the event (prevents accidental triggering
  *    of other long-press actions)
  */
-
-/**
- * Wire TTS long-press onto this [View].
- *
- * Label resolution order:
- *  1. [overrideLabel] if provided — use this for buttons where the
- *     visible text differs from what should be spoken (e.g. an icon-only button)
- *  2. `contentDescription` — the accessibility label, always preferred
- *  3. `text` if the view is a [TextView] — the visible label
- *  4. Falls back to the resource entry name for debugging
- */
 fun View.speakOnLongPress(
     ttsViewModel: TtsViewModel,
     overrideLabel: String? = null,

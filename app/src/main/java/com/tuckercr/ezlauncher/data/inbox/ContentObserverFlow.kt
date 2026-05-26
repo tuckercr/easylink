@@ -33,12 +33,24 @@ import kotlinx.coroutines.flow.callbackFlow
  * @param contentResolver The app's [ContentResolver].
  * @param uri             The content URI to watch.
  */
-fun observeUri(contentResolver: ContentResolver, uri: Uri): Flow<Unit> = callbackFlow {
-    val observer = object : ContentObserver(null) {
-        override fun onChange(selfChange: Boolean) { trySend(Unit) }
-        override fun onChange(selfChange: Boolean, changeUri: Uri?) { trySend(Unit) }
+fun observeUri(
+    contentResolver: ContentResolver,
+    uri: Uri,
+): Flow<Unit> =
+    callbackFlow {
+        val observer = object : ContentObserver(null) {
+            override fun onChange(selfChange: Boolean) {
+                trySend(Unit)
+            }
+
+            override fun onChange(
+                selfChange: Boolean,
+                changeUri: Uri?,
+            ) {
+                trySend(Unit)
+            }
+        }
+        contentResolver.registerContentObserver(uri, true, observer)
+        trySend(Unit)
+        awaitClose { contentResolver.unregisterContentObserver(observer) }
     }
-    contentResolver.registerContentObserver(uri, /* notifyForDescendants= */ true, observer)
-    trySend(Unit)  // emit once immediately so collectors get data on subscription
-    awaitClose { contentResolver.unregisterContentObserver(observer) }
-}

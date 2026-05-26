@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 data class MagnifierUiState(
-    val zoomLevel: Float     = 1f,
+    val zoomLevel: Float = 1f,
     val isHighContrast: Boolean = false,
     val isFlashlightOn: Boolean = false,
 ) {
@@ -41,7 +41,7 @@ class MagnifierViewModel @Inject constructor() : ViewModel() {
         _uiState.update { state ->
             state.copy(
                 zoomLevel = (state.zoomLevel + MagnifierUiState.ZOOM_STEP)
-                    .coerceAtMost(MagnifierUiState.MAX_ZOOM)
+                    .coerceAtMost(MagnifierUiState.MAX_ZOOM),
             )
         }
     }
@@ -50,7 +50,7 @@ class MagnifierViewModel @Inject constructor() : ViewModel() {
         _uiState.update { state ->
             state.copy(
                 zoomLevel = (state.zoomLevel - MagnifierUiState.ZOOM_STEP)
-                    .coerceAtLeast(MagnifierUiState.MIN_ZOOM)
+                    .coerceAtLeast(MagnifierUiState.MIN_ZOOM),
             )
         }
     }

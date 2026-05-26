@@ -2,7 +2,6 @@ package com.tuckercr.ezlauncher.presentation.speeddial
 
 import android.net.Uri
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,9 +29,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,7 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.tuckercr.ezlauncher.R
@@ -83,6 +79,7 @@ fun SpeedDialScreen(
                 is SpeedDialUiState.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
+
                 is SpeedDialUiState.Error -> {
                     Text(
                         text = s.message,
@@ -93,9 +90,11 @@ fun SpeedDialScreen(
                         textAlign = TextAlign.Center,
                     )
                 }
+
                 is SpeedDialUiState.Empty -> {
                     EmptySpeedDial(onAdd = onNavigateToAddContact)
                 }
+
                 is SpeedDialUiState.Success -> {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
@@ -174,8 +173,7 @@ private fun SpeedDialTile(
                 enabled = enabled,
                 onClick = onClick,
                 onLongClick = onLongClick,
-            )
-            .padding(16.dp),
+            ).padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -202,7 +200,11 @@ private fun SpeedDialTile(
 }
 
 @Composable
-internal fun ContactPhoto(photoUri: Uri?, initials: String, size: Int) {
+internal fun ContactPhoto(
+    photoUri: Uri?,
+    initials: String,
+    size: Int,
+) {
     if (photoUri != null) {
         AsyncImage(
             model = photoUri,

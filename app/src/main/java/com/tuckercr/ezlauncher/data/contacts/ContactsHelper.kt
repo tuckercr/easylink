@@ -3,16 +3,15 @@ package com.tuckercr.ezlauncher.data.contacts
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.provider.ContactsContract
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import com.tuckercr.ezlauncher.domain.model.DeviceContact
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
-import androidx.core.net.toUri
 
 /**
  * Reads contacts from the Android [ContactsContract] content provider.
@@ -37,11 +36,14 @@ class ContactsHelper @Inject constructor(
      *
      * @param limit Maximum number of results to return.
      */
-    suspend fun searchContacts(query: String, limit: Int = 50): List<DeviceContact> =
+    suspend fun searchContacts(
+        query: String,
+        limit: Int = 50,
+    ): List<DeviceContact> =
         withContext(Dispatchers.IO) {
             val hasPermission = ContextCompat.checkSelfPermission(
                 context,
-                Manifest.permission.READ_CONTACTS
+                Manifest.permission.READ_CONTACTS,
             ) == PackageManager.PERMISSION_GRANTED
 
             if (!hasPermission) return@withContext emptyList()
@@ -69,10 +71,13 @@ class ContactsHelper @Inject constructor(
             ) ?: return@withContext emptyList()
 
             cursor.use {
-                val idCol    = it.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
-                val nameCol  = it.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
-                val numCol   = it.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER)
-                val photoCol = it.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.PHOTO_THUMBNAIL_URI)
+                val idCol =
+                    it.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
+                val nameCol =
+                    it.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+                val numCol = it.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                val photoCol =
+                    it.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.PHOTO_THUMBNAIL_URI)
 
                 // Deduplicate by contactId — a contact can have multiple phone rows
                 val seen = mutableSetOf<Long>()
@@ -81,15 +86,15 @@ class ContactsHelper @Inject constructor(
                     val contactId = it.getLong(idCol)
                     if (!seen.add(contactId)) continue
 
-                    val name        = it.getString(nameCol) ?: continue
-                    val number      = it.getString(numCol)  ?: continue
+                    val name = it.getString(nameCol) ?: continue
+                    val number = it.getString(numCol) ?: continue
                     val photoUriStr = it.getString(photoCol)
 
                     results += DeviceContact(
-                        contactId   = contactId,
-                        name        = name,
+                        contactId = contactId,
+                        name = name,
                         phoneNumber = number,
-                        photoUri    = photoUriStr?.toUri(),
+                        photoUri = photoUriStr?.toUri(),
                     )
                 }
             }

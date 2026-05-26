@@ -17,7 +17,7 @@ import javax.inject.Singleton
 // DataStore is created as a top-level property per the official docs.
 // The delegate ensures only one instance is created per application process.
 private val Context.ttsDataStore: DataStore<Preferences> by preferencesDataStore(
-    name = "tts_preferences"
+    name = "tts_preferences",
 )
 
 @Module

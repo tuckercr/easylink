@@ -32,20 +32,26 @@ private const val TAG = "ReminderAlarmReceiver"
 @AndroidEntryPoint
 class ReminderAlarmReceiver : BroadcastReceiver() {
 
-    @Inject lateinit var notificationHelper: ReminderNotificationHelper
-    @Inject lateinit var repository: MedicationRepository
+    @Inject
+    lateinit var notificationHelper: ReminderNotificationHelper
+
+    @Inject
+    lateinit var repository: MedicationRepository
 
     // Scope survives the receiver's short lifecycle via goAsync()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    override fun onReceive(context: Context, intent: Intent) {
-        val pendingResult = goAsync()  // extend BroadcastReceiver window
+    override fun onReceive(
+        context: Context,
+        intent: Intent,
+    ) {
+        val pendingResult = goAsync() // extend BroadcastReceiver window
 
-        val medicationId   = intent.getLongExtra(EXTRA_MEDICATION_ID, -1L)
+        val medicationId = intent.getLongExtra(EXTRA_MEDICATION_ID, -1L)
         val medicationName = intent.getStringExtra(EXTRA_MEDICATION_NAME) ?: return
-        val dosage         = intent.getStringExtra(EXTRA_DOSAGE) ?: ""
-        val notes          = intent.getStringExtra(EXTRA_NOTES) ?: ""
-        val scheduledStr   = intent.getStringExtra(EXTRA_SCHEDULED_TIME) ?: return
+        val dosage = intent.getStringExtra(EXTRA_DOSAGE) ?: ""
+        val notes = intent.getStringExtra(EXTRA_NOTES) ?: ""
+        val scheduledStr = intent.getStringExtra(EXTRA_SCHEDULED_TIME) ?: return
 
         Log.d(TAG, "Alarm fired for $medicationName at $scheduledStr")
 
@@ -55,19 +61,19 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
 
                 // Show the notification
                 notificationHelper.showReminder(
-                    medicationId  = medicationId,
-                    name          = medicationName,
-                    dosage        = dosage,
-                    notes         = notes,
+                    medicationId = medicationId,
+                    name = medicationName,
+                    dosage = dosage,
+                    notes = notes,
                     scheduledTime = scheduledTime,
                 )
 
                 // Schedule the next occurrence (same medication, 7 days ahead)
                 repository.getMedicationById(medicationId)?.let { medication ->
-                    repository.saveMedication(medication)  // triggers reschedule
+                    repository.saveMedication(medication) // triggers reschedule
                 }
             } finally {
-                pendingResult.finish()  // release wake lock
+                pendingResult.finish() // release wake lock
             }
         }
     }

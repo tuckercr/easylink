@@ -2,7 +2,7 @@ package com.tuckercr.ezlauncher.presentation.fall
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tuckercr.ezlauncher.data.fall.FallDetectionNotificationHelper
@@ -18,12 +18,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 data class FallAlertUiState(
-    val secondsRemaining: Int    = COUNTDOWN_SECONDS,
+    val secondsRemaining: Int = COUNTDOWN_SECONDS,
     val primaryContact: EmergencyContact? = null,
-    val callingNow: Boolean       = false,
-    val dismissed: Boolean        = false,
+    val callingNow: Boolean = false,
+    val dismissed: Boolean = false,
 )
 
 private const val COUNTDOWN_SECONDS = 30
@@ -48,7 +49,7 @@ class FallAlertViewModel @Inject constructor(
     private fun loadPrimaryContact() {
         viewModelScope.launch {
             val contacts = getEmergencyContacts().first()
-            val primary  = contacts.firstOrNull { it.isPrimary } ?: contacts.firstOrNull()
+            val primary = contacts.firstOrNull { it.isPrimary } ?: contacts.firstOrNull()
             _state.value = _state.value.copy(primaryContact = primary)
         }
     }
@@ -57,7 +58,7 @@ class FallAlertViewModel @Inject constructor(
         countdownJob = viewModelScope.launch {
             var secs = COUNTDOWN_SECONDS
             while (secs > 0) {
-                delay(1_000)
+                delay(1_000.milliseconds)
                 secs--
                 _state.value = _state.value.copy(secondsRemaining = secs)
             }
@@ -83,7 +84,7 @@ class FallAlertViewModel @Inject constructor(
         notifHelper.dismissFallAlert()
         _state.value = _state.value.copy(callingNow = true, dismissed = true)
 
-        val callIntent = Intent(Intent.ACTION_CALL, Uri.parse("tel:${contact.phoneNumber}")).apply {
+        val callIntent = Intent(Intent.ACTION_CALL, "tel:${contact.phoneNumber}".toUri()).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         context.startActivity(callIntent)

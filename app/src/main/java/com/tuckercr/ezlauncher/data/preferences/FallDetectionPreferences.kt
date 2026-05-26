@@ -19,7 +19,7 @@ class FallDetectionPreferences @Inject constructor(
     @Named("fallPrefs") private val dataStore: DataStore<Preferences>,
 ) {
     companion object {
-        private val KEY_ENABLED     = booleanPreferencesKey("fall_detection_enabled")
+        private val KEY_ENABLED = booleanPreferencesKey("fall_detection_enabled")
         private val KEY_SENSITIVITY = stringPreferencesKey("fall_sensitivity")
     }
 

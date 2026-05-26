@@ -32,11 +32,9 @@ class MedicationsViewModel @Inject constructor(
         .getTodayReminders()
         .map<_, MedicationsUiState> { reminders ->
             MedicationsUiState.Success(reminders)
-        }
-        .catch { e ->
+        }.catch { e ->
             emit(MedicationsUiState.Error(e.message ?: "Unknown error"))
-        }
-        .stateIn(
+        }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = MedicationsUiState.Loading,
@@ -45,9 +43,9 @@ class MedicationsViewModel @Inject constructor(
     fun markTaken(reminder: TodayReminder) {
         viewModelScope.launch {
             repository.logReminderAction(
-                medicationId  = reminder.medication.id,
+                medicationId = reminder.medication.id,
                 scheduledTime = reminder.scheduledAt,
-                action        = ReminderAction.TAKEN,
+                action = ReminderAction.TAKEN,
             )
         }
     }
@@ -55,9 +53,9 @@ class MedicationsViewModel @Inject constructor(
     fun snooze(reminder: TodayReminder) {
         viewModelScope.launch {
             repository.logReminderAction(
-                medicationId  = reminder.medication.id,
+                medicationId = reminder.medication.id,
                 scheduledTime = reminder.scheduledAt,
-                action        = ReminderAction.SNOOZED,
+                action = ReminderAction.SNOOZED,
             )
         }
     }

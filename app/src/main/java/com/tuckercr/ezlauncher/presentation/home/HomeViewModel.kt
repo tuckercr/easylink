@@ -33,67 +33,76 @@ class HomeViewModel @Inject constructor(
 
     // ── Private mutable state ─────────────────────────────────────────────────
 
-    private val _isFlashlightOn = MutableStateFlow(false)
-    private val _currentTime    = MutableStateFlow(formatTime())
-    private val _weather        = MutableStateFlow<WeatherInfo>(WeatherInfo.Loading)
+    private val isFlashlightOn = MutableStateFlow(false)
+    private val currentTime = MutableStateFlow(formatTime())
+    private val weather = MutableStateFlow<WeatherInfo>(WeatherInfo.Loading)
 
     // ── Public UI state (read-only) ───────────────────────────────────────────
 
     val uiState: StateFlow<HomeUiState> = combine(
         repository.observeBatteryState(),
-        _isFlashlightOn,
-        _currentTime,
+        isFlashlightOn,
+        currentTime,
         homePrefs.enabledButtons,
-        _weather,
+        weather,
     ) { battery, flashlight, time, buttons, weather ->
         HomeUiState.Success(
-            batteryState   = battery,
+            batteryState = battery,
             isFlashlightOn = flashlight,
-            currentTime    = time,
+            currentTime = time,
             // Preserve the canonical enum order so the grid is stable
             enabledButtons = HomeButton.entries.filter { it in buttons },
-            weather        = weather,
+            weather = weather,
         )
     }.stateIn(
-        scope        = viewModelScope,
-        started      = SharingStarted.WhileSubscribed(5_000),
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
         initialValue = HomeUiState.Loading,
     )
 
     // ── Clock ─────────────────────────────────────────────────────────────────
 
     private val clockTimer = Timer().also { timer ->
-        timer.scheduleAtFixedRate(object : TimerTask() {
-            override fun run() { _currentTime.value = formatTime() }
-        }, 0L, 60_000L)
+        timer.scheduleAtFixedRate(
+            object : TimerTask() {
+                override fun run() {
+                    currentTime.value = formatTime()
+                }
+            },
+            0L,
+            60_000L,
+        )
     }
 
-    private fun formatTime(): String =
-        SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
+    private fun formatTime(): String = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
 
     // ── Weather ───────────────────────────────────────────────────────────────
 
-    init { fetchWeather() }
+    init {
+        fetchWeather()
+    }
 
     /** Re-fetch weather (called on init and when the user grants location). */
-    fun refreshWeather() { fetchWeather() }
+    fun refreshWeather() {
+        fetchWeather()
+    }
 
     private fun fetchWeather() {
         viewModelScope.launch {
-            _weather.value = WeatherInfo.Loading
-            _weather.value = weatherService.fetch()
+            weather.value = WeatherInfo.Loading
+            weather.value = weatherService.fetch()
         }
     }
 
     // ── User intents ──────────────────────────────────────────────────────────
 
     fun toggleFlashlight() {
-        _isFlashlightOn.update { !it }
+        isFlashlightOn.update { !it }
     }
 
     /** Set the flashlight to a specific on/off state (used by voice commands). */
     fun setFlashlightEnabled(enabled: Boolean) {
-        _isFlashlightOn.value = enabled
+        isFlashlightOn.value = enabled
     }
 
     fun onAppTapped(packageName: String) {
@@ -101,7 +110,10 @@ class HomeViewModel @Inject constructor(
     }
 
     /** Toggle a home button on/off; persisted to DataStore. */
-    fun setButtonEnabled(button: HomeButton, enabled: Boolean) {
+    fun setButtonEnabled(
+        button: HomeButton,
+        enabled: Boolean,
+    ) {
         viewModelScope.launch { homePrefs.setButtonEnabled(button, enabled) }
     }
 

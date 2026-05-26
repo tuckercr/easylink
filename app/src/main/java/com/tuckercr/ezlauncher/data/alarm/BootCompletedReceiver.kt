@@ -25,13 +25,21 @@ private const val TAG = "BootCompletedReceiver"
 @AndroidEntryPoint
 class BootCompletedReceiver : BroadcastReceiver() {
 
-    @Inject lateinit var repository:   MedicationRepository
-    @Inject lateinit var fallPrefs:    FallDetectionPreferences
-    @Inject lateinit var fallManager:  FallDetectionManager
+    @Inject
+    lateinit var repository: MedicationRepository
+
+    @Inject
+    lateinit var fallPrefs: FallDetectionPreferences
+
+    @Inject
+    lateinit var fallManager: FallDetectionManager
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    override fun onReceive(context: Context, intent: Intent) {
+    override fun onReceive(
+        context: Context,
+        intent: Intent,
+    ) {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
 
         Log.i(TAG, "Boot completed — restoring services")

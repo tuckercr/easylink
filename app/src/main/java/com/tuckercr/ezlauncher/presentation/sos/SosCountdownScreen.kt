@@ -60,6 +60,7 @@ fun SosCountdownScreen(
                 secondsRemaining = s.secondsRemaining,
                 onCancel = { viewModel.cancel() },
             )
+
             is SosUiState.Dispatching -> DispatchingContent()
             is SosUiState.Done -> DoneContent(result = s.result)
             is SosUiState.Cancelled -> CancelledContent()
@@ -68,7 +69,10 @@ fun SosCountdownScreen(
 }
 
 @Composable
-private fun CountingContent(secondsRemaining: Int, onCancel: () -> Unit) {
+private fun CountingContent(
+    secondsRemaining: Int,
+    onCancel: () -> Unit,
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(24.dp),
@@ -113,7 +117,7 @@ private fun CountingContent(secondsRemaining: Int, onCancel: () -> Unit) {
             onClick = onCancel,
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF555555),
-                contentColor   = Color.White,
+                contentColor = Color.White,
             ),
             modifier = Modifier
                 .fillMaxWidth()
@@ -172,18 +176,21 @@ private fun DoneContent(result: SosResult) {
                 headline = "SOS Sent",
                 detail = buildSuccessDetail(result),
             )
+
             is SosResult.PartialSuccess -> SosDisplay(
                 icon = R.drawable.ic_check,
                 tint = Color(0xFFFFCC80),
                 headline = "Partially Sent",
                 detail = "SMS sent to ${result.smsRecipients} contact(s).\n${result.reason}",
             )
+
             is SosResult.NoContactsConfigured -> SosDisplay(
                 icon = R.drawable.ic_call,
                 tint = Color(0xFFEF9A9A),
                 headline = "No Contacts",
                 detail = "No emergency contacts configured. Please add one in Settings.",
             )
+
             is SosResult.Failure -> SosDisplay(
                 icon = R.drawable.ic_call,
                 tint = Color(0xFFEF9A9A),
@@ -242,8 +249,9 @@ private data class SosDisplay(
     val detail: String,
 )
 
-private fun buildSuccessDetail(result: SosResult.Success): String = buildString {
-    result.calledContact?.let { append("Called ${it.name}.\n") }
-    if (result.smsRecipients > 0) append("SMS sent to ${result.smsRecipients} contact(s).")
-    if (result.locationShared) append("\nLocation shared.")
-}
+private fun buildSuccessDetail(result: SosResult.Success): String =
+    buildString {
+        result.calledContact?.let { append("Called ${it.name}.\n") }
+        if (result.smsRecipients > 0) append("SMS sent to ${result.smsRecipients} contact(s).")
+        if (result.locationShared) append("\nLocation shared.")
+    }

@@ -19,7 +19,9 @@ sealed class VoiceUiState {
      * Results received, briefly shown before executing.
      * Shown for a single frame while the ViewModel processes the command.
      */
-    data class Heard(val text: String) : VoiceUiState()
+    data class Heard(
+        val text: String,
+    ) : VoiceUiState()
 
     /** Command recognised and execution started; auto-dismisses after 1.5 s. */
     data class Success(
@@ -31,10 +33,14 @@ sealed class VoiceUiState {
      * Speech was recognised but no pattern matched.
      * Shows examples and offers Retry / Cancel.
      */
-    data class NotUnderstood(val text: String) : VoiceUiState()
+    data class NotUnderstood(
+        val text: String,
+    ) : VoiceUiState()
 
     /** SpeechRecognizer reported an error. Shows message + Retry / Cancel. */
-    data class Error(val message: String) : VoiceUiState()
+    data class Error(
+        val message: String,
+    ) : VoiceUiState()
 }
 
 /**
@@ -45,9 +51,13 @@ sealed class VoiceUiState {
  * effect on recomposition.
  */
 sealed class VoiceEffect {
-    data object NavigateToApps    : VoiceEffect()
-    data object NavigateHome      : VoiceEffect()
-    data object FlashlightOn      : VoiceEffect()
-    data object FlashlightOff     : VoiceEffect()
-    data object ToggleFlashlight  : VoiceEffect()
+    data object NavigateToApps : VoiceEffect()
+
+    data object NavigateHome : VoiceEffect()
+
+    data object FlashlightOn : VoiceEffect()
+
+    data object FlashlightOff : VoiceEffect()
+
+    data object ToggleFlashlight : VoiceEffect()
 }

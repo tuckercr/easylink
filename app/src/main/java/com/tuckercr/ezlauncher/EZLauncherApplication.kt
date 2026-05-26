@@ -16,10 +16,17 @@ import javax.inject.Inject
 @HiltAndroidApp
 class EZLauncherApplication : Application() {
 
-    @Inject lateinit var reminderNotifHelper: ReminderNotificationHelper
-    @Inject lateinit var fallNotifHelper:     FallDetectionNotificationHelper
-    @Inject lateinit var fallPrefs:           FallDetectionPreferences
-    @Inject lateinit var fallManager:         FallDetectionManager
+    @Inject
+    lateinit var reminderNotifHelper: ReminderNotificationHelper
+
+    @Inject
+    lateinit var fallNotifHelper: FallDetectionNotificationHelper
+
+    @Inject
+    lateinit var fallPrefs: FallDetectionPreferences
+
+    @Inject
+    lateinit var fallManager: FallDetectionManager
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 

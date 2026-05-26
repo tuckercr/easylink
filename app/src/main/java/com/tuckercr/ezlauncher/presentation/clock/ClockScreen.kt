@@ -21,7 +21,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -41,11 +40,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ClockScreen(
-    viewModel: ClockViewModel = hiltViewModel(),
-) {
+fun ClockScreen(viewModel: ClockViewModel = hiltViewModel()) {
     val currentTime by viewModel.currentTime.collectAsStateWithLifecycle()
-    val timer       by viewModel.timerState.collectAsStateWithLifecycle()
+    val timer by viewModel.timerState.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -59,7 +56,6 @@ fun ClockScreen(
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-
             Spacer(Modifier.height(16.dp))
 
             // ── Live clock ────────────────────────────────────────────────
@@ -88,7 +84,7 @@ fun ClockScreen(
             // Preset duration chips
             PresetRow(
                 presets = listOf(
-                    "5 min"  to 5 * 60,
+                    "5 min" to 5 * 60,
                     "10 min" to 10 * 60,
                     "20 min" to 20 * 60,
                     "30 min" to 30 * 60,
@@ -100,9 +96,9 @@ fun ClockScreen(
 
             PresetRow(
                 presets = listOf(
-                    "1 hr"   to 60 * 60,
-                    "2 hr"   to 120 * 60,
-                    "5 min"  to 5 * 60,   // kept for balance — alternative row
+                    "1 hr" to 60 * 60,
+                    "2 hr" to 120 * 60,
+                    "5 min" to 5 * 60, // kept for balance — alternative row
                 ),
                 onSelect = { viewModel.setTimer(it) },
             )
@@ -122,18 +118,23 @@ fun ClockScreen(
                 ) {
                     Button(
                         onClick = { viewModel.startPause() },
-                        modifier = Modifier.weight(1f).height(64.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(64.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (timer.isRunning) Color(0xFFE65100)
-                                             else Color(0xFF2E7D32),
+                            containerColor = if (timer.isRunning) {
+                                Color(0xFFE65100)
+                            } else {
+                                Color(0xFF2E7D32)
+                            },
                         ),
                         shape = RoundedCornerShape(12.dp),
                     ) {
                         Text(
                             text = when {
                                 timer.isFinished -> "Done"
-                                timer.isRunning  -> "Pause"
-                                else             -> "Start"
+                                timer.isRunning -> "Pause"
+                                else -> "Start"
                             },
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
@@ -142,7 +143,9 @@ fun ClockScreen(
 
                     OutlinedButton(
                         onClick = { viewModel.resetTimer() },
-                        modifier = Modifier.weight(1f).height(64.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(64.dp),
                         shape = RoundedCornerShape(12.dp),
                     ) {
                         Text("Reset", fontSize = 22.sp, color = Color.White)
@@ -202,10 +205,10 @@ private fun TimerRing(timer: TimerState) {
     )
     val ringColor by animateColorAsState(
         targetValue = when {
-            timer.isFinished          -> Color(0xFF4CAF50)
+            timer.isFinished -> Color(0xFF4CAF50)
             timer.remainingSeconds <= 10 && timer.isSet -> Color(0xFFEF5350)
-            timer.isRunning           -> Color(0xFF42A5F5)
-            else                      -> MaterialTheme.colorScheme.primary
+            timer.isRunning -> Color(0xFF42A5F5)
+            else -> MaterialTheme.colorScheme.primary
         },
         label = "timerColor",
     )
@@ -221,11 +224,18 @@ private fun TimerRing(timer: TimerState) {
         )
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = if (timer.isSet) timer.displayTime else "--:--",
+                text = if (timer.isSet) {
+                    timer.displayTime
+                } else {
+                    "--:--"
+                },
                 fontSize = 44.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (timer.isFinished) Color(0xFF4CAF50)
-                        else MaterialTheme.colorScheme.onSurface,
+                color = if (timer.isFinished) {
+                    Color(0xFF4CAF50)
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
                 letterSpacing = 2.sp,
             )
             if (timer.isRunning) {

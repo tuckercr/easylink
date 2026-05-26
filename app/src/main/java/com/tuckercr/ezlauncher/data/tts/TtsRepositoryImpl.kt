@@ -18,25 +18,23 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private const val TAG           = "TtsRepository"
-private const val UTTERANCE_ID  = "ezlauncher_tts"
+private const val TAG = "TtsRepository"
+private const val UTTERANCE_ID = "ezlauncher_tts"
 
 /** DataStore preference keys — defined at file scope to avoid allocation per call. */
 private object PrefKeys {
-    val ENABLED     = booleanPreferencesKey("tts_enabled")
+    val ENABLED = booleanPreferencesKey("tts_enabled")
     val SPEECH_RATE = floatPreferencesKey("tts_speech_rate")
-    val PITCH       = floatPreferencesKey("tts_pitch")
+    val PITCH = floatPreferencesKey("tts_pitch")
 }
 
 /**
@@ -113,9 +111,11 @@ class TtsRepositoryImpl @Inject constructor(
         override fun onStart(utteranceId: String?) {
             _engineState.update { if (it is TtsState.Ready) it.copy(isSpeaking = true) else it }
         }
+
         override fun onDone(utteranceId: String?) {
             _engineState.update { if (it is TtsState.Ready) it.copy(isSpeaking = false) else it }
         }
+
         @Deprecated("Required override for API < 21")
         override fun onError(utteranceId: String?) {
             _engineState.update { if (it is TtsState.Ready) it.copy(isSpeaking = false) else it }
@@ -124,19 +124,20 @@ class TtsRepositoryImpl @Inject constructor(
 
     // ── Preferences (DataStore) ───────────────────────────────────────────────
 
-    override fun getPreferences(): Flow<TtsPreferences> = dataStore.data.map { prefs ->
-        TtsPreferences(
-            isEnabled  = prefs[PrefKeys.ENABLED]     ?: TtsPreferences.Default.isEnabled,
-            speechRate = prefs[PrefKeys.SPEECH_RATE] ?: TtsPreferences.Default.speechRate,
-            pitch      = prefs[PrefKeys.PITCH]       ?: TtsPreferences.Default.pitch,
-        )
-    }
+    override fun getPreferences(): Flow<TtsPreferences> =
+        dataStore.data.map { prefs ->
+            TtsPreferences(
+                isEnabled = prefs[PrefKeys.ENABLED] ?: TtsPreferences.Default.isEnabled,
+                speechRate = prefs[PrefKeys.SPEECH_RATE] ?: TtsPreferences.Default.speechRate,
+                pitch = prefs[PrefKeys.PITCH] ?: TtsPreferences.Default.pitch,
+            )
+        }
 
     override suspend fun updatePreferences(preferences: TtsPreferences) {
         dataStore.edit { prefs ->
-            prefs[PrefKeys.ENABLED]     = preferences.isEnabled
+            prefs[PrefKeys.ENABLED] = preferences.isEnabled
             prefs[PrefKeys.SPEECH_RATE] = preferences.speechRate
-            prefs[PrefKeys.PITCH]       = preferences.pitch
+            prefs[PrefKeys.PITCH] = preferences.pitch
         }
         // Engine params updated reactively via the collect{} in init
     }

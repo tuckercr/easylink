@@ -11,31 +11,24 @@ import java.time.LocalTime
  * always present — the only "loading" moment is after the user taps Save.
  */
 data class AddMedicationUiState(
-
     // ── Edit context (0L = new medication) ────────────────────────────────
     val medicationId: Long = 0L,
     val isLoadingExisting: Boolean = false,
-
     // ── Form fields ────────────────────────────────────────────────────────
-    val name: String    = "",
-    val dosage: String  = "",
-    val notes: String   = "",
-
+    val name: String = "",
+    val dosage: String = "",
+    val notes: String = "",
     /** Reminder times shown in the time-chip list. At least one required. */
     val reminderTimes: List<LocalTime> = emptyList(),
-
     /** Days of the week the medication should be taken. Defaults to every day. */
     val activeDays: Set<DayOfWeek> = DayOfWeek.entries.toSet(),
-
     val isActive: Boolean = true,
-
     // ── Validation errors (null = no error) ───────────────────────────────
-    val nameError: String?          = null,
+    val nameError: String? = null,
     val reminderTimesError: String? = null,
-    val activeDaysError: String?    = null,
-
+    val activeDaysError: String? = null,
     // ── Save lifecycle ────────────────────────────────────────────────────
-    val isSaving: Boolean  = false,
+    val isSaving: Boolean = false,
     val saveSuccess: Boolean = false,
     val saveError: String? = null,
 ) {

@@ -13,7 +13,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -58,8 +57,8 @@ class InboxRepositoryImpl @Inject constructor(
             .map {
                 smsReader.readRecentThreads(
                     contentResolver = contentResolver,
-                    limit           = SmsReader.RAW_SCAN_LIMIT,
-                    maxThreads      = MAX_ITEMS_PER_SOURCE,
+                    limit = SmsReader.RAW_SCAN_LIMIT,
+                    maxThreads = MAX_ITEMS_PER_SOURCE,
                 )
             }
 

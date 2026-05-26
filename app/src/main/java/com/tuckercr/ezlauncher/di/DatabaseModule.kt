@@ -4,9 +4,9 @@ import android.content.Context
 import androidx.room.Room
 import com.tuckercr.ezlauncher.data.local.EZLauncherDatabase
 import com.tuckercr.ezlauncher.data.local.EmergencyContactDao
-import com.tuckercr.ezlauncher.data.local.MedicationDao
 import com.tuckercr.ezlauncher.data.local.MIGRATION_1_2
 import com.tuckercr.ezlauncher.data.local.MIGRATION_2_3
+import com.tuckercr.ezlauncher.data.local.MedicationDao
 import com.tuckercr.ezlauncher.data.local.ReminderLogDao
 import com.tuckercr.ezlauncher.data.local.SpeedDialDao
 import com.tuckercr.ezlauncher.data.repository.SosRepositoryImpl
@@ -42,34 +42,32 @@ object DatabaseModule {
      */
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): EZLauncherDatabase =
-        Room.databaseBuilder(
-            context,
-            EZLauncherDatabase::class.java,
-            "ezlauncher.db",
-        )
-        .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
-        .build()
+    fun provideDatabase(
+        @ApplicationContext context: Context,
+    ): EZLauncherDatabase =
+        Room
+            .databaseBuilder(
+                context,
+                EZLauncherDatabase::class.java,
+                "ezlauncher.db",
+            ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .build()
 
     @Provides
     @Singleton
-    fun provideEmergencyContactDao(db: EZLauncherDatabase): EmergencyContactDao =
-        db.emergencyContactDao()
+    fun provideEmergencyContactDao(db: EZLauncherDatabase): EmergencyContactDao = db.emergencyContactDao()
 
     @Provides
     @Singleton
-    fun provideMedicationDao(db: EZLauncherDatabase): MedicationDao =
-        db.medicationDao()
+    fun provideMedicationDao(db: EZLauncherDatabase): MedicationDao = db.medicationDao()
 
     @Provides
     @Singleton
-    fun provideReminderLogDao(db: EZLauncherDatabase): ReminderLogDao =
-        db.reminderLogDao()
+    fun provideReminderLogDao(db: EZLauncherDatabase): ReminderLogDao = db.reminderLogDao()
 
     @Provides
     @Singleton
-    fun provideSpeedDialDao(db: EZLauncherDatabase): SpeedDialDao =
-        db.speedDialDao()
+    fun provideSpeedDialDao(db: EZLauncherDatabase): SpeedDialDao = db.speedDialDao()
 }
 
 /**

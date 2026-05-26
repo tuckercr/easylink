@@ -1,6 +1,7 @@
 package com.tuckercr.ezlauncher.data.fall
 
 import android.os.SystemClock
+import com.tuckercr.ezlauncher.data.fall.FallDetector.Companion.IMPACT_WINDOW_MS
 import com.tuckercr.ezlauncher.domain.model.FallSensitivity
 import kotlin.math.sqrt
 
@@ -33,8 +34,8 @@ class FallDetector {
 
     private enum class State { NORMAL, FREE_FALL, IMPACT_WINDOW }
 
-    private var state             = State.NORMAL
-    private var freeFallStartMs   = 0L
+    private var state = State.NORMAL
+    private var freeFallStartMs = 0L
     private var impactWindowStart = 0L
 
     var sensitivity: FallSensitivity = FallSensitivity.MEDIUM
@@ -44,14 +45,18 @@ class FallDetector {
      *
      * @return true if a fall was just confirmed, false otherwise.
      */
-    fun process(x: Float, y: Float, z: Float): Boolean {
+    fun process(
+        x: Float,
+        y: Float,
+        z: Float,
+    ): Boolean {
         val magnitude = sqrt(x * x + y * y + z * z)
-        val now       = SystemClock.elapsedRealtime()
+        val now = SystemClock.elapsedRealtime()
 
         return when (state) {
             State.NORMAL -> {
                 if (magnitude < sensitivity.freeFallThreshold) {
-                    state           = State.FREE_FALL
+                    state = State.FREE_FALL
                     freeFallStartMs = now
                 }
                 false
@@ -62,7 +67,7 @@ class FallDetector {
                     val duration = now - freeFallStartMs
                     if (duration >= sensitivity.minFreeFallMs) {
                         // Valid free-fall ended → enter impact window
-                        state             = State.IMPACT_WINDOW
+                        state = State.IMPACT_WINDOW
                         impactWindowStart = now
                         // The same sample that ended free-fall might be the impact
                         if (magnitude > sensitivity.impactThreshold) {
@@ -83,11 +88,13 @@ class FallDetector {
                         state = State.NORMAL
                         true
                     }
+
                     now - impactWindowStart > IMPACT_WINDOW_MS -> {
                         // Window expired with no impact → not a fall
                         state = State.NORMAL
                         false
                     }
+
                     else -> false
                 }
             }
@@ -95,5 +102,7 @@ class FallDetector {
     }
 
     /** Reset to initial state (e.g. after user dismisses an alert). */
-    fun reset() { state = State.NORMAL }
+    fun reset() {
+        state = State.NORMAL
+    }
 }

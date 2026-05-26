@@ -31,17 +31,16 @@ class SpeedDialRepositoryImpl @Inject constructor(
     private val contactsHelper: ContactsHelper,
 ) : SpeedDialRepository {
 
-    override fun getSpeedDialContacts(): Flow<List<SpeedDialContact>> =
-        dao.observeAll().map { entities -> entities.map { it.toDomain() } }
+    override fun getSpeedDialContacts(): Flow<List<SpeedDialContact>> = dao.observeAll().map { entities -> entities.map { it.toDomain() } }
 
     override suspend fun addContact(contact: DeviceContact) {
         val nextOrder = dao.count()
         val entity = SpeedDialEntity(
-            contactId      = contact.contactId,
-            name           = contact.name,
-            phoneNumber    = contact.phoneNumber,
+            contactId = contact.contactId,
+            name = contact.name,
+            phoneNumber = contact.phoneNumber,
             photoUriString = contact.photoUri?.toString(),
-            displayOrder   = nextOrder,
+            displayOrder = nextOrder,
         )
         dao.insert(entity)
     }
@@ -61,6 +60,8 @@ class SpeedDialRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun searchDeviceContacts(query: String, limit: Int): List<DeviceContact> =
-        contactsHelper.searchContacts(query, limit)
+    override suspend fun searchDeviceContacts(
+        query: String,
+        limit: Int,
+    ): List<DeviceContact> = contactsHelper.searchContacts(query, limit)
 }

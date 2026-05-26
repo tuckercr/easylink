@@ -13,14 +13,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -35,8 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -44,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tuckercr.ezlauncher.R
@@ -77,9 +73,10 @@ fun MagnifierScreen(
     // Apply zoom whenever zoomLevel changes
     LaunchedEffect(state.zoomLevel, camera) {
         camera?.cameraControl?.setLinearZoom(
-            ((state.zoomLevel - MagnifierUiState.MIN_ZOOM) /
-                (MagnifierUiState.MAX_ZOOM - MagnifierUiState.MIN_ZOOM))
-                .coerceIn(0f, 1f)
+            (
+                (state.zoomLevel - MagnifierUiState.MIN_ZOOM) /
+                    (MagnifierUiState.MAX_ZOOM - MagnifierUiState.MIN_ZOOM)
+            ).coerceIn(0f, 1f),
         )
     }
 
@@ -218,7 +215,13 @@ private fun ControlPanel(
             Button(
                 onClick = onToggleFlashlight,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (state.isFlashlightOn) Color(0xFFDAB129) else Color(0xFF444444),
+                    containerColor = if (state.isFlashlightOn) {
+                        Color(0xFFDAB129)
+                    } else {
+                        Color(
+                            0xFF444444,
+                        )
+                    },
                 ),
                 modifier = Modifier.weight(1f),
             ) {
@@ -230,7 +233,13 @@ private fun ControlPanel(
             Button(
                 onClick = onToggleHighContrast,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (state.isHighContrast) Color(0xFF555599) else Color(0xFF444444),
+                    containerColor = if (state.isHighContrast) {
+                        Color(0xFF555599)
+                    } else {
+                        Color(
+                            0xFF444444,
+                        )
+                    },
                 ),
                 modifier = Modifier.weight(1f),
             ) {

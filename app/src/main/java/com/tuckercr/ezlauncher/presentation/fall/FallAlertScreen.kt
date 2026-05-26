@@ -13,13 +13,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,10 +33,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
-private val ColorAlertBg      = Color(0xFFB71C1C)   // deep red background
-private val ColorAlertSurface = Color(0xFFD32F2F)   // slightly lighter for cards
-private val ColorOkButton     = Color(0xFF2E7D32)   // green — "I'm OK"
-private val ColorCallButton   = Color(0xFFEF5350)   // bright red — "Call Now"
+private val ColorAlertBg = Color(0xFFB71C1C) // deep red background
+private val ColorAlertSurface = Color(0xFFD32F2F) // slightly lighter for cards
+private val ColorOkButton = Color(0xFF2E7D32) // green — "I'm OK"
+private val ColorCallButton = Color(0xFFEF5350) // bright red — "Call Now"
 
 @Composable
 fun FallAlertScreen(
@@ -54,61 +51,61 @@ fun FallAlertScreen(
     }
 
     val progress by animateFloatAsState(
-        targetValue    = state.secondsRemaining / 30f,
-        animationSpec  = tween(durationMillis = 900),
-        label          = "countdown",
+        targetValue = state.secondsRemaining / 30f,
+        animationSpec = tween(durationMillis = 900),
+        label = "countdown",
     )
 
     Box(
-        modifier          = Modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(ColorAlertBg),
-        contentAlignment  = Alignment.Center,
+        contentAlignment = Alignment.Center,
     ) {
         Column(
-            modifier              = Modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp),
-            horizontalAlignment   = Alignment.CenterHorizontally,
-            verticalArrangement   = Arrangement.SpaceEvenly,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly,
         ) {
             // ── Title ────────────────────────────────────────────────────────
             Text(
-                text       = "⚠️",
-                fontSize   = 64.sp,
-                textAlign  = TextAlign.Center,
+                text = "⚠️",
+                fontSize = 64.sp,
+                textAlign = TextAlign.Center,
             )
 
             Text(
-                text       = "Fall Detected!",
-                fontSize   = 42.sp,
+                text = "Fall Detected!",
+                fontSize = 42.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color      = Color.White,
-                textAlign  = TextAlign.Center,
+                color = Color.White,
+                textAlign = TextAlign.Center,
                 letterSpacing = 1.sp,
             )
 
             // ── Countdown ring ────────────────────────────────────────────────
             Box(contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(
-                    progress           = { progress },
-                    modifier           = Modifier.size(180.dp),
-                    strokeWidth        = 12.dp,
-                    color              = Color.White,
-                    trackColor         = ColorAlertSurface,
-                    strokeCap          = StrokeCap.Round,
+                    progress = { progress },
+                    modifier = Modifier.size(180.dp),
+                    strokeWidth = 12.dp,
+                    color = Color.White,
+                    trackColor = ColorAlertSurface,
+                    strokeCap = StrokeCap.Round,
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text       = "${state.secondsRemaining}",
-                        fontSize   = 56.sp,
+                        text = "${state.secondsRemaining}",
+                        fontSize = 56.sp,
                         fontWeight = FontWeight.Bold,
-                        color      = Color.White,
+                        color = Color.White,
                     )
                     Text(
-                        text     = "seconds",
+                        text = "seconds",
                         fontSize = 16.sp,
-                        color    = Color.White.copy(alpha = 0.8f),
+                        color = Color.White.copy(alpha = 0.8f),
                     )
                 }
             }
@@ -126,26 +123,26 @@ fun FallAlertScreen(
                 if (contact != null) {
                     Text(
                         "Calling in ${state.secondsRemaining}s…",
-                        color    = Color.White.copy(alpha = 0.9f),
+                        color = Color.White.copy(alpha = 0.9f),
                         fontSize = 16.sp,
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
                         contact.name,
-                        color      = Color.White,
-                        fontSize   = 22.sp,
+                        color = Color.White,
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                     )
                     Text(
                         contact.phoneNumber,
-                        color    = Color.White.copy(alpha = 0.8f),
+                        color = Color.White.copy(alpha = 0.8f),
                         fontSize = 16.sp,
                     )
                 } else {
                     Text(
                         "No emergency contact set.\nSet one in the SOS settings.",
-                        color     = Color.White.copy(alpha = 0.9f),
-                        fontSize  = 16.sp,
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontSize = 16.sp,
                         textAlign = TextAlign.Center,
                     )
                 }
@@ -153,37 +150,41 @@ fun FallAlertScreen(
 
             // ── Action buttons ────────────────────────────────────────────────
             Row(
-                modifier              = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 // "I'm OK" — cancel everything
                 Button(
-                    onClick   = { viewModel.dismiss() },
-                    modifier  = Modifier.weight(1f).height(72.dp),
-                    colors    = ButtonDefaults.buttonColors(containerColor = ColorOkButton),
-                    shape     = RoundedCornerShape(16.dp),
+                    onClick = { viewModel.dismiss() },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(72.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = ColorOkButton),
+                    shape = RoundedCornerShape(16.dp),
                 ) {
                     Text(
                         "I'm OK",
-                        fontSize   = 22.sp,
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
-                        color      = Color.White,
+                        color = Color.White,
                     )
                 }
 
                 // "Call Now" — skip countdown
                 Button(
-                    onClick   = { viewModel.callNow() },
-                    modifier  = Modifier.weight(1f).height(72.dp),
-                    enabled   = contact != null,
-                    colors    = ButtonDefaults.buttonColors(containerColor = ColorCallButton),
-                    shape     = RoundedCornerShape(16.dp),
+                    onClick = { viewModel.callNow() },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(72.dp),
+                    enabled = contact != null,
+                    colors = ButtonDefaults.buttonColors(containerColor = ColorCallButton),
+                    shape = RoundedCornerShape(16.dp),
                 ) {
                     Text(
                         "Call Now",
-                        fontSize   = 22.sp,
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
-                        color      = Color.White,
+                        color = Color.White,
                     )
                 }
             }

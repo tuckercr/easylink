@@ -20,7 +20,5 @@ abstract class SpeedDialModule {
 
     @Binds
     @Singleton
-    abstract fun bindSpeedDialRepository(
-        impl: SpeedDialRepositoryImpl,
-    ): SpeedDialRepository
+    abstract fun bindSpeedDialRepository(impl: SpeedDialRepositoryImpl): SpeedDialRepository
 }

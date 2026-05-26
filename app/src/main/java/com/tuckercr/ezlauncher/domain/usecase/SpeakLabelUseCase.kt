@@ -31,9 +31,9 @@ class SpeakLabelUseCase @Inject constructor(
      */
     operator fun invoke(rawLabel: String) {
         val cleaned = rawLabel
-            .replace(Regex("[\\n\\r\\t]+"), " ")           // newlines → space
+            .replace(Regex("[\\n\\r\\t]+"), " ") // newlines → space
             .replace(Regex("[\\p{So}\\p{Cn}\\p{Cs}]+"), "") // emoji / undefined chars
-            .replace(Regex("\\s{2,}"), " ")                 // collapse multi-spaces
+            .replace(Regex("\\s{2,}"), " ") // collapse multi-spaces
             .trim()
 
         if (cleaned.isNotBlank()) {

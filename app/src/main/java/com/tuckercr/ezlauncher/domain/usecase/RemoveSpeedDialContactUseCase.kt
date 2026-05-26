@@ -13,6 +13,5 @@ import javax.inject.Inject
 class RemoveSpeedDialContactUseCase @Inject constructor(
     private val repository: SpeedDialRepository,
 ) {
-    suspend operator fun invoke(contact: SpeedDialContact) =
-        repository.removeContact(contact)
+    suspend operator fun invoke(contact: SpeedDialContact) = repository.removeContact(contact)
 }

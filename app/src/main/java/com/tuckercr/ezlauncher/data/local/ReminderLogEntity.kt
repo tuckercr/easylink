@@ -12,44 +12,46 @@ import java.time.LocalDateTime
     tableName = "reminder_logs",
     foreignKeys = [
         ForeignKey(
-            entity        = MedicationEntity::class,
+            entity = MedicationEntity::class,
             parentColumns = ["id"],
-            childColumns  = ["medicationId"],
+            childColumns = ["medicationId"],
             // SET_NULL so history survives medication deletion
-            onDelete      = ForeignKey.SET_NULL,
-        )
+            onDelete = ForeignKey.SET_NULL,
+        ),
     ],
     indices = [Index("medicationId"), Index("scheduledTime")],
 )
 data class ReminderLogEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val medicationId: Long?,            // nullable — medication may have been deleted
-    val medicationName: String,         // denormalised — preserved after deletion
+    val medicationId: Long?,
+    val medicationName: String,
     val dosage: String,
     val scheduledTime: LocalDateTime,
     val actionTime: LocalDateTime?,
     val action: ReminderAction,
 ) {
-    fun toDomain() = ReminderLog(
-        id             = id,
-        medicationId   = medicationId ?: -1L,
-        medicationName = medicationName,
-        dosage         = dosage,
-        scheduledTime  = scheduledTime,
-        actionTime     = actionTime,
-        action         = action,
-    )
+    fun toDomain() =
+        ReminderLog(
+            id = id,
+            medicationId = medicationId ?: -1L,
+            medicationName = medicationName,
+            dosage = dosage,
+            scheduledTime = scheduledTime,
+            actionTime = actionTime,
+            action = action,
+        )
 
     companion object {
-        fun fromDomain(log: ReminderLog) = ReminderLogEntity(
-            id             = log.id,
-            medicationId   = log.medicationId.takeIf { it > 0 },
-            medicationName = log.medicationName,
-            dosage         = log.dosage,
-            scheduledTime  = log.scheduledTime,
-            actionTime     = log.actionTime,
-            action         = log.action,
-        )
+        fun fromDomain(log: ReminderLog) =
+            ReminderLogEntity(
+                id = log.id,
+                medicationId = log.medicationId.takeIf { it > 0 },
+                medicationName = log.medicationName,
+                dosage = log.dosage,
+                scheduledTime = log.scheduledTime,
+                actionTime = log.actionTime,
+                action = log.action,
+            )
     }
 }

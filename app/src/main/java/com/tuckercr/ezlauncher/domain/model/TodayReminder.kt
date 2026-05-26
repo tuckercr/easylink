@@ -16,8 +16,7 @@ data class TodayReminder(
 
     enum class Status { UPCOMING, TAKEN, SNOOZED, MISSED, OVERDUE }
 
-    override fun compareTo(other: TodayReminder): Int =
-        scheduledAt.compareTo(other.scheduledAt)
+    override fun compareTo(other: TodayReminder): Int = scheduledAt.compareTo(other.scheduledAt)
 
     val isPast: Boolean get() = scheduledAt.isBefore(LocalDateTime.now())
 

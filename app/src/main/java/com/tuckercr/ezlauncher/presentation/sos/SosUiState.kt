@@ -17,13 +17,17 @@ sealed class SosUiState {
      *
      * @param secondsRemaining  Counts down from COUNTDOWN_SECONDS to 1.
      */
-    data class Counting(val secondsRemaining: Int) : SosUiState()
+    data class Counting(
+        val secondsRemaining: Int,
+    ) : SosUiState()
 
     /** SOS is in progress — location fetch + SMS + call underway. */
     data object Dispatching : SosUiState()
 
     /** SOS completed. Show result and navigate away after a brief pause. */
-    data class Done(val result: SosResult) : SosUiState()
+    data class Done(
+        val result: SosResult,
+    ) : SosUiState()
 
     /** User pressed Cancel — SOS was not sent. */
     data object Cancelled : SosUiState()

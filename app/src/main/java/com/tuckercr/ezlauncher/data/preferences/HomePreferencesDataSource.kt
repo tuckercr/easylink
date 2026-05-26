@@ -36,7 +36,10 @@ class HomePreferencesDataSource @Inject constructor(
         }
 
     /** Persist the enabled/disabled state for a single button. */
-    suspend fun setButtonEnabled(button: HomeButton, enabled: Boolean) {
+    suspend fun setButtonEnabled(
+        button: HomeButton,
+        enabled: Boolean,
+    ) {
         dataStore.edit { prefs ->
             val current = (prefs[DISABLED_BUTTONS] ?: emptySet()).toMutableSet()
             if (enabled) current.remove(button.name) else current.add(button.name)

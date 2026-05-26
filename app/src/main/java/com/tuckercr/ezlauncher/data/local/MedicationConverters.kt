@@ -26,18 +26,15 @@ class MedicationConverters {
     // ── LocalTime ─────────────────────────────────────────────────────────────
 
     @TypeConverter
-    fun fromLocalTime(value: LocalTime?): String? =
-        value?.format(timeFormatter)
+    fun fromLocalTime(value: LocalTime?): String? = value?.format(timeFormatter)
 
     @TypeConverter
-    fun toLocalTime(value: String?): LocalTime? =
-        value?.let { LocalTime.parse(it, timeFormatter) }
+    fun toLocalTime(value: String?): LocalTime? = value?.let { LocalTime.parse(it, timeFormatter) }
 
     // ── List<LocalTime> ───────────────────────────────────────────────────────
 
     @TypeConverter
-    fun fromLocalTimeList(times: List<LocalTime>?): String =
-        times?.joinToString(",") { it.format(timeFormatter) } ?: ""
+    fun fromLocalTimeList(times: List<LocalTime>?): String = times?.joinToString(",") { it.format(timeFormatter) } ?: ""
 
     @TypeConverter
     fun toLocalTimeList(value: String?): List<LocalTime> =
@@ -51,8 +48,7 @@ class MedicationConverters {
     // ── Set<DayOfWeek> ────────────────────────────────────────────────────────
 
     @TypeConverter
-    fun fromDayOfWeekSet(days: Set<DayOfWeek>?): String =
-        days?.joinToString(",") { it.value.toString() } ?: ""
+    fun fromDayOfWeekSet(days: Set<DayOfWeek>?): String = days?.joinToString(",") { it.value.toString() } ?: ""
 
     @TypeConverter
     fun toDayOfWeekSet(value: String?): Set<DayOfWeek> =
@@ -66,12 +62,10 @@ class MedicationConverters {
     // ── LocalDateTime ─────────────────────────────────────────────────────────
 
     @TypeConverter
-    fun fromLocalDateTime(value: LocalDateTime?): String? =
-        value?.toString()   // ISO-8601 via LocalDateTime.toString()
+    fun fromLocalDateTime(value: LocalDateTime?): String? = value?.toString() // ISO-8601 via LocalDateTime.toString()
 
     @TypeConverter
-    fun toLocalDateTime(value: String?): LocalDateTime? =
-        value?.let { LocalDateTime.parse(it) }
+    fun toLocalDateTime(value: String?): LocalDateTime? = value?.let { LocalDateTime.parse(it) }
 
     // ── MedicationColor ───────────────────────────────────────────────────────
 
@@ -85,12 +79,14 @@ class MedicationConverters {
     // ── ReminderAction ────────────────────────────────────────────────────────
 
     @TypeConverter
-    fun fromReminderAction(action: com.tuckercr.ezlauncher.domain.model.ReminderAction?): String? =
-        action?.name
+    fun fromReminderAction(action: com.tuckercr.ezlauncher.domain.model.ReminderAction?): String? = action?.name
 
     @TypeConverter
     fun toReminderAction(value: String?): com.tuckercr.ezlauncher.domain.model.ReminderAction? =
-        value?.let { runCatching {
-            com.tuckercr.ezlauncher.domain.model.ReminderAction.valueOf(it)
-        }.getOrNull() }
+        value?.let {
+            runCatching {
+                com.tuckercr.ezlauncher.domain.model.ReminderAction
+                    .valueOf(it)
+            }.getOrNull()
+        }
 }

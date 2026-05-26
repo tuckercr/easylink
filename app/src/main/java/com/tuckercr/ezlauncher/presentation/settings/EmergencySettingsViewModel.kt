@@ -29,6 +29,7 @@ class EmergencySettingsViewModel @Inject constructor(
         val validationError: String? = null,
         val snackbarMessage: String? = null,
     )
+
     private val localState = MutableStateFlow(LocalState())
 
     val uiState: StateFlow<EmergencySettingsUiState> = combine(
@@ -36,14 +37,14 @@ class EmergencySettingsViewModel @Inject constructor(
         localState,
     ) { contacts, local ->
         EmergencySettingsUiState.Ready(
-            contacts        = contacts,
-            editingContact  = local.editingContact,
+            contacts = contacts,
+            editingContact = local.editingContact,
             validationError = local.validationError,
             snackbarMessage = local.snackbarMessage,
         )
     }.stateIn(
-        scope        = viewModelScope,
-        started      = SharingStarted.WhileSubscribed(5_000),
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
         initialValue = EmergencySettingsUiState.Loading,
     )
 
@@ -51,7 +52,14 @@ class EmergencySettingsViewModel @Inject constructor(
 
     /** Open the add dialog pre-populated for a new contact. */
     fun onAddContactClicked() {
-        localState.update { it.copy(editingContact = EmergencyContact(name = "", phoneNumber = "")) }
+        localState.update {
+            it.copy(
+                editingContact = EmergencyContact(
+                    name = "",
+                    phoneNumber = "",
+                ),
+            )
+        }
     }
 
     /** Open the edit dialog pre-populated with an existing contact. */
@@ -65,23 +73,30 @@ class EmergencySettingsViewModel @Inject constructor(
     }
 
     /** Validate and persist the contact from the dialog. */
-    fun onSaveContact(name: String, phone: String, isPrimary: Boolean) {
+    fun onSaveContact(
+        name: String,
+        phone: String,
+        isPrimary: Boolean,
+    ) {
         val current = localState.value.editingContact ?: return
-        val updated = current.copy(name = name.trim(), phoneNumber = phone.trim(), isPrimary = isPrimary)
+        val updated =
+            current.copy(name = name.trim(), phoneNumber = phone.trim(), isPrimary = isPrimary)
 
         viewModelScope.launch {
             when (val result = saveContact(updated)) {
                 is SaveEmergencyContactUseCase.Result.Success -> {
                     localState.update {
                         it.copy(
-                            editingContact  = null,
+                            editingContact = null,
                             validationError = null,
                             snackbarMessage = "Contact saved",
                         )
                     }
                 }
+
                 is SaveEmergencyContactUseCase.Result.InvalidName ->
                     localState.update { it.copy(validationError = result.message) }
+
                 is SaveEmergencyContactUseCase.Result.InvalidPhone ->
                     localState.update { it.copy(validationError = result.message) }
             }

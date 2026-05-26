@@ -34,75 +34,82 @@ class AddSpeedDialContactUseCaseTest {
         photoUri = null,
     )
 
-    private fun pinnedContact(contactId: Long = 99L) = SpeedDialContact(
-        id = 1L,
-        contactId = contactId,
-        name = "Bob Jones",
-        phoneNumber = "555-0200",
-        photoUri = null,
-        displayOrder = 0,
-    )
+    private fun pinnedContact(contactId: Long = 99L) =
+        SpeedDialContact(
+            id = 1L,
+            contactId = contactId,
+            name = "Bob Jones",
+            phoneNumber = "555-0200",
+            photoUri = null,
+            displayOrder = 0,
+        )
 
     @Test
-    fun `returns Success and saves when contact is valid and not already pinned`() = runTest {
-        every { repository.getSpeedDialContacts() } returns flowOf(emptyList())
-        val contact = deviceContact()
+    fun `returns Success and saves when contact is valid and not already pinned`() =
+        runTest {
+            every { repository.getSpeedDialContacts() } returns flowOf(emptyList())
+            val contact = deviceContact()
 
-        val result = useCase(contact)
+            val result = useCase(contact)
 
-        assertEquals(AddSpeedDialContactUseCase.Result.Success, result)
-        coVerify(exactly = 1) { repository.addContact(contact) }
-    }
-
-    @Test
-    fun `returns InvalidContact when name is blank`() = runTest {
-        every { repository.getSpeedDialContacts() } returns flowOf(emptyList())
-        val result = useCase(deviceContact(name = "   "))
-
-        assertEquals(AddSpeedDialContactUseCase.Result.InvalidContact, result)
-        coVerify(exactly = 0) { repository.addContact(any()) }
-    }
+            assertEquals(AddSpeedDialContactUseCase.Result.Success, result)
+            coVerify(exactly = 1) { repository.addContact(contact) }
+        }
 
     @Test
-    fun `returns InvalidContact when phone number is blank`() = runTest {
-        every { repository.getSpeedDialContacts() } returns flowOf(emptyList())
-        val result = useCase(deviceContact(phoneNumber = ""))
+    fun `returns InvalidContact when name is blank`() =
+        runTest {
+            every { repository.getSpeedDialContacts() } returns flowOf(emptyList())
+            val result = useCase(deviceContact(name = "   "))
 
-        assertEquals(AddSpeedDialContactUseCase.Result.InvalidContact, result)
-        coVerify(exactly = 0) { repository.addContact(any()) }
-    }
-
-    @Test
-    fun `returns AlreadyAdded when contactId is already pinned`() = runTest {
-        val existing = pinnedContact(contactId = 1L)
-        every { repository.getSpeedDialContacts() } returns flowOf(listOf(existing))
-
-        val result = useCase(deviceContact(contactId = 1L))
-
-        assertEquals(AddSpeedDialContactUseCase.Result.AlreadyAdded, result)
-        coVerify(exactly = 0) { repository.addContact(any()) }
-    }
+            assertEquals(AddSpeedDialContactUseCase.Result.InvalidContact, result)
+            coVerify(exactly = 0) { repository.addContact(any()) }
+        }
 
     @Test
-    fun `allows adding a different contact even when others are pinned`() = runTest {
-        val existing = pinnedContact(contactId = 99L)
-        every { repository.getSpeedDialContacts() } returns flowOf(listOf(existing))
-        val newContact = deviceContact(contactId = 42L)
+    fun `returns InvalidContact when phone number is blank`() =
+        runTest {
+            every { repository.getSpeedDialContacts() } returns flowOf(emptyList())
+            val result = useCase(deviceContact(phoneNumber = ""))
 
-        val result = useCase(newContact)
-
-        assertEquals(AddSpeedDialContactUseCase.Result.Success, result)
-        coVerify(exactly = 1) { repository.addContact(newContact) }
-    }
+            assertEquals(AddSpeedDialContactUseCase.Result.InvalidContact, result)
+            coVerify(exactly = 0) { repository.addContact(any()) }
+        }
 
     @Test
-    fun `validation runs before duplicate check — InvalidContact wins`() = runTest {
-        // Name is blank AND contactId already pinned — InvalidContact should be returned
-        val existing = pinnedContact(contactId = 1L)
-        every { repository.getSpeedDialContacts() } returns flowOf(listOf(existing))
+    fun `returns AlreadyAdded when contactId is already pinned`() =
+        runTest {
+            val existing = pinnedContact(contactId = 1L)
+            every { repository.getSpeedDialContacts() } returns flowOf(listOf(existing))
 
-        val result = useCase(deviceContact(contactId = 1L, name = ""))
+            val result = useCase(deviceContact(contactId = 1L))
 
-        assertEquals(AddSpeedDialContactUseCase.Result.InvalidContact, result)
-    }
+            assertEquals(AddSpeedDialContactUseCase.Result.AlreadyAdded, result)
+            coVerify(exactly = 0) { repository.addContact(any()) }
+        }
+
+    @Test
+    fun `allows adding a different contact even when others are pinned`() =
+        runTest {
+            val existing = pinnedContact(contactId = 99L)
+            every { repository.getSpeedDialContacts() } returns flowOf(listOf(existing))
+            val newContact = deviceContact(contactId = 42L)
+
+            val result = useCase(newContact)
+
+            assertEquals(AddSpeedDialContactUseCase.Result.Success, result)
+            coVerify(exactly = 1) { repository.addContact(newContact) }
+        }
+
+    @Test
+    fun `validation runs before duplicate check and InvalidContact wins`() =
+        runTest {
+            // Name is blank AND contactId already pinned — InvalidContact should be returned
+            val existing = pinnedContact(contactId = 1L)
+            every { repository.getSpeedDialContacts() } returns flowOf(listOf(existing))
+
+            val result = useCase(deviceContact(contactId = 1L, name = ""))
+
+            assertEquals(AddSpeedDialContactUseCase.Result.InvalidContact, result)
+        }
 }

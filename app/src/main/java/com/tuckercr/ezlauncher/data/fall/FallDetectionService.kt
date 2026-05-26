@@ -36,9 +36,14 @@ class FallDetectionService : Service() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    @Inject lateinit var detector:     FallDetector
-    @Inject lateinit var notifHelper:  FallDetectionNotificationHelper
-    @Inject lateinit var fallPrefs:    FallDetectionPreferences
+    @Inject
+    lateinit var detector: FallDetector
+
+    @Inject
+    lateinit var notifHelper: FallDetectionNotificationHelper
+
+    @Inject
+    lateinit var fallPrefs: FallDetectionPreferences
 
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
@@ -63,7 +68,11 @@ class FallDetectionService : Service() {
         }
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    override fun onStartCommand(
+        intent: Intent?,
+        flags: Int,
+        startId: Int,
+    ): Int {
         super.onStartCommand(intent, flags, startId)
 
         // Promote to foreground immediately to satisfy Android's 5-second rule
@@ -79,8 +88,9 @@ class FallDetectionService : Service() {
         // Register accelerometer listener
         accelerometer?.let {
             sensorManager.registerListener(
-                sensorListener, it,
-                SensorManager.SENSOR_DELAY_GAME,     // ~50 Hz — good for fall detection
+                sensorListener,
+                it,
+                SensorManager.SENSOR_DELAY_GAME, // ~50 Hz — good for fall detection
             )
         }
 
@@ -113,6 +123,9 @@ class FallDetectionService : Service() {
             }
         }
 
-        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+        override fun onAccuracyChanged(
+            sensor: Sensor?,
+            accuracy: Int,
+        ) = Unit
     }
 }

@@ -1,10 +1,6 @@
 package com.tuckercr.ezlauncher.presentation.voice
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -12,6 +8,10 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,11 +46,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tuckercr.ezlauncher.R
 
-private val OverlayBg    = Color(0xCC000000)  // 80% black
-private val CardBg       = Color(0xFF1E1E2E)  // dark navy
-private val AccentBlue   = Color(0xFF6C8EFF)
+private val OverlayBg = Color(0xCC000000) // 80% black
+private val CardBg = Color(0xFF1E1E2E) // dark navy
+private val AccentBlue = Color(0xFF6C8EFF)
 private val SuccessGreen = Color(0xFF4CAF50)
-private val ErrorRed     = Color(0xFFEF5350)
+private val ErrorRed = Color(0xFFEF5350)
 
 /**
  * Full-screen semi-transparent overlay shown while voice recognition is active.
@@ -86,12 +86,13 @@ fun VoiceOverlay(
             label = "voice_state",
         ) { s ->
             when (s) {
-                is VoiceUiState.Listening     -> ListeningCard(onDismiss)
-                is VoiceUiState.Heard         -> HeardCard(s.text)
-                is VoiceUiState.Success       -> SuccessCard(s.actionLabel)
+                is VoiceUiState.Listening -> ListeningCard(onDismiss)
+                is VoiceUiState.Heard -> HeardCard(s.text)
+                is VoiceUiState.Success -> SuccessCard(s.actionLabel)
                 is VoiceUiState.NotUnderstood -> NotUnderstoodCard(s.text, onRetry, onDismiss)
-                is VoiceUiState.Error         -> ErrorCard(s.message, onRetry, onDismiss)
-                is VoiceUiState.Idle          -> { /* overlay is hidden before this renders */ }
+                is VoiceUiState.Error -> ErrorCard(s.message, onRetry, onDismiss)
+                is VoiceUiState.Idle -> { // overlay is hidden before this renders
+                }
             }
         }
     }
@@ -106,9 +107,9 @@ private fun ListeningCard(onCancel: () -> Unit) {
     // Pulsing ring behind the mic
     val pulseScale by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue  = 1.18f,
+        targetValue = 1.18f,
         animationSpec = infiniteRepeatable(
-            animation  = tween(850, easing = FastOutSlowInEasing),
+            animation = tween(850, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse,
         ),
         label = "pulse",
@@ -116,10 +117,10 @@ private fun ListeningCard(onCancel: () -> Unit) {
 
     // Five waveform bars with different speeds → natural, unsynced look
     val bar1 by waveBar(infiniteTransition, 0.25f, 1.0f, 340)
-    val bar2 by waveBar(infiniteTransition, 0.8f,  0.3f, 500)
-    val bar3 by waveBar(infiniteTransition, 0.5f,  1.0f, 420)
+    val bar2 by waveBar(infiniteTransition, 0.8f, 0.3f, 500)
+    val bar3 by waveBar(infiniteTransition, 0.5f, 1.0f, 420)
     val bar4 by waveBar(infiniteTransition, 0.15f, 0.85f, 380)
-    val bar5 by waveBar(infiniteTransition, 0.7f,  0.2f, 470)
+    val bar5 by waveBar(infiniteTransition, 0.7f, 0.2f, 470)
 
     OverlayCard {
         // Pulsing mic circle
@@ -141,7 +142,7 @@ private fun ListeningCard(onCancel: () -> Unit) {
                 Icon(
                     painter = painterResource(R.drawable.ic_mic),
                     contentDescription = "Microphone",
-                    tint     = Color.White,
+                    tint = Color.White,
                     modifier = Modifier.size(36.dp),
                 )
             }
@@ -150,9 +151,9 @@ private fun ListeningCard(onCancel: () -> Unit) {
         Spacer(Modifier.height(24.dp))
 
         Text(
-            text       = "Listening…",
-            color      = Color.White,
-            fontSize   = 22.sp,
+            text = "Listening…",
+            color = Color.White,
+            fontSize = 22.sp,
             fontWeight = FontWeight.SemiBold,
         )
 
@@ -161,8 +162,8 @@ private fun ListeningCard(onCancel: () -> Unit) {
         // Animated waveform bars
         Row(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment     = Alignment.Bottom,
-            modifier              = Modifier.height(40.dp),
+            verticalAlignment = Alignment.Bottom,
+            modifier = Modifier.height(40.dp),
         ) {
             WaveBar(fraction = bar1, color = AccentBlue)
             WaveBar(fraction = bar2, color = AccentBlue.copy(alpha = 0.8f))
@@ -175,7 +176,7 @@ private fun ListeningCard(onCancel: () -> Unit) {
 
         OutlinedButton(
             onClick = onCancel,
-            colors  = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
         ) {
             Text("Cancel", fontSize = 16.sp)
         }
@@ -190,16 +191,21 @@ private fun waveBar(
     durationMs: Int,
 ) = transition.animateFloat(
     initialValue = from,
-    targetValue  = to,
+    targetValue = to,
     animationSpec = infiniteRepeatable(
-        animation  = tween(durationMs, easing = LinearEasing),
+        animation = tween(durationMs, easing = LinearEasing),
         repeatMode = RepeatMode.Reverse,
     ),
-    label = "bar_${durationMs}",
+    label = "bar_$durationMs",
 )
 
 @Composable
-private fun WaveBar(fraction: Float, color: Color, width: Dp = 8.dp, maxHeight: Dp = 40.dp) {
+private fun WaveBar(
+    fraction: Float,
+    color: Color,
+    width: Dp = 8.dp,
+    maxHeight: Dp = 40.dp,
+) {
     Box(
         modifier = Modifier
             .width(width)
@@ -217,15 +223,15 @@ private fun HeardCard(text: String) {
         Text("🎤", fontSize = 40.sp)
         Spacer(Modifier.height(12.dp))
         Text(
-            text      = "\"$text\"",
-            color     = Color.White,
-            fontSize  = 18.sp,
+            text = "\"$text\"",
+            color = Color.White,
+            fontSize = 18.sp,
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text     = "Processing…",
-            color    = Color.White.copy(alpha = 0.6f),
+            text = "Processing…",
+            color = Color.White.copy(alpha = 0.6f),
             fontSize = 14.sp,
         )
     }
@@ -246,17 +252,17 @@ private fun SuccessCard(actionLabel: String) {
             Icon(
                 painter = painterResource(R.drawable.ic_check),
                 contentDescription = "Done",
-                tint     = Color.White,
+                tint = Color.White,
                 modifier = Modifier.size(40.dp),
             )
         }
         Spacer(Modifier.height(20.dp))
         Text(
-            text       = actionLabel,
-            color      = Color.White,
-            fontSize   = 20.sp,
+            text = actionLabel,
+            color = Color.White,
+            fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold,
-            textAlign  = TextAlign.Center,
+            textAlign = TextAlign.Center,
         )
     }
 }
@@ -273,36 +279,40 @@ private val VOICE_HINTS = listOf(
 )
 
 @Composable
-private fun NotUnderstoodCard(text: String, onRetry: () -> Unit, onCancel: () -> Unit) {
+private fun NotUnderstoodCard(
+    text: String,
+    onRetry: () -> Unit,
+    onCancel: () -> Unit,
+) {
     OverlayCard {
         Text("🤔", fontSize = 44.sp)
         Spacer(Modifier.height(12.dp))
         Text(
-            text       = "I didn't understand that",
-            color      = Color.White,
-            fontSize   = 20.sp,
+            text = "I didn't understand that",
+            color = Color.White,
+            fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold,
-            textAlign  = TextAlign.Center,
+            textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            text      = "\"$text\"",
-            color     = Color.White.copy(alpha = 0.5f),
-            fontSize  = 13.sp,
+            text = "\"$text\"",
+            color = Color.White.copy(alpha = 0.5f),
+            fontSize = 13.sp,
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            text     = "Try saying:",
-            color    = Color.White.copy(alpha = 0.7f),
+            text = "Try saying:",
+            color = Color.White.copy(alpha = 0.7f),
             fontSize = 14.sp,
         )
         Spacer(Modifier.height(8.dp))
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             VOICE_HINTS.forEach { hint ->
                 Text(
-                    text     = "• $hint",
-                    color    = AccentBlue,
+                    text = "• $hint",
+                    color = AccentBlue,
                     fontSize = 15.sp,
                 )
             }
@@ -315,7 +325,11 @@ private fun NotUnderstoodCard(text: String, onRetry: () -> Unit, onCancel: () ->
 // ── Error card ─────────────────────────────────────────────────────────────────
 
 @Composable
-private fun ErrorCard(message: String, onRetry: () -> Unit, onCancel: () -> Unit) {
+private fun ErrorCard(
+    message: String,
+    onRetry: () -> Unit,
+    onCancel: () -> Unit,
+) {
     OverlayCard {
         Box(
             contentAlignment = Alignment.Center,
@@ -327,17 +341,17 @@ private fun ErrorCard(message: String, onRetry: () -> Unit, onCancel: () -> Unit
             Icon(
                 painter = painterResource(R.drawable.ic_mic),
                 contentDescription = null,
-                tint     = Color.White,
+                tint = Color.White,
                 modifier = Modifier.size(36.dp),
             )
         }
         Spacer(Modifier.height(16.dp))
         Text(
-            text       = message,
-            color      = Color.White,
-            fontSize   = 18.sp,
+            text = message,
+            color = Color.White,
+            fontSize = 18.sp,
             fontWeight = FontWeight.Medium,
-            textAlign  = TextAlign.Center,
+            textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(24.dp))
         ActionButtons(onRetry = onRetry, onCancel = onCancel)
@@ -361,17 +375,20 @@ private fun OverlayCard(content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun ActionButtons(onRetry: () -> Unit, onCancel: () -> Unit) {
+private fun ActionButtons(
+    onRetry: () -> Unit,
+    onCancel: () -> Unit,
+) {
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         OutlinedButton(
             onClick = onCancel,
-            colors  = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
         ) {
             Text("Cancel", fontSize = 16.sp)
         }
         Button(
             onClick = onRetry,
-            colors  = ButtonDefaults.buttonColors(containerColor = AccentBlue),
+            colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
         ) {
             Icon(
                 painter = painterResource(R.drawable.ic_mic),

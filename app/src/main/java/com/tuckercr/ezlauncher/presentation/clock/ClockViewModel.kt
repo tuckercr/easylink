@@ -13,24 +13,31 @@ import kotlinx.coroutines.launch
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 data class TimerState(
-    val totalSeconds: Int   = 0,
+    val totalSeconds: Int = 0,
     val remainingSeconds: Int = 0,
-    val isRunning: Boolean  = false,
+    val isRunning: Boolean = false,
     val isFinished: Boolean = false,
 ) {
     val isSet: Boolean get() = totalSeconds > 0
     val progress: Float
-        get() = if (totalSeconds == 0) 0f
-                else remainingSeconds.toFloat() / totalSeconds.toFloat()
+        get() = if (totalSeconds == 0) {
+            0f
+        } else {
+            remainingSeconds.toFloat() / totalSeconds.toFloat()
+        }
     val displayTime: String
         get() {
             val h = remainingSeconds / 3600
             val m = (remainingSeconds % 3600) / 60
             val s = remainingSeconds % 60
-            return if (h > 0) "%d:%02d:%02d".format(h, m, s)
-                   else       "%02d:%02d".format(m, s)
+            return if (h > 0) {
+                "%d:%02d:%02d".format(h, m, s)
+            } else {
+                "%02d:%02d".format(m, s)
+            }
         }
 }
 
@@ -48,7 +55,9 @@ class ClockViewModel @Inject constructor() : ViewModel() {
     private var clockJob: Job? = null
     private var timerJob: Job? = null
 
-    init { startClock() }
+    init {
+        startClock()
+    }
 
     // ── Live clock ────────────────────────────────────────────────────────
 
@@ -56,7 +65,7 @@ class ClockViewModel @Inject constructor() : ViewModel() {
         clockJob = viewModelScope.launch {
             while (true) {
                 _currentTime.value = LocalTime.now().format(clockFormatter)
-                delay(1_000)
+                delay(1_000.milliseconds)
             }
         }
     }
@@ -81,7 +90,7 @@ class ClockViewModel @Inject constructor() : ViewModel() {
             _timerState.update { it.copy(isRunning = true, isFinished = false) }
             timerJob = viewModelScope.launch {
                 while (_timerState.value.remainingSeconds > 0) {
-                    delay(1_000)
+                    delay(1_000.milliseconds)
                     _timerState.update { it.copy(remainingSeconds = it.remainingSeconds - 1) }
                 }
                 _timerState.update { it.copy(isRunning = false, isFinished = true) }
@@ -92,7 +101,13 @@ class ClockViewModel @Inject constructor() : ViewModel() {
     /** Reset timer to its originally set duration. */
     fun resetTimer() {
         timerJob?.cancel()
-        _timerState.update { it.copy(remainingSeconds = it.totalSeconds, isRunning = false, isFinished = false) }
+        _timerState.update {
+            it.copy(
+                remainingSeconds = it.totalSeconds,
+                isRunning = false,
+                isFinished = false,
+            )
+        }
     }
 
     override fun onCleared() {

@@ -21,5 +21,7 @@ sealed interface MedicationsUiState {
             reminders.all { it.status in TodayReminder.TERMINAL_STATUSES },
     ) : MedicationsUiState
 
-    data class Error(val message: String) : MedicationsUiState
+    data class Error(
+        val message: String,
+    ) : MedicationsUiState
 }

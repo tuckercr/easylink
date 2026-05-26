@@ -1,6 +1,6 @@
 package com.tuckercr.ezlauncher.data.local
 
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -19,36 +19,34 @@ import com.tuckercr.ezlauncher.domain.model.SpeedDialContact
 data class SpeedDialEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-
     /** Android Contacts content-provider ID. */
     val contactId: Long,
-
     val name: String,
     val phoneNumber: String,
-
     /** Stored as a string; null when the contact has no photo. */
     val photoUriString: String?,
-
     /** 0-based sort order in the grid. */
     val displayOrder: Int,
 ) {
-    fun toDomain() = SpeedDialContact(
-        id           = id,
-        contactId    = contactId,
-        name         = name,
-        phoneNumber  = phoneNumber,
-        photoUri     = photoUriString?.let { Uri.parse(it) },
-        displayOrder = displayOrder,
-    )
+    fun toDomain() =
+        SpeedDialContact(
+            id = id,
+            contactId = contactId,
+            name = name,
+            phoneNumber = phoneNumber,
+            photoUri = photoUriString?.toUri(),
+            displayOrder = displayOrder,
+        )
 
     companion object {
-        fun fromDomain(contact: SpeedDialContact) = SpeedDialEntity(
-            id             = contact.id,
-            contactId      = contact.contactId,
-            name           = contact.name,
-            phoneNumber    = contact.phoneNumber,
-            photoUriString = contact.photoUri?.toString(),
-            displayOrder   = contact.displayOrder,
-        )
+        fun fromDomain(contact: SpeedDialContact) =
+            SpeedDialEntity(
+                id = contact.id,
+                contactId = contact.contactId,
+                name = contact.name,
+                phoneNumber = contact.phoneNumber,
+                photoUriString = contact.photoUri?.toString(),
+                displayOrder = contact.displayOrder,
+            )
     }
 }

@@ -31,13 +31,13 @@ import com.tuckercr.ezlauncher.R
 import com.tuckercr.ezlauncher.data.preferences.OnboardingPreferences
 import com.tuckercr.ezlauncher.presentation.apps.AppsScreen
 import com.tuckercr.ezlauncher.presentation.clock.ClockScreen
+import com.tuckercr.ezlauncher.presentation.forecast.ForecastScreen
 import com.tuckercr.ezlauncher.presentation.home.HomeScreen
 import com.tuckercr.ezlauncher.presentation.home.customize.CustomizeHomeScreen
 import com.tuckercr.ezlauncher.presentation.inbox.InboxScreen
 import com.tuckercr.ezlauncher.presentation.magnifier.MagnifierScreen
 import com.tuckercr.ezlauncher.presentation.medications.MedicationsScreen
 import com.tuckercr.ezlauncher.presentation.medications.add.AddMedicationScreen
-import com.tuckercr.ezlauncher.presentation.forecast.ForecastScreen
 import com.tuckercr.ezlauncher.presentation.onboarding.OnboardingScreen
 import com.tuckercr.ezlauncher.presentation.sos.SosCountdownScreen
 import com.tuckercr.ezlauncher.presentation.speeddial.SpeedDialScreen
@@ -52,20 +52,20 @@ import javax.inject.Inject
 // ── Route constants ───────────────────────────────────────────────────────────
 
 object Routes {
-    const val ONBOARDING      = "onboarding"
-    const val HOME            = "home"
-    const val APPS            = "apps"
-    const val SPEED_DIAL      = "speed_dial"
-    const val INBOX           = "inbox"
-    const val MEDICATIONS     = "medications"
-    const val MAGNIFIER       = "magnifier"
-    const val SOS_COUNTDOWN   = "sos_countdown"
-    const val ADD_SPEED_DIAL  = "add_speed_dial"
-    const val ADD_MEDICATION  = "add_medication"
+    const val ONBOARDING = "onboarding"
+    const val HOME = "home"
+    const val APPS = "apps"
+    const val SPEED_DIAL = "speed_dial"
+    const val INBOX = "inbox"
+    const val MEDICATIONS = "medications"
+    const val MAGNIFIER = "magnifier"
+    const val SOS_COUNTDOWN = "sos_countdown"
+    const val ADD_SPEED_DIAL = "add_speed_dial"
+    const val ADD_MEDICATION = "add_medication"
     const val EDIT_MEDICATION = "edit_medication/{medicationId}"
-    const val CLOCK           = "clock"
-    const val CUSTOMIZE_HOME  = "customize_home"
-    const val FORECAST        = "weather_forecast"
+    const val CLOCK = "clock"
+    const val CUSTOMIZE_HOME = "customize_home"
+    const val FORECAST = "weather_forecast"
 
     fun editMedication(id: Long) = "edit_medication/$id"
 }
@@ -87,7 +87,7 @@ class StartupViewModel @Inject constructor(
     val isOnboardingComplete: StateFlow<Boolean?> = prefs.isComplete
         .map { it as Boolean? }
         .stateIn(
-            scope   = viewModelScope,
+            scope = viewModelScope,
             started = SharingStarted.Eagerly,
             initialValue = null,
         )
@@ -102,11 +102,11 @@ private data class BottomNavItem(
 )
 
 private val bottomNavItems = listOf(
-    BottomNavItem(Routes.HOME,        "Home",       R.drawable.ic_home),
-    BottomNavItem(Routes.SPEED_DIAL,  "Speed Dial", R.drawable.ic_call),
-    BottomNavItem(Routes.INBOX,       "Inbox",      R.drawable.ic_sms),
-    BottomNavItem(Routes.MEDICATIONS, "Meds",       R.drawable.ic_pill),
-    BottomNavItem(Routes.CLOCK,       "Clock",      R.drawable.ic_alarm),
+    BottomNavItem(Routes.HOME, "Home", R.drawable.ic_home),
+    BottomNavItem(Routes.SPEED_DIAL, "Speed Dial", R.drawable.ic_call),
+    BottomNavItem(Routes.INBOX, "Inbox", R.drawable.ic_sms),
+    BottomNavItem(Routes.MEDICATIONS, "Meds", R.drawable.ic_pill),
+    BottomNavItem(Routes.CLOCK, "Clock", R.drawable.ic_alarm),
 )
 
 private val bottomNavRoutes = bottomNavItems.map { it.route }.toSet()
@@ -114,9 +114,7 @@ private val bottomNavRoutes = bottomNavItems.map { it.route }.toSet()
 // ── Nav host ──────────────────────────────────────────────────────────────────
 
 @Composable
-fun EzLauncherNavHost(
-    startupViewModel: StartupViewModel = hiltViewModel(),
-) {
+fun EzLauncherNavHost(startupViewModel: StartupViewModel = hiltViewModel()) {
     val isOnboardingComplete by startupViewModel.isOnboardingComplete
         .collectAsStateWithLifecycle()
 
@@ -125,7 +123,7 @@ fun EzLauncherNavHost(
         Box(
             Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.colorScheme.background),
         )
         return
     }
@@ -144,24 +142,25 @@ fun EzLauncherNavHost(
             if (showBottomBar) {
                 NavigationBar {
                     bottomNavItems.forEach { item ->
-                        val selected = navBackStackEntry?.destination
+                        val selected = navBackStackEntry
+                            ?.destination
                             ?.hierarchy
                             ?.any { it.route == item.route } == true
 
                         NavigationBarItem(
                             selected = selected,
-                            onClick  = {
+                            onClick = {
                                 navController.navigate(item.route) {
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
                                     }
                                     launchSingleTop = true
-                                    restoreState    = true
+                                    restoreState = true
                                 }
                             },
-                            icon  = {
+                            icon = {
                                 Icon(
-                                    painter            = painterResource(item.iconRes),
+                                    painter = painterResource(item.iconRes),
                                     contentDescription = item.labelRes,
                                 )
                             },
@@ -170,12 +169,12 @@ fun EzLauncherNavHost(
                     }
                 }
             }
-        }
+        },
     ) { innerPadding ->
         NavHost(
-            navController    = navController,
+            navController = navController,
             startDestination = startDestination,
-            modifier         = Modifier.padding(innerPadding),
+            modifier = Modifier.padding(innerPadding),
         ) {
             // ── Onboarding (shown once on first launch) ───────────────────────
             composable(Routes.ONBOARDING) {
@@ -184,18 +183,18 @@ fun EzLauncherNavHost(
                         navController.navigate(Routes.HOME) {
                             popUpTo(Routes.ONBOARDING) { inclusive = true }
                         }
-                    }
+                    },
                 )
             }
 
             // ── Main screens ──────────────────────────────────────────────────
             composable(Routes.HOME) {
                 HomeScreen(
-                    onNavigateToApps      = { navController.navigate(Routes.APPS) },
+                    onNavigateToApps = { navController.navigate(Routes.APPS) },
                     onNavigateToMagnifier = { navController.navigate(Routes.MAGNIFIER) },
-                    onNavigateToSos       = { navController.navigate(Routes.SOS_COUNTDOWN) },
+                    onNavigateToSos = { navController.navigate(Routes.SOS_COUNTDOWN) },
                     onNavigateToCustomize = { navController.navigate(Routes.CUSTOMIZE_HOME) },
-                    onNavigateToForecast  = { navController.navigate(Routes.FORECAST) },
+                    onNavigateToForecast = { navController.navigate(Routes.FORECAST) },
                 )
             }
             composable(Routes.CUSTOMIZE_HOME) {
@@ -206,7 +205,7 @@ fun EzLauncherNavHost(
             }
             composable(Routes.SPEED_DIAL) {
                 SpeedDialScreen(
-                    onNavigateToAddContact = { navController.navigate(Routes.ADD_SPEED_DIAL) }
+                    onNavigateToAddContact = { navController.navigate(Routes.ADD_SPEED_DIAL) },
                 )
             }
             composable(Routes.INBOX) {
@@ -214,7 +213,7 @@ fun EzLauncherNavHost(
             }
             composable(Routes.MEDICATIONS) {
                 MedicationsScreen(
-                    onNavigateToAddMedication  = { navController.navigate(Routes.ADD_MEDICATION) },
+                    onNavigateToAddMedication = { navController.navigate(Routes.ADD_MEDICATION) },
                     onNavigateToEditMedication = { id ->
                         navController.navigate(Routes.editMedication(id))
                     },
@@ -241,7 +240,7 @@ fun EzLauncherNavHost(
             composable(
                 route = Routes.EDIT_MEDICATION,
                 arguments = listOf(
-                    navArgument("medicationId") { type = NavType.LongType }
+                    navArgument("medicationId") { type = NavType.LongType },
                 ),
             ) {
                 AddMedicationScreen(onBack = { navController.popBackStack() })

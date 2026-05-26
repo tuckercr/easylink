@@ -24,9 +24,10 @@ import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val TAG = "SosRepository"
-private const val LOCATION_TIMEOUT_MS = 8_000L   // don't delay SOS more than 8 seconds for GPS
+private const val LOCATION_TIMEOUT_MS = 8_000L // don't delay SOS more than 8 seconds for GPS
 
 /**
  * Concrete implementation of [SosRepository].
@@ -50,12 +51,11 @@ class SosRepositoryImpl @Inject constructor(
 
     // ── Contacts CRUD ─────────────────────────────────────────────────────────
 
-    override fun getEmergencyContacts(): Flow<List<EmergencyContact>> =
-        dao.observeAll().map { entities -> entities.map { it.toDomain() } }
+    override fun getEmergencyContacts(): Flow<List<EmergencyContact>> = dao.observeAll().map { entities -> entities.map { it.toDomain() } }
 
     override suspend fun saveEmergencyContact(contact: EmergencyContact): EmergencyContact {
         val entity = EmergencyContactEntity.fromDomain(contact)
-        val newId  = dao.upsert(entity)
+        val newId = dao.upsert(entity)
         return contact.copy(id = newId)
     }
 
@@ -90,8 +90,8 @@ class SosRepositoryImpl @Inject constructor(
         }
 
         return SosResult.Success(
-            calledContact  = if (callPlaced) primaryContact else null,
-            smsRecipients  = smsCount,
+            calledContact = if (callPlaced) primaryContact else null,
+            smsRecipients = smsCount,
             locationShared = locationLink != null,
         )
     }
@@ -107,7 +107,8 @@ class SosRepositoryImpl @Inject constructor(
      */
     private suspend fun fetchLocationLink(): String? {
         val hasPermission = ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_FINE_LOCATION
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION,
         ) == PackageManager.PERMISSION_GRANTED
 
         if (!hasPermission) {
@@ -115,7 +116,7 @@ class SosRepositoryImpl @Inject constructor(
             return null
         }
 
-        return withTimeoutOrNull(LOCATION_TIMEOUT_MS) {
+        return withTimeoutOrNull(LOCATION_TIMEOUT_MS.milliseconds) {
             suspendCancellableCoroutine { continuation ->
                 val cts = CancellationTokenSource()
                 continuation.invokeOnCancellation { cts.cancel() }
@@ -127,8 +128,7 @@ class SosRepositoryImpl @Inject constructor(
                             "https://maps.google.com/?q=${it.latitude},${it.longitude}"
                         }
                         continuation.resume(link)
-                    }
-                    .addOnFailureListener { e ->
+                    }.addOnFailureListener { e ->
                         Log.e(TAG, "Location fetch failed", e)
                         continuation.resume(null)
                     }
@@ -136,7 +136,10 @@ class SosRepositoryImpl @Inject constructor(
         }
     }
 
-    private fun buildSmsMessage(locationShared: Boolean, locationLink: String?): String {
+    private fun buildSmsMessage(
+        locationShared: Boolean,
+        locationLink: String?,
+    ): String {
         val base = "EMERGENCY ALERT: This person needs immediate help!"
         return if (locationShared && locationLink != null) {
             "$base\n\nCurrent location:\n$locationLink"
@@ -150,10 +153,11 @@ class SosRepositoryImpl @Inject constructor(
      * Uses multipart send for messages longer than 160 characters.
      * Returns the number of contacts messaged successfully.
      */
-    @Suppress("DEPRECATION")  // SmsManager.getDefault() fine for API 26+
+    @Suppress("DEPRECATION") // SmsManager.getDefault() fine for API 26+
     private fun sendSmsToAll(contacts: List<EmergencyContact>, message: String): Int {
         val hasSmsPermission = ContextCompat.checkSelfPermission(
-            context, Manifest.permission.SEND_SMS
+            context,
+            Manifest.permission.SEND_SMS,
         ) == PackageManager.PERMISSION_GRANTED
 
         if (!hasSmsPermission) {
@@ -170,7 +174,13 @@ class SosRepositoryImpl @Inject constructor(
                 if (parts.size == 1) {
                     smsManager.sendTextMessage(contact.phoneNumber, null, message, null, null)
                 } else {
-                    smsManager.sendMultipartTextMessage(contact.phoneNumber, null, parts, null, null)
+                    smsManager.sendMultipartTextMessage(
+                        contact.phoneNumber,
+                        null,
+                        parts,
+                        null,
+                        null,
+                    )
                 }
                 successCount++
                 Log.d(TAG, "SOS SMS sent to ${contact.name}")
@@ -189,7 +199,8 @@ class SosRepositoryImpl @Inject constructor(
      */
     private fun placeCall(phoneNumber: String): Boolean {
         val hasCallPermission = ContextCompat.checkSelfPermission(
-            context, Manifest.permission.CALL_PHONE
+            context,
+            Manifest.permission.CALL_PHONE,
         ) == PackageManager.PERMISSION_GRANTED
 
         if (!hasCallPermission) {

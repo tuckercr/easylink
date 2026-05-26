@@ -18,10 +18,21 @@ class AddMedicationUseCase @Inject constructor(
     private val repository: MedicationRepository,
 ) {
     sealed class Result {
-        data class Success(val medication: Medication) : Result()
-        data class InvalidName(val message: String) : Result()
-        data class NoReminderTimes(val message: String) : Result()
-        data class NoActiveDays(val message: String) : Result()
+        data class Success(
+            val medication: Medication,
+        ) : Result()
+
+        data class InvalidName(
+            val message: String,
+        ) : Result()
+
+        data class NoReminderTimes(
+            val message: String,
+        ) : Result()
+
+        data class NoActiveDays(
+            val message: String,
+        ) : Result()
     }
 
     suspend operator fun invoke(medication: Medication): Result {

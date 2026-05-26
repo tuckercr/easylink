@@ -15,13 +15,16 @@ import com.tuckercr.ezlauncher.domain.model.SpeedDialContact
  */
 sealed interface SpeedDialUiState {
 
-    data object Loading  : SpeedDialUiState
-    data object Empty    : SpeedDialUiState
+    data object Loading : SpeedDialUiState
+
+    data object Empty : SpeedDialUiState
 
     data class Success(
         val contacts: List<SpeedDialContact>,
         val callInProgress: Boolean = false,
     ) : SpeedDialUiState
 
-    data class Error(val message: String) : SpeedDialUiState
+    data class Error(
+        val message: String,
+    ) : SpeedDialUiState
 }

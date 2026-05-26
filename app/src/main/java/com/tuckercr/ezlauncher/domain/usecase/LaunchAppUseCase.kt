@@ -18,6 +18,5 @@ class LaunchAppUseCase @Inject constructor(
      * @return true if the app was successfully started; false if no launch
      *         intent exists (e.g. a system package with no launcher activity).
      */
-    suspend operator fun invoke(packageName: String): Boolean =
-        repository.launchApp(packageName)
+    suspend operator fun invoke(packageName: String): Boolean = repository.launchApp(packageName)
 }

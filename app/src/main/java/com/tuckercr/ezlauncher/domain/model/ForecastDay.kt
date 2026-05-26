@@ -24,16 +24,18 @@ data class ForecastDay(
     val displayMin: String get() = "${tempMinCelsius.toInt()}°"
 
     /** "Today", "Tomorrow", or abbreviated weekday ("Mon", "Tue", …). */
-    val dayLabel: String get() = try {
-        val d     = LocalDate.parse(date)
-        val today = LocalDate.now()
-        when (d) {
-            today              -> "Today"
-            today.plusDays(1)  -> "Tomorrow"
-            else               -> d.dayOfWeek
-                .getDisplayName(TextStyle.SHORT, Locale.getDefault())
+    val dayLabel: String
+        get() = try {
+            val d = LocalDate.parse(date)
+            val today = LocalDate.now()
+            when (d) {
+                today -> "Today"
+                today.plusDays(1) -> "Tomorrow"
+                else ->
+                    d.dayOfWeek
+                        .getDisplayName(TextStyle.SHORT, Locale.getDefault())
+            }
+        } catch (_: Exception) {
+            date
         }
-    } catch (_: Exception) {
-        date
-    }
 }

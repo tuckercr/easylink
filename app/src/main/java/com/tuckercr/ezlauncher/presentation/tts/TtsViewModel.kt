@@ -52,8 +52,8 @@ class TtsViewModel @Inject constructor(
     ) { state, prefs ->
         state is TtsState.Ready && prefs.isEnabled
     }.stateIn(
-        scope        = viewModelScope,
-        started      = SharingStarted.WhileSubscribed(5_000),
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
         initialValue = false,
     )
 

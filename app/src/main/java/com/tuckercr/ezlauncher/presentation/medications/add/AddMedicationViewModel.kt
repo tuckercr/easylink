@@ -52,12 +52,12 @@ class AddMedicationViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isLoadingExisting = false,
-                        name          = medication.name,
-                        dosage        = medication.dosage,
-                        notes         = medication.notes,
+                        name = medication.name,
+                        dosage = medication.dosage,
+                        notes = medication.notes,
                         reminderTimes = medication.reminderTimes,
-                        activeDays    = medication.activeDays,
-                        isActive      = medication.isActive,
+                        activeDays = medication.activeDays,
+                        isActive = medication.isActive,
                     )
                 }
             } else {
@@ -68,35 +68,34 @@ class AddMedicationViewModel @Inject constructor(
 
     // ── Field updates ─────────────────────────────────────────────────────
 
-    fun onNameChanged(value: String) =
-        _uiState.update { it.copy(name = value, nameError = null) }
+    fun onNameChanged(value: String) = _uiState.update { it.copy(name = value, nameError = null) }
 
-    fun onDosageChanged(value: String) =
-        _uiState.update { it.copy(dosage = value) }
+    fun onDosageChanged(value: String) = _uiState.update { it.copy(dosage = value) }
 
-    fun onNotesChanged(value: String) =
-        _uiState.update { it.copy(notes = value) }
+    fun onNotesChanged(value: String) = _uiState.update { it.copy(notes = value) }
 
-    fun onActiveToggled(isActive: Boolean) =
-        _uiState.update { it.copy(isActive = isActive) }
+    fun onActiveToggled(isActive: Boolean) = _uiState.update { it.copy(isActive = isActive) }
 
-    fun onReminderTimeAdded(time: LocalTime) = _uiState.update { state ->
-        if (time in state.reminderTimes) return@update state
-        state.copy(
-            reminderTimes = (state.reminderTimes + time).sortedBy { it.toSecondOfDay() },
-            reminderTimesError = null,
-        )
-    }
+    fun onReminderTimeAdded(time: LocalTime) =
+        _uiState.update { state ->
+            if (time in state.reminderTimes) return@update state
+            state.copy(
+                reminderTimes = (state.reminderTimes + time).sortedBy { it.toSecondOfDay() },
+                reminderTimesError = null,
+            )
+        }
 
-    fun onReminderTimeRemoved(time: LocalTime) = _uiState.update { state ->
-        state.copy(reminderTimes = state.reminderTimes - time)
-    }
+    fun onReminderTimeRemoved(time: LocalTime) =
+        _uiState.update { state ->
+            state.copy(reminderTimes = state.reminderTimes - time)
+        }
 
-    fun onDayToggled(day: DayOfWeek) = _uiState.update { state ->
-        val current = state.activeDays
-        val updated = if (day in current) current - day else current + day
-        state.copy(activeDays = updated, activeDaysError = null)
-    }
+    fun onDayToggled(day: DayOfWeek) =
+        _uiState.update { state ->
+            val current = state.activeDays
+            val updated = if (day in current) current - day else current + day
+            state.copy(activeDays = updated, activeDaysError = null)
+        }
 
     // ── Save (add or update) ──────────────────────────────────────────────
 
@@ -108,14 +107,14 @@ class AddMedicationViewModel @Inject constructor(
 
         viewModelScope.launch {
             val medication = Medication(
-                id            = medicationId,   // 0L → insert, non-zero → update (upsert)
-                name          = state.name.trim(),
-                dosage        = state.dosage.trim(),
-                notes         = state.notes.trim(),
+                id = medicationId, // 0L → insert, non-zero → update (upsert)
+                name = state.name.trim(),
+                dosage = state.dosage.trim(),
+                notes = state.notes.trim(),
                 reminderTimes = state.reminderTimes,
-                activeDays    = state.activeDays,
-                isActive      = state.isActive,
-                color         = MedicationColor.entries.random(),
+                activeDays = state.activeDays,
+                isActive = state.isActive,
+                color = MedicationColor.entries.random(),
             )
 
             when (addMedication(medication)) {
@@ -126,10 +125,20 @@ class AddMedicationViewModel @Inject constructor(
                     _uiState.update { it.copy(isSaving = false, nameError = "Name is required") }
 
                 is AddMedicationUseCase.Result.NoReminderTimes ->
-                    _uiState.update { it.copy(isSaving = false, reminderTimesError = "Add at least one reminder time") }
+                    _uiState.update {
+                        it.copy(
+                            isSaving = false,
+                            reminderTimesError = "Add at least one reminder time",
+                        )
+                    }
 
                 is AddMedicationUseCase.Result.NoActiveDays ->
-                    _uiState.update { it.copy(isSaving = false, activeDaysError = "Select at least one day") }
+                    _uiState.update {
+                        it.copy(
+                            isSaving = false,
+                            activeDaysError = "Select at least one day",
+                        )
+                    }
             }
         }
     }

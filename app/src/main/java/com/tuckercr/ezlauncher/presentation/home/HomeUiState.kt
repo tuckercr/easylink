@@ -20,5 +20,7 @@ sealed class HomeUiState {
         val weather: WeatherInfo = WeatherInfo.Loading,
     ) : HomeUiState()
 
-    data class Error(val message: String) : HomeUiState()
+    data class Error(
+        val message: String,
+    ) : HomeUiState()
 }

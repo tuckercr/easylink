@@ -8,41 +8,47 @@ plugins {
 }
 
 android {
-    namespace   = "com.tuckercr.ezlauncher"
-    compileSdk  = 36
+    namespace = "com.tuckercr.ezlauncher"
+    compileSdk = 36
 
     defaultConfig {
-        applicationId   = "com.tuckercr.ezlauncher"
-        minSdk          = 26
-        targetSdk       = 36
-        versionCode     = 2
-        versionName     = "2.0.0"
+        applicationId = "com.tuckercr.ezlauncher"
+        minSdk = 26
+        targetSdk = 36
+        versionCode = 2
+        versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
         create("release") {
-            storeFile     = file(System.getenv("KEYSTORE_PATH") ?: "keystore/release.jks")
-            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
-            keyAlias      = System.getenv("KEY_ALIAS") ?: ""
-            keyPassword   = System.getenv("KEY_PASSWORD") ?: ""
+            val path = System.getenv("KEYSTORE_PATH")
+            if (path != null) {
+                storeFile = file(path)
+                storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+                keyAlias = System.getenv("KEY_ALIAS") ?: ""
+                keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+            }
         }
     }
 
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
-            versionNameSuffix   = "-debug"
-            isDebuggable        = true
+            versionNameSuffix = "-debug"
+            isDebuggable = true
         }
         release {
-            isMinifyEnabled   = true
+            isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig     = signingConfigs.getByName("release")
+            val releaseSigning = signingConfigs.getByName("release")
+            if (releaseSigning.storeFile != null) {
+                signingConfig = releaseSigning
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -54,7 +60,7 @@ android {
     }
 
     buildFeatures {
-        compose    = true
+        compose = true
         buildConfig = true
     }
 
@@ -65,19 +71,18 @@ android {
     }
 
     lint {
-        abortOnError      = false
-        warningsAsErrors  = false
+        abortOnError = false
+        warningsAsErrors = false
         checkDependencies = true
     }
 
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
-            isReturnDefaultValues     = true
+            isReturnDefaultValues = true
         }
     }
 }
-
 
 kotlin {
     compilerOptions {

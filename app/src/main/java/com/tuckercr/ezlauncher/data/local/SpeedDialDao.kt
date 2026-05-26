@@ -28,7 +28,10 @@ interface SpeedDialDao {
 
     /** Update the displayOrder for a single row during a reorder operation. */
     @Query("UPDATE speed_dial_contacts SET displayOrder = :order WHERE id = :id")
-    suspend fun updateOrder(id: Long, order: Int)
+    suspend fun updateOrder(
+        id: Long,
+        order: Int,
+    )
 
     @Update
     suspend fun update(entity: SpeedDialEntity)

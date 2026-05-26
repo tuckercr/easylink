@@ -28,12 +28,13 @@ class AddSpeedDialViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AddSpeedDialUiState())
     val uiState: StateFlow<AddSpeedDialUiState> = _uiState.asStateFlow()
 
-    init { observeSearchQuery() }
+    init {
+        observeSearchQuery()
+    }
 
     // ── Mode toggle ───────────────────────────────────────────────────────
 
-    fun onToggleManualEntry() =
-        _uiState.update { it.copy(isManualEntry = !it.isManualEntry) }
+    fun onToggleManualEntry() = _uiState.update { it.copy(isManualEntry = !it.isManualEntry) }
 
     // ── Search mode ───────────────────────────────────────────────────────
 
@@ -53,16 +54,17 @@ class AddSpeedDialViewModel @Inject constructor(
         }
     }
 
-    fun onSearchQueryChanged(query: String) =
-        _uiState.update { it.copy(searchQuery = query) }
+    fun onSearchQueryChanged(query: String) = _uiState.update { it.copy(searchQuery = query) }
 
     fun onContactSelected(contact: DeviceContact) {
         viewModelScope.launch {
             val result = when (addContact(contact)) {
                 AddSpeedDialContactUseCase.Result.Success ->
                     AddSpeedDialUiState.SaveResult.Success
+
                 AddSpeedDialContactUseCase.Result.AlreadyAdded ->
                     AddSpeedDialUiState.SaveResult.AlreadyAdded
+
                 AddSpeedDialContactUseCase.Result.InvalidContact ->
                     AddSpeedDialUiState.SaveResult.InvalidContact
             }
@@ -72,11 +74,9 @@ class AddSpeedDialViewModel @Inject constructor(
 
     // ── Manual entry mode ─────────────────────────────────────────────────
 
-    fun onManualNameChanged(value: String) =
-        _uiState.update { it.copy(manualName = value, manualNameError = null) }
+    fun onManualNameChanged(value: String) = _uiState.update { it.copy(manualName = value, manualNameError = null) }
 
-    fun onManualPhoneChanged(value: String) =
-        _uiState.update { it.copy(manualPhone = value, manualPhoneError = null) }
+    fun onManualPhoneChanged(value: String) = _uiState.update { it.copy(manualPhone = value, manualPhoneError = null) }
 
     fun onManualSave() {
         val state = _uiState.value
@@ -97,16 +97,18 @@ class AddSpeedDialViewModel @Inject constructor(
             // contactId = -1 signals a manually entered contact;
             // AddSpeedDialContactUseCase dedupes by phone number for these.
             val contact = DeviceContact(
-                contactId   = -1L,
-                name        = state.manualName.trim(),
+                contactId = -1L,
+                name = state.manualName.trim(),
                 phoneNumber = state.manualPhone.trim(),
-                photoUri    = null,
+                photoUri = null,
             )
             val result = when (addContact(contact)) {
                 AddSpeedDialContactUseCase.Result.Success ->
                     AddSpeedDialUiState.SaveResult.Success
+
                 AddSpeedDialContactUseCase.Result.AlreadyAdded ->
                     AddSpeedDialUiState.SaveResult.AlreadyAdded
+
                 AddSpeedDialContactUseCase.Result.InvalidContact ->
                     AddSpeedDialUiState.SaveResult.InvalidContact
             }
@@ -114,6 +116,5 @@ class AddSpeedDialViewModel @Inject constructor(
         }
     }
 
-    fun onSaveResultConsumed() =
-        _uiState.update { it.copy(saveResult = null) }
+    fun onSaveResultConsumed() = _uiState.update { it.copy(saveResult = null) }
 }

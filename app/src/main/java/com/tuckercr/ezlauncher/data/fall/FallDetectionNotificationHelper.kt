@@ -14,10 +14,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 const val CHANNEL_ID_FALL_DETECTION = "fall_detection_service"
-const val CHANNEL_ID_FALL_ALERT     = "fall_alert"
+const val CHANNEL_ID_FALL_ALERT = "fall_alert"
 
 const val NOTIF_ID_FALL_SERVICE = 9_001
-const val NOTIF_ID_FALL_ALERT   = 9_002
+const val NOTIF_ID_FALL_ALERT = 9_002
 
 @Singleton
 class FallDetectionNotificationHelper @Inject constructor(
@@ -34,7 +34,7 @@ class FallDetectionNotificationHelper @Inject constructor(
             "Fall Detection",
             NotificationManager.IMPORTANCE_LOW,
         ).apply {
-            description       = "Shown while fall detection is running"
+            description = "Shown while fall detection is running"
             setShowBadge(false)
         }
 
@@ -44,9 +44,9 @@ class FallDetectionNotificationHelper @Inject constructor(
             "Fall Alert",
             NotificationManager.IMPORTANCE_HIGH,
         ).apply {
-            description       = "Fires when a fall is detected"
+            description = "Fires when a fall is detected"
             enableVibration(true)
-            vibrationPattern  = longArrayOf(0, 300, 100, 300, 100, 600)
+            vibrationPattern = longArrayOf(0, 300, 100, 300, 100, 600)
             enableLights(true)
         }
 
@@ -56,7 +56,8 @@ class FallDetectionNotificationHelper @Inject constructor(
 
     /** Persistent low-profile notification shown while the service is running. */
     fun buildServiceNotification(): Notification =
-        NotificationCompat.Builder(context, CHANNEL_ID_FALL_DETECTION)
+        NotificationCompat
+            .Builder(context, CHANNEL_ID_FALL_DETECTION)
             .setSmallIcon(R.drawable.ic_home)
             .setContentTitle("Fall detection is active")
             .setContentText("Monitoring for falls in the background")
@@ -77,7 +78,8 @@ class FallDetectionNotificationHelper @Inject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID_FALL_ALERT)
+        val notification = NotificationCompat
+            .Builder(context, CHANNEL_ID_FALL_ALERT)
             .setSmallIcon(R.drawable.ic_home)
             .setContentTitle("⚠️ Fall Detected!")
             .setContentText("Are you OK? Tap to respond.")

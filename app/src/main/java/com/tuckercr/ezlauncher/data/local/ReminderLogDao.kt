@@ -11,11 +11,13 @@ import java.time.LocalDateTime
 interface ReminderLogDao {
 
     /** Last 30 days of history, newest first. */
-    @Query("""
+    @Query(
+        """
         SELECT * FROM reminder_logs
         WHERE scheduledTime >= :since
         ORDER BY scheduledTime DESC
-    """)
+    """,
+    )
     fun observeHistory(since: LocalDateTime): Flow<List<ReminderLogEntity>>
 
     /**
@@ -23,19 +25,29 @@ interface ReminderLogDao {
      * the schedule view. Emits a new list whenever any log is inserted/updated,
      * so the UI refreshes automatically when the user taps TAKEN on a notification.
      */
-    @Query("""
+    @Query(
+        """
         SELECT * FROM reminder_logs
         WHERE scheduledTime >= :dayStart AND scheduledTime < :dayEnd
-    """)
-    fun getLogsForDay(dayStart: LocalDateTime, dayEnd: LocalDateTime): Flow<List<ReminderLogEntity>>
+    """,
+    )
+    fun getLogsForDay(
+        dayStart: LocalDateTime,
+        dayEnd: LocalDateTime,
+    ): Flow<List<ReminderLogEntity>>
 
     /** Look up a specific reminder slot (medication + scheduled time). */
-    @Query("""
+    @Query(
+        """
         SELECT * FROM reminder_logs
         WHERE medicationId = :medicationId AND scheduledTime = :scheduledTime
         LIMIT 1
-    """)
-    suspend fun getLog(medicationId: Long, scheduledTime: LocalDateTime): ReminderLogEntity?
+    """,
+    )
+    suspend fun getLog(
+        medicationId: Long,
+        scheduledTime: LocalDateTime,
+    ): ReminderLogEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(log: ReminderLogEntity)

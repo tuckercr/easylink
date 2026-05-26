@@ -34,8 +34,8 @@ class TtsSettingsViewModel @Inject constructor(
 
     val preferences: StateFlow<TtsPreferences> = getPreferences()
         .stateIn(
-            scope        = viewModelScope,
-            started      = SharingStarted.WhileSubscribed(5_000),
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
             initialValue = TtsPreferences.Default,
         )
 

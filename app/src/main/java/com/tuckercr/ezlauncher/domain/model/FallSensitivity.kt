@@ -16,21 +16,21 @@ enum class FallSensitivity(
     val impactThreshold: Float,
 ) {
     LOW(
-        label             = "Low (fewer alerts)",
+        label = "Low (fewer alerts)",
         freeFallThreshold = 2.0f,
-        minFreeFallMs     = 100L,
-        impactThreshold   = 28.0f,
+        minFreeFallMs = 100L,
+        impactThreshold = 28.0f,
     ),
     MEDIUM(
-        label             = "Medium (recommended)",
+        label = "Medium (recommended)",
         freeFallThreshold = 3.0f,
-        minFreeFallMs     = 80L,
-        impactThreshold   = 22.0f,
+        minFreeFallMs = 80L,
+        impactThreshold = 22.0f,
     ),
     HIGH(
-        label             = "High (most sensitive)",
+        label = "High (most sensitive)",
         freeFallThreshold = 4.0f,
-        minFreeFallMs     = 60L,
-        impactThreshold   = 18.0f,
+        minFreeFallMs = 60L,
+        impactThreshold = 18.0f,
     ),
 }

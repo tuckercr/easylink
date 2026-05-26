@@ -27,14 +27,17 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ReminderLogEntity::class,
         SpeedDialEntity::class,
     ],
-    version      = 3,
-    exportSchema = true,
+    version = 3,
+    exportSchema = false,
 )
 @TypeConverters(MedicationConverters::class)
 abstract class EZLauncherDatabase : RoomDatabase() {
     abstract fun emergencyContactDao(): EmergencyContactDao
+
     abstract fun medicationDao(): MedicationDao
+
     abstract fun reminderLogDao(): ReminderLogDao
+
     abstract fun speedDialDao(): SpeedDialDao
 }
 
@@ -48,7 +51,8 @@ abstract class EZLauncherDatabase : RoomDatabase() {
  */
 val MIGRATION_1_2 = object : Migration(1, 2) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("""
+        db.execSQL(
+            """
             CREATE TABLE IF NOT EXISTS `medications` (
                 `id`            INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 `name`          TEXT NOT NULL,
@@ -59,9 +63,11 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
                 `isActive`      INTEGER NOT NULL,
                 `color`         TEXT NOT NULL
             )
-        """.trimIndent())
+            """.trimIndent(),
+        )
 
-        db.execSQL("""
+        db.execSQL(
+            """
             CREATE TABLE IF NOT EXISTS `reminder_logs` (
                 `id`             INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 `medicationId`   INTEGER,
@@ -73,7 +79,8 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
                 FOREIGN KEY(`medicationId`) REFERENCES `medications`(`id`)
                     ON UPDATE NO ACTION ON DELETE SET NULL
             )
-        """.trimIndent())
+            """.trimIndent(),
+        )
 
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_reminder_logs_medicationId` ON `reminder_logs` (`medicationId`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_reminder_logs_scheduledTime` ON `reminder_logs` (`scheduledTime`)")
@@ -88,7 +95,8 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
  */
 val MIGRATION_2_3 = object : Migration(2, 3) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("""
+        db.execSQL(
+            """
             CREATE TABLE IF NOT EXISTS `speed_dial_contacts` (
                 `id`             INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 `contactId`      INTEGER NOT NULL,
@@ -97,11 +105,12 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
                 `photoUriString` TEXT,
                 `displayOrder`   INTEGER NOT NULL
             )
-        """.trimIndent())
+            """.trimIndent(),
+        )
 
         db.execSQL(
             "CREATE UNIQUE INDEX IF NOT EXISTS `index_speed_dial_contacts_contactId` " +
-            "ON `speed_dial_contacts` (`contactId`)"
+                "ON `speed_dial_contacts` (`contactId`)",
         )
     }
 }

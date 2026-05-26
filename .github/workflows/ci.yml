@@ -23,9 +23,9 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
-    - name: Build with Gradle
+    - name: Run Lint and Tests
       run: |
-        ./gradlew lint test build
+        ./gradlew ktlintCheck lint test build
 
     - name: Upload APK
       uses: actions/upload-artifact@v4

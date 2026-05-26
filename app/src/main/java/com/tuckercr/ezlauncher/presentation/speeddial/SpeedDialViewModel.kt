@@ -2,7 +2,7 @@ package com.tuckercr.ezlauncher.presentation.speeddial
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tuckercr.ezlauncher.domain.model.SpeedDialContact
@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * ViewModel for the Speed Dial screen.
@@ -52,15 +53,13 @@ class SpeedDialViewModel @Inject constructor(
             contacts.isEmpty() -> SpeedDialUiState.Empty
             else -> SpeedDialUiState.Success(contacts, inProgress)
         }
-    }
-        .catch<SpeedDialUiState> { e ->
-            emit(SpeedDialUiState.Error(e.message ?: "Unknown error"))
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = SpeedDialUiState.Loading,
-        )
+    }.catch<SpeedDialUiState> { e ->
+        emit(SpeedDialUiState.Error(e.message ?: "Unknown error"))
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = SpeedDialUiState.Loading,
+    )
 
     // ── Actions ───────────────────────────────────────────────────────────
 
@@ -70,12 +69,12 @@ class SpeedDialViewModel @Inject constructor(
             callInProgress.value = true
             try {
                 val dialIntent = Intent(Intent.ACTION_CALL).apply {
-                    data = Uri.parse("tel:${contact.phoneNumber}")
+                    data = "tel:${contact.phoneNumber}".toUri()
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
                 context.startActivity(dialIntent)
             } finally {
-                delay(2_000)
+                delay(2_000.milliseconds)
                 callInProgress.value = false
             }
         }

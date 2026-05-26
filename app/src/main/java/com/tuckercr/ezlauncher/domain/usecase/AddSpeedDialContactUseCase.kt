@@ -20,9 +20,11 @@ class AddSpeedDialContactUseCase @Inject constructor(
     private val repository: SpeedDialRepository,
 ) {
     sealed interface Result {
-        data object Success        : Result
+        data object Success : Result
+
         data object InvalidContact : Result
-        data object AlreadyAdded   : Result
+
+        data object AlreadyAdded : Result
     }
 
     suspend operator fun invoke(contact: DeviceContact): Result {

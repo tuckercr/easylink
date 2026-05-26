@@ -31,8 +31,8 @@ class AppsViewModel @Inject constructor(
         .map<_, AppsUiState> { AppsUiState.Success(it) }
         .catch { emit(AppsUiState.Error(it.message ?: "Unknown error")) }
         .stateIn(
-            scope        = viewModelScope,
-            started      = SharingStarted.WhileSubscribed(5_000),
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
             initialValue = AppsUiState.Loading,
         )
 

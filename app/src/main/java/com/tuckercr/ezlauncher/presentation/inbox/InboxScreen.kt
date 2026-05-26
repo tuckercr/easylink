@@ -11,14 +11,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -42,7 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.tuckercr.ezlauncher.R
@@ -51,9 +49,7 @@ import com.tuckercr.ezlauncher.domain.model.InboxItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InboxScreen(
-    viewModel: InboxViewModel = hiltViewModel(),
-) {
+fun InboxScreen(viewModel: InboxViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
@@ -72,6 +68,7 @@ fun InboxScreen(
                 is InboxUiState.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
+
                 is InboxUiState.Error -> {
                     Text(
                         text = s.message,
@@ -82,6 +79,7 @@ fun InboxScreen(
                         textAlign = TextAlign.Center,
                     )
                 }
+
                 is InboxUiState.Empty -> {
                     Text(
                         text = "No recent calls or messages",
@@ -93,6 +91,7 @@ fun InboxScreen(
                         fontSize = 18.sp,
                     )
                 }
+
                 is InboxUiState.Success -> {
                     LazyColumn {
                         items(s.items, key = { "${it.javaClass.simpleName}_${it.id}" }) { item ->
@@ -101,6 +100,7 @@ fun InboxScreen(
                                     call = item,
                                     onCallBack = { viewModel.onCallTapped(item) },
                                 )
+
                                 is InboxItem.Message -> MessageRow(
                                     message = item,
                                     onOpen = { viewModel.onMessageTapped(item) },
@@ -180,27 +180,30 @@ private fun CallRow(
     }
 }
 
-private fun callTypeIcon(type: CallType): Int = when (type) {
-    CallType.INCOMING -> R.drawable.ic_call
-    CallType.OUTGOING -> R.drawable.ic_call
-    CallType.MISSED, CallType.REJECTED -> R.drawable.ic_call
-    else -> R.drawable.ic_call
-}
+private fun callTypeIcon(type: CallType): Int =
+    when (type) {
+        CallType.INCOMING -> R.drawable.ic_call
+        CallType.OUTGOING -> R.drawable.ic_call
+        CallType.MISSED, CallType.REJECTED -> R.drawable.ic_call
+        else -> R.drawable.ic_call
+    }
 
-private fun callTypeColor(type: CallType): Color = when (type) {
-    CallType.MISSED, CallType.REJECTED -> Color(0xFFEF9A9A)
-    CallType.INCOMING -> Color(0xFFA5D6A7)
-    else -> Color(0xFFAAAAAA)
-}
+private fun callTypeColor(type: CallType): Color =
+    when (type) {
+        CallType.MISSED, CallType.REJECTED -> Color(0xFFEF9A9A)
+        CallType.INCOMING -> Color(0xFFA5D6A7)
+        else -> Color(0xFFAAAAAA)
+    }
 
-private fun callTypeLabel(type: CallType): String = when (type) {
-    CallType.INCOMING -> "Incoming"
-    CallType.OUTGOING -> "Outgoing"
-    CallType.MISSED   -> "Missed"
-    CallType.REJECTED -> "Rejected"
-    CallType.BLOCKED  -> "Blocked"
-    CallType.UNKNOWN  -> "Unknown"
-}
+private fun callTypeLabel(type: CallType): String =
+    when (type) {
+        CallType.INCOMING -> "Incoming"
+        CallType.OUTGOING -> "Outgoing"
+        CallType.MISSED -> "Missed"
+        CallType.REJECTED -> "Rejected"
+        CallType.BLOCKED -> "Blocked"
+        CallType.UNKNOWN -> "Unknown"
+    }
 
 // ── Message row ───────────────────────────────────────────────────────────────
 
@@ -266,7 +269,10 @@ private fun MessageRow(
 // ── Shared avatar ─────────────────────────────────────────────────────────────
 
 @Composable
-private fun InboxAvatar(photoUri: Uri?, initials: String) {
+private fun InboxAvatar(
+    photoUri: Uri?,
+    initials: String,
+) {
     if (photoUri != null) {
         AsyncImage(
             model = photoUri,
@@ -295,9 +301,10 @@ private fun InboxAvatar(photoUri: Uri?, initials: String) {
 }
 
 private fun relativeTime(epochMs: Long): String =
-    DateUtils.getRelativeTimeSpanString(
-        epochMs,
-        System.currentTimeMillis(),
-        DateUtils.MINUTE_IN_MILLIS,
-        DateUtils.FORMAT_ABBREV_RELATIVE,
-    ).toString()
+    DateUtils
+        .getRelativeTimeSpanString(
+            epochMs,
+            System.currentTimeMillis(),
+            DateUtils.MINUTE_IN_MILLIS,
+            DateUtils.FORMAT_ABBREV_RELATIVE,
+        ).toString()

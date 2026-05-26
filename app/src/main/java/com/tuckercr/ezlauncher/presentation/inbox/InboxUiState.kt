@@ -16,7 +16,8 @@ import com.tuckercr.ezlauncher.domain.model.InboxItem
 sealed interface InboxUiState {
 
     data object Loading : InboxUiState
-    data object Empty   : InboxUiState
+
+    data object Empty : InboxUiState
 
     data class Success(
         val items: List<InboxItem>,
@@ -28,5 +29,7 @@ sealed interface InboxUiState {
         },
     ) : InboxUiState
 
-    data class Error(val message: String) : InboxUiState
+    data class Error(
+        val message: String,
+    ) : InboxUiState
 }

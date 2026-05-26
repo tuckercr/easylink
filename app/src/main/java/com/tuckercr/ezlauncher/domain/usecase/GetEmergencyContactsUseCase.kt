@@ -9,6 +9,5 @@ import javax.inject.Inject
 class GetEmergencyContactsUseCase @Inject constructor(
     private val repository: SosRepository,
 ) {
-    operator fun invoke(): Flow<List<EmergencyContact>> =
-        repository.getEmergencyContacts()
+    operator fun invoke(): Flow<List<EmergencyContact>> = repository.getEmergencyContacts()
 }

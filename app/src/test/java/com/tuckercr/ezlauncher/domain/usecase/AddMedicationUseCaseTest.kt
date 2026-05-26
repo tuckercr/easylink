@@ -29,76 +29,86 @@ class AddMedicationUseCaseTest {
         reminderTimes: List<LocalTime> = listOf(LocalTime.of(8, 0)),
         activeDays: Set<DayOfWeek> = setOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY),
     ) = Medication(
-        id           = 0L,
-        name         = name,
-        dosage       = "500mg",
-        notes        = "",
+        id = 0L,
+        name = name,
+        dosage = "500mg",
+        notes = "",
         reminderTimes = reminderTimes,
-        activeDays   = activeDays,
-        isActive     = true,
-        color        = MedicationColor.BLUE,
+        activeDays = activeDays,
+        isActive = true,
+        color = MedicationColor.BLUE,
     )
 
     @Test
-    fun `returns Success and saves when medication is valid`() = runTest {
-        val medication = validMedication()
-        val result = useCase(medication)
+    fun `returns Success and saves when medication is valid`() =
+        runTest {
+            val medication = validMedication()
+            val result = useCase(medication)
 
-        assertTrue(result is AddMedicationUseCase.Result.Success)
-        coVerify(exactly = 1) { repository.saveMedication(medication) }
-    }
-
-    @Test
-    fun `returns InvalidName when name is blank`() = runTest {
-        val result = useCase(validMedication(name = "   "))
-
-        assertTrue(result is AddMedicationUseCase.Result.InvalidName)
-        coVerify(exactly = 0) { repository.saveMedication(any()) }
-    }
+            assertTrue(result is AddMedicationUseCase.Result.Success)
+            coVerify(exactly = 1) { repository.saveMedication(medication) }
+        }
 
     @Test
-    fun `returns InvalidName when name is empty`() = runTest {
-        val result = useCase(validMedication(name = ""))
+    fun `returns InvalidName when name is blank`() =
+        runTest {
+            val result = useCase(validMedication(name = "   "))
 
-        assertTrue(result is AddMedicationUseCase.Result.InvalidName)
-    }
-
-    @Test
-    fun `returns NoReminderTimes when reminder list is empty`() = runTest {
-        val result = useCase(validMedication(reminderTimes = emptyList()))
-
-        assertTrue(result is AddMedicationUseCase.Result.NoReminderTimes)
-        coVerify(exactly = 0) { repository.saveMedication(any()) }
-    }
+            assertTrue(result is AddMedicationUseCase.Result.InvalidName)
+            coVerify(exactly = 0) { repository.saveMedication(any()) }
+        }
 
     @Test
-    fun `returns NoActiveDays when active days is empty`() = runTest {
-        val result = useCase(validMedication(activeDays = emptySet()))
+    fun `returns InvalidName when name is empty`() =
+        runTest {
+            val result = useCase(validMedication(name = ""))
 
-        assertTrue(result is AddMedicationUseCase.Result.NoActiveDays)
-        coVerify(exactly = 0) { repository.saveMedication(any()) }
-    }
-
-    @Test
-    fun `name validation is checked before times and days`() = runTest {
-        // All three errors could fire; InvalidName should be the result
-        val medication = validMedication(
-            name         = "",
-            reminderTimes = emptyList(),
-            activeDays   = emptySet(),
-        )
-        val result = useCase(medication)
-        assertEquals(AddMedicationUseCase.Result.InvalidName("Medication name cannot be empty"), result)
-    }
+            assertTrue(result is AddMedicationUseCase.Result.InvalidName)
+        }
 
     @Test
-    fun `accepts single reminder time and single active day`() = runTest {
-        val result = useCase(
-            validMedication(
-                reminderTimes = listOf(LocalTime.NOON),
-                activeDays   = setOf(DayOfWeek.FRIDAY),
+    fun `returns NoReminderTimes when reminder list is empty`() =
+        runTest {
+            val result = useCase(validMedication(reminderTimes = emptyList()))
+
+            assertTrue(result is AddMedicationUseCase.Result.NoReminderTimes)
+            coVerify(exactly = 0) { repository.saveMedication(any()) }
+        }
+
+    @Test
+    fun `returns NoActiveDays when active days is empty`() =
+        runTest {
+            val result = useCase(validMedication(activeDays = emptySet()))
+
+            assertTrue(result is AddMedicationUseCase.Result.NoActiveDays)
+            coVerify(exactly = 0) { repository.saveMedication(any()) }
+        }
+
+    @Test
+    fun `name validation is checked before times and days`() =
+        runTest {
+            // All three errors could fire; InvalidName should be the result
+            val medication = validMedication(
+                name = "",
+                reminderTimes = emptyList(),
+                activeDays = emptySet(),
             )
-        )
-        assertTrue(result is AddMedicationUseCase.Result.Success)
-    }
+            val result = useCase(medication)
+            assertEquals(
+                AddMedicationUseCase.Result.InvalidName("Medication name cannot be empty"),
+                result,
+            )
+        }
+
+    @Test
+    fun `accepts single reminder time and single active day`() =
+        runTest {
+            val result = useCase(
+                validMedication(
+                    reminderTimes = listOf(LocalTime.NOON),
+                    activeDays = setOf(DayOfWeek.FRIDAY),
+                ),
+            )
+            assertTrue(result is AddMedicationUseCase.Result.Success)
+        }
 }

@@ -6,11 +6,12 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.MediaStore
-import androidx.core.content.ContextCompat
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tuckercr.ezlauncher.data.contacts.ContactsHelper
@@ -30,7 +31,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import androidx.core.net.toUri
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val TAG = "VoiceCommandVM"
@@ -92,8 +92,11 @@ class VoiceCommandViewModel @Inject constructor(
             )
             putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
             // Shorter silence timeouts for snappier UX
-            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,   1_500L)
-            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 1_000L)
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 1_500L)
+            putExtra(
+                RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,
+                1_000L,
+            )
         }
         recognizer?.startListening(intent)
         Log.d(TAG, "startListening()")
@@ -158,25 +161,38 @@ class VoiceCommandViewModel @Inject constructor(
             _uiState.value = VoiceUiState.Error(
                 when (error) {
                     SpeechRecognizer.ERROR_NO_MATCH,
-                    SpeechRecognizer.ERROR_SPEECH_TIMEOUT  -> "Didn't catch that — try again"
+                    SpeechRecognizer.ERROR_SPEECH_TIMEOUT,
+                    -> "Didn't catch that — try again"
+
                     SpeechRecognizer.ERROR_NETWORK,
-                    SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "No internet connection"
+                    SpeechRecognizer.ERROR_NETWORK_TIMEOUT,
+                    -> "No internet connection"
+
                     SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Recognizer busy — try again"
-                    SpeechRecognizer.ERROR_AUDIO           -> "Audio error — try again"
-                    SpeechRecognizer.ERROR_CLIENT          -> "Recognition failed — try again"
-                    else                                   -> "Voice error (code $error)"
-                }
+                    SpeechRecognizer.ERROR_AUDIO -> "Audio error — try again"
+                    SpeechRecognizer.ERROR_CLIENT -> "Recognition failed — try again"
+                    else -> "Voice error (code $error)"
+                },
             )
         }
 
         // ── Required stubs ─────────────────────────────────────────────────────
         override fun onReadyForSpeech(params: Bundle?) = Unit
+
         override fun onBeginningOfSpeech() = Unit
+
         override fun onRmsChanged(rmsdB: Float) = Unit
+
         override fun onBufferReceived(buffer: ByteArray?) = Unit
+
         override fun onEndOfSpeech() = Unit
+
         override fun onPartialResults(partial: Bundle?) = Unit
-        override fun onEvent(eventType: Int, params: Bundle?) = Unit
+
+        override fun onEvent(
+            eventType: Int,
+            params: Bundle?,
+        ) = Unit
     }
 
     // ── Command handling ──────────────────────────────────────────────────────
@@ -189,51 +205,61 @@ class VoiceCommandViewModel @Inject constructor(
             Log.d(TAG, "Parsed: $command")
 
             when (command) {
-                is VoiceCommand.Call             -> executeCall(raw, command.name)
-                is VoiceCommand.Text             -> executeText(raw, command.name)
-                is VoiceCommand.OpenApp          -> executeOpenApp(raw, command.appName)
-                is VoiceCommand.OpenCamera       -> {
+                is VoiceCommand.Call -> executeCall(raw, command.name)
+                is VoiceCommand.Text -> executeText(raw, command.name)
+                is VoiceCommand.OpenApp -> executeOpenApp(raw, command.appName)
+                is VoiceCommand.OpenCamera -> {
                     success(raw, "Opening camera")
                     context.startActivity(
                         Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                     )
                     autoDismiss()
                 }
-                is VoiceCommand.OpenAllApps      -> {
+
+                is VoiceCommand.OpenAllApps -> {
                     success(raw, "Showing all apps")
                     _effects.emit(VoiceEffect.NavigateToApps)
                     autoDismiss()
                 }
-                is VoiceCommand.FlashlightOn     -> {
+
+                is VoiceCommand.FlashlightOn -> {
                     success(raw, "Flashlight on")
                     _effects.emit(VoiceEffect.FlashlightOn)
                     autoDismiss()
                 }
-                is VoiceCommand.FlashlightOff    -> {
+
+                is VoiceCommand.FlashlightOff -> {
                     success(raw, "Flashlight off")
                     _effects.emit(VoiceEffect.FlashlightOff)
                     autoDismiss()
                 }
+
                 is VoiceCommand.ToggleFlashlight -> {
                     success(raw, "Toggling flashlight")
                     _effects.emit(VoiceEffect.ToggleFlashlight)
                     autoDismiss()
                 }
-                is VoiceCommand.GoHome           -> {
+
+                is VoiceCommand.GoHome -> {
                     success(raw, "Going home")
                     _effects.emit(VoiceEffect.NavigateHome)
                     autoDismiss()
                 }
-                is VoiceCommand.Unrecognized     ->
+
+                is VoiceCommand.Unrecognized ->
                     _uiState.value = VoiceUiState.NotUnderstood(raw)
             }
         }
     }
 
-    private suspend fun executeCall(raw: String, name: String) {
+    private suspend fun executeCall(
+        raw: String,
+        name: String,
+    ) {
         if (!hasContactsPermission()) {
-            _uiState.value = VoiceUiState.Error("Contacts permission required for \"Call\" commands")
+            _uiState.value =
+                VoiceUiState.Error("Contacts permission required for \"Call\" commands")
             return
         }
         val contact = contactsHelper.searchContacts(name, limit = 1).firstOrNull()
@@ -244,14 +270,18 @@ class VoiceCommandViewModel @Inject constructor(
         success(raw, "Calling ${contact.name}…")
         context.startActivity(
             Intent(Intent.ACTION_CALL, "tel:${contact.phoneNumber}".toUri())
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         )
         autoDismiss()
     }
 
-    private suspend fun executeText(raw: String, name: String) {
+    private suspend fun executeText(
+        raw: String,
+        name: String,
+    ) {
         if (!hasContactsPermission()) {
-            _uiState.value = VoiceUiState.Error("Contacts permission required for \"Text\" commands")
+            _uiState.value =
+                VoiceUiState.Error("Contacts permission required for \"Text\" commands")
             return
         }
         val contact = contactsHelper.searchContacts(name, limit = 1).firstOrNull()
@@ -262,19 +292,23 @@ class VoiceCommandViewModel @Inject constructor(
         success(raw, "Texting ${contact.name}…")
         context.startActivity(
             Intent(Intent.ACTION_VIEW, "sms:${contact.phoneNumber}".toUri())
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         )
         autoDismiss()
     }
 
     private fun hasContactsPermission(): Boolean =
         ContextCompat.checkSelfPermission(
-            context, Manifest.permission.READ_CONTACTS
+            context,
+            Manifest.permission.READ_CONTACTS,
         ) == PackageManager.PERMISSION_GRANTED
 
-    private suspend fun executeOpenApp(raw: String, appName: String) {
+    private suspend fun executeOpenApp(
+        raw: String,
+        appName: String,
+    ) {
         val apps = appRepository.getInstalledApps().first()
-        val app  = apps.firstOrNull { it.label.lowercase().contains(appName.lowercase()) }
+        val app = apps.firstOrNull { it.label.lowercase().contains(appName.lowercase()) }
 
         if (app == null) {
             _uiState.value = VoiceUiState.Error("Can't find app \"$appName\"")
@@ -287,7 +321,10 @@ class VoiceCommandViewModel @Inject constructor(
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private fun success(commandText: String, label: String) {
+    private fun success(
+        commandText: String,
+        label: String,
+    ) {
         _uiState.value = VoiceUiState.Success(commandText, label)
     }
 

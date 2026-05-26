@@ -63,62 +63,76 @@ private data class OnboardingStep(
 )
 
 private val STEPS: List<OnboardingStep> = buildList {
-    add(OnboardingStep(
-        emoji       = "📞",
-        title       = "Phone & Contacts",
-        description = "EZ Launcher can call your contacts directly and powers Speed Dial " +
-                      "and voice commands like \"Call John\".",
-        permissions = listOf(Manifest.permission.CALL_PHONE, Manifest.permission.READ_CONTACTS),
-    ))
-    add(OnboardingStep(
-        emoji       = "💬",
-        title       = "Text Messages",
-        description = "Sends SOS alert messages to your emergency contacts and shows " +
-                      "unread texts in your Inbox tab.",
-        permissions = listOf(Manifest.permission.SEND_SMS, Manifest.permission.READ_SMS),
-    ))
-    add(OnboardingStep(
-        emoji       = "📋",
-        title       = "Recent Calls",
-        description = "Shows missed calls in your Inbox so you never overlook an " +
-                      "important call.",
-        permissions = listOf(Manifest.permission.READ_CALL_LOG),
-    ))
-    add(OnboardingStep(
-        emoji       = "📍",
-        title       = "Location",
-        description = "Your location is included in SOS messages so emergency contacts " +
-                      "know where to find you. Also powers the weather widget.",
-        permissions = listOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
+    add(
+        OnboardingStep(
+            emoji = "📞",
+            title = "Phone & Contacts",
+            description = "EZ Launcher can call your contacts directly and powers Speed Dial " +
+                "and voice commands like \"Call John\".",
+            permissions = listOf(Manifest.permission.CALL_PHONE, Manifest.permission.READ_CONTACTS),
         ),
-    ))
-    add(OnboardingStep(
-        emoji       = "📷",
-        title       = "Camera",
-        description = "Powers the Magnifier (great for small print) and the Flashlight. " +
-                      "Your camera is never used without your knowledge.",
-        permissions = listOf(Manifest.permission.CAMERA),
-    ))
+    )
+    add(
+        OnboardingStep(
+            emoji = "💬",
+            title = "Text Messages",
+            description = "Sends SOS alert messages to your emergency contacts and shows " +
+                "unread texts in your Inbox tab.",
+            permissions = listOf(Manifest.permission.SEND_SMS, Manifest.permission.READ_SMS),
+        ),
+    )
+    add(
+        OnboardingStep(
+            emoji = "📋",
+            title = "Recent Calls",
+            description = "Shows missed calls in your Inbox so you never overlook an " +
+                "important call.",
+            permissions = listOf(Manifest.permission.READ_CALL_LOG),
+        ),
+    )
+    add(
+        OnboardingStep(
+            emoji = "📍",
+            title = "Location",
+            description = "Your location is included in SOS messages so emergency contacts " +
+                "know where to find you. Also powers the weather widget.",
+            permissions = listOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+            ),
+        ),
+    )
+    add(
+        OnboardingStep(
+            emoji = "📷",
+            title = "Camera",
+            description = "Powers the Magnifier (great for small print) and the Flashlight. " +
+                "Your camera is never used without your knowledge.",
+            permissions = listOf(Manifest.permission.CAMERA),
+        ),
+    )
     // POST_NOTIFICATIONS only needs a runtime prompt on API 33+
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        add(OnboardingStep(
-            emoji       = "🔔",
-            title       = "Notifications",
-            description = "Required to deliver medication reminders and fall detection " +
-                          "alerts reliably.",
-            permissions = listOf(Manifest.permission.POST_NOTIFICATIONS),
-        ))
+        add(
+            OnboardingStep(
+                emoji = "🔔",
+                title = "Notifications",
+                description = "Required to deliver medication reminders and fall detection " +
+                    "alerts reliably.",
+                permissions = listOf(Manifest.permission.POST_NOTIFICATIONS),
+            ),
+        )
     }
-    add(OnboardingStep(
-        emoji       = "🎤",
-        title       = "Microphone",
-        description = "Enables voice commands like \"Call John\", \"Open Camera\", or " +
-                      "\"Flashlight on\". The microphone is only active when you tap " +
-                      "the voice button.",
-        permissions = listOf(Manifest.permission.RECORD_AUDIO),
-    ))
+    add(
+        OnboardingStep(
+            emoji = "🎤",
+            title = "Microphone",
+            description = "Enables voice commands like \"Call John\", \"Open Camera\", or " +
+                "\"Flashlight on\". The microphone is only active when you tap " +
+                "the voice button.",
+            permissions = listOf(Manifest.permission.RECORD_AUDIO),
+        ),
+    )
 }
 
 // ── Screen ────────────────────────────────────────────────────────────────────
@@ -154,8 +168,10 @@ fun OnboardingScreen(
     // Single launcher handles every step's permissions — registered once,
     // called with each step's list when the user taps Allow.
     val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { /* result ignored — advance regardless of grant/deny */ advance() }
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) {
+        advance()
+    }
 
     val step = STEPS[currentStep]
 
@@ -170,7 +186,6 @@ fun OnboardingScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
-
             // ── Progress dots ─────────────────────────────────────────────────
             ProgressDots(total = STEPS.size, current = currentStep)
 
@@ -178,7 +193,7 @@ fun OnboardingScreen(
 
             // ── Feature icon ──────────────────────────────────────────────────
             Text(
-                text     = step.emoji,
+                text = step.emoji,
                 fontSize = 80.sp,
             )
 
@@ -186,20 +201,20 @@ fun OnboardingScreen(
 
             // ── Title ─────────────────────────────────────────────────────────
             Text(
-                text       = step.title,
-                fontSize   = 28.sp,
+                text = step.title,
+                fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                color      = MaterialTheme.colorScheme.onBackground,
-                textAlign  = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center,
             )
 
             Spacer(Modifier.height(16.dp))
 
             // ── Description ───────────────────────────────────────────────────
             Text(
-                text      = step.description,
-                fontSize  = 18.sp,
-                color     = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f),
+                text = step.description,
+                fontSize = 18.sp,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f),
                 textAlign = TextAlign.Center,
                 lineHeight = 26.sp,
             )
@@ -216,14 +231,14 @@ fun OnboardingScreen(
                         permissionLauncher.launch(step.permissions.toTypedArray())
                     }
                 },
-                shape    = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(64.dp),
             ) {
                 Text(
-                    text       = if (isLastStep) "Allow & Get Started" else "Allow Access",
-                    fontSize   = 20.sp,
+                    text = if (isLastStep) "Allow & Get Started" else "Allow Access",
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
                 )
             }
@@ -233,9 +248,9 @@ fun OnboardingScreen(
             // ── Skip link ─────────────────────────────────────────────────────
             TextButton(onClick = advance) {
                 Text(
-                    text     = if (isLastStep) "Skip" else "Skip for now",
+                    text = if (isLastStep) "Skip" else "Skip for now",
                     fontSize = 16.sp,
-                    color    = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                 )
             }
         }
@@ -245,13 +260,16 @@ fun OnboardingScreen(
 // ── Progress dots ─────────────────────────────────────────────────────────────
 
 @Composable
-private fun ProgressDots(total: Int, current: Int) {
-    val active   = MaterialTheme.colorScheme.primary
+private fun ProgressDots(
+    total: Int,
+    current: Int,
+) {
+    val active = MaterialTheme.colorScheme.primary
     val inactive = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f)
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment     = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         repeat(total) { index ->
             Box(

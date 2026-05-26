@@ -54,7 +54,10 @@ class CustomizeHomeViewModel @Inject constructor(
 
     // ── Home buttons ──────────────────────────────────────────────────────────
 
-    fun toggle(button: HomeButton, enabled: Boolean) {
+    fun toggle(
+        button: HomeButton,
+        enabled: Boolean,
+    ) {
         viewModelScope.launch { homePrefs.setButtonEnabled(button, enabled) }
     }
 

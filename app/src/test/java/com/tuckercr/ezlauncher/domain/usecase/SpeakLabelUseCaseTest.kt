@@ -24,7 +24,7 @@ class SpeakLabelUseCaseTest {
 
     @Before
     fun setup() {
-        repository = mockk(relaxed = true)  // relaxed = no-op all unverified calls
+        repository = mockk(relaxed = true) // relaxed = no-op all unverified calls
         useCase = SpeakLabelUseCase(repository)
     }
 

@@ -53,13 +53,13 @@ fun CustomizeHomeScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            painter            = painterResource(R.drawable.ic_home),
+                            painter = painterResource(R.drawable.ic_home),
                             contentDescription = "Back",
                         )
                     }
                 },
             )
-        }
+        },
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -73,27 +73,27 @@ fun CustomizeHomeScreen(
                 Text(
                     "Choose which quick-action buttons appear on the Home screen.",
                     fontSize = 14.sp,
-                    color    = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 8.dp),
                 )
             }
 
             items(state.buttons, key = { it.button.name }) { item ->
                 Row(
-                    modifier              = Modifier
+                    modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 10.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment     = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text       = item.label,
-                        fontSize   = 20.sp,
+                        text = item.label,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Medium,
-                        color      = MaterialTheme.colorScheme.onSurface,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                     Switch(
-                        checked         = item.isEnabled,
+                        checked = item.isEnabled,
                         onCheckedChange = { viewModel.toggle(item.button, it) },
                     )
                 }
@@ -106,16 +106,16 @@ fun CustomizeHomeScreen(
                 SectionHeader("Fall Detection")
                 Text(
                     "Uses the phone's accelerometer to detect a fall and automatically " +
-                    "call your emergency contact after 30 seconds.",
+                        "call your emergency contact after 30 seconds.",
                     fontSize = 14.sp,
-                    color    = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 12.dp),
                 )
 
                 FallDetectionCard(
-                    enabled     = state.fallDetectionEnabled,
+                    enabled = state.fallDetectionEnabled,
                     sensitivity = state.fallSensitivity,
-                    onToggle    = { viewModel.setFallDetectionEnabled(it) },
+                    onToggle = { viewModel.setFallDetectionEnabled(it) },
                     onSensitivity = { viewModel.setFallSensitivity(it) },
                 )
 
@@ -143,28 +143,28 @@ private fun FallDetectionCard(
     ) {
         // Enable / disable row
         Row(
-            modifier              = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment     = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     "Enable Fall Detection",
-                    fontSize   = 18.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color      = MaterialTheme.colorScheme.onSurface,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 if (enabled) {
                     Text(
                         "🛡️ Active — monitoring in background",
                         fontSize = 13.sp,
-                        color    = Color(0xFF81C784),
+                        color = Color(0xFF81C784),
                     )
                 } else {
                     Text(
                         "Tap to turn on",
                         fontSize = 13.sp,
-                        color    = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -179,9 +179,9 @@ private fun FallDetectionCard(
 
             Text(
                 "Sensitivity",
-                fontSize   = 15.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
-                color      = MaterialTheme.colorScheme.onSurface,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Spacer(Modifier.height(8.dp))
 
@@ -189,18 +189,24 @@ private fun FallDetectionCard(
                 FallSensitivity.entries.forEach { level ->
                     val selected = level == sensitivity
                     OutlinedButton(
-                        onClick  = { onSensitivity(level) },
-                        colors   = ButtonDefaults.outlinedButtonColors(
-                            containerColor = if (selected) MaterialTheme.colorScheme.primary
-                                             else Color.Transparent,
+                        onClick = { onSensitivity(level) },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = if (selected) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                Color.Transparent
+                            },
                         ),
                         modifier = Modifier.weight(1f),
                     ) {
                         Text(
                             level.name.lowercase().replaceFirstChar { it.uppercase() },
                             fontSize = 13.sp,
-                            color    = if (selected) MaterialTheme.colorScheme.onPrimary
-                                       else MaterialTheme.colorScheme.onSurface,
+                            color = if (selected) {
+                                MaterialTheme.colorScheme.onPrimary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            },
                         )
                     }
                 }
@@ -210,7 +216,7 @@ private fun FallDetectionCard(
             Text(
                 sensitivity.label,
                 fontSize = 12.sp,
-                color    = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -221,11 +227,11 @@ private fun FallDetectionCard(
 @Composable
 private fun SectionHeader(title: String) {
     Text(
-        text       = title,
-        fontSize   = 13.sp,
+        text = title,
+        fontSize = 13.sp,
         fontWeight = FontWeight.Bold,
         letterSpacing = 1.5.sp,
-        color      = MaterialTheme.colorScheme.primary,
-        modifier   = Modifier.padding(top = 16.dp, bottom = 4.dp),
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
     )
 }

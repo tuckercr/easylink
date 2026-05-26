@@ -2,6 +2,7 @@ package com.tuckercr.ezlauncher.data.local
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.tuckercr.ezlauncher.data.local.EmergencyContactEntity.Companion.fromDomain
 import com.tuckercr.ezlauncher.domain.model.EmergencyContact
 
 /**
@@ -18,19 +19,21 @@ data class EmergencyContactEntity(
     val phoneNumber: String,
     val isPrimary: Boolean,
 ) {
-    fun toDomain() = EmergencyContact(
-        id          = id,
-        name        = name,
-        phoneNumber = phoneNumber,
-        isPrimary   = isPrimary,
-    )
+    fun toDomain() =
+        EmergencyContact(
+            id = id,
+            name = name,
+            phoneNumber = phoneNumber,
+            isPrimary = isPrimary,
+        )
 
     companion object {
-        fun fromDomain(contact: EmergencyContact) = EmergencyContactEntity(
-            id          = contact.id,
-            name        = contact.name,
-            phoneNumber = contact.phoneNumber,
-            isPrimary   = contact.isPrimary,
-        )
+        fun fromDomain(contact: EmergencyContact) =
+            EmergencyContactEntity(
+                id = contact.id,
+                name = contact.name,
+                phoneNumber = contact.phoneNumber,
+                isPrimary = contact.isPrimary,
+            )
     }
 }

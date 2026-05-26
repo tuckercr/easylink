@@ -47,12 +47,15 @@ import javax.inject.Inject
 
 sealed class ForecastUiState {
     data object Loading : ForecastUiState()
+
     data class Success(
         val city: String?,
         val days: List<ForecastDay>,
     ) : ForecastUiState()
 
-    data class Error(val message: String) : ForecastUiState()
+    data class Error(
+        val message: String,
+    ) : ForecastUiState()
 }
 
 @HiltViewModel

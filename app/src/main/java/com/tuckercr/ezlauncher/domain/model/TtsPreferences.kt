@@ -15,7 +15,7 @@ package com.tuckercr.ezlauncher.domain.model
  */
 data class TtsPreferences(
     val isEnabled: Boolean = true,
-    val speechRate: Float = 0.85f,  // slightly slower than default — easier to follow
+    val speechRate: Float = 0.85f, // slightly slower than default — easier to follow
     val pitch: Float = 1.0f,
 ) {
     companion object {

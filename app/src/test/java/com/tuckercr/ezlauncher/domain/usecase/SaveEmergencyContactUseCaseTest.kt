@@ -29,57 +29,63 @@ class SaveEmergencyContactUseCaseTest {
     }
 
     @Test
-    fun `valid contact is saved and Success returned`() = runTest {
-        val contact = EmergencyContact(name = "Alice", phoneNumber = "5551234567")
-        coEvery { repository.saveEmergencyContact(contact) } returns contact.copy(id = 1)
+    fun `valid contact is saved and Success returned`() =
+        runTest {
+            val contact = EmergencyContact(name = "Alice", phoneNumber = "5551234567")
+            coEvery { repository.saveEmergencyContact(contact) } returns contact.copy(id = 1)
 
-        val result = useCase(contact)
+            val result = useCase(contact)
 
-        assertTrue(result is SaveEmergencyContactUseCase.Result.Success)
-        coVerify(exactly = 1) { repository.saveEmergencyContact(contact) }
-    }
-
-    @Test
-    fun `blank name returns InvalidName without calling repository`() = runTest {
-        val contact = EmergencyContact(name = "   ", phoneNumber = "5551234567")
-
-        val result = useCase(contact)
-
-        assertTrue(result is SaveEmergencyContactUseCase.Result.InvalidName)
-        coVerify(exactly = 0) { repository.saveEmergencyContact(any()) }
-    }
+            assertTrue(result is SaveEmergencyContactUseCase.Result.Success)
+            coVerify(exactly = 1) { repository.saveEmergencyContact(contact) }
+        }
 
     @Test
-    fun `short phone number returns InvalidPhone without calling repository`() = runTest {
-        val contact = EmergencyContact(name = "Bob", phoneNumber = "123")
+    fun `blank name returns InvalidName without calling repository`() =
+        runTest {
+            val contact = EmergencyContact(name = "   ", phoneNumber = "5551234567")
 
-        val result = useCase(contact)
+            val result = useCase(contact)
 
-        assertTrue(result is SaveEmergencyContactUseCase.Result.InvalidPhone)
-        coVerify(exactly = 0) { repository.saveEmergencyContact(any()) }
-    }
-
-    @Test
-    fun `phone with formatting characters is valid if enough digits`() = runTest {
-        val contact = EmergencyContact(name = "Carol", phoneNumber = "(555) 123-4567")
-        coEvery { repository.saveEmergencyContact(contact) } returns contact.copy(id = 2)
-
-        val result = useCase(contact)
-
-        assertTrue(result is SaveEmergencyContactUseCase.Result.Success)
-    }
+            assertTrue(result is SaveEmergencyContactUseCase.Result.InvalidName)
+            coVerify(exactly = 0) { repository.saveEmergencyContact(any()) }
+        }
 
     @Test
-    fun `name with only whitespace is trimmed and rejected`() = runTest {
-        val contact = EmergencyContact(name = "\t\n", phoneNumber = "5551234567")
-        val result = useCase(contact)
-        assertTrue(result is SaveEmergencyContactUseCase.Result.InvalidName)
-    }
+    fun `short phone number returns InvalidPhone without calling repository`() =
+        runTest {
+            val contact = EmergencyContact(name = "Bob", phoneNumber = "123")
+
+            val result = useCase(contact)
+
+            assertTrue(result is SaveEmergencyContactUseCase.Result.InvalidPhone)
+            coVerify(exactly = 0) { repository.saveEmergencyContact(any()) }
+        }
 
     @Test
-    fun `error message in InvalidPhone is non-empty`() = runTest {
-        val contact = EmergencyContact(name = "Dave", phoneNumber = "12")
-        val result = useCase(contact) as SaveEmergencyContactUseCase.Result.InvalidPhone
-        assertTrue(result.message.isNotBlank())
-    }
+    fun `phone with formatting characters is valid if enough digits`() =
+        runTest {
+            val contact = EmergencyContact(name = "Carol", phoneNumber = "(555) 123-4567")
+            coEvery { repository.saveEmergencyContact(contact) } returns contact.copy(id = 2)
+
+            val result = useCase(contact)
+
+            assertTrue(result is SaveEmergencyContactUseCase.Result.Success)
+        }
+
+    @Test
+    fun `name with only whitespace is trimmed and rejected`() =
+        runTest {
+            val contact = EmergencyContact(name = "\t\n", phoneNumber = "5551234567")
+            val result = useCase(contact)
+            assertTrue(result is SaveEmergencyContactUseCase.Result.InvalidName)
+        }
+
+    @Test
+    fun `error message in InvalidPhone is non-empty`() =
+        runTest {
+            val contact = EmergencyContact(name = "Dave", phoneNumber = "12")
+            val result = useCase(contact) as SaveEmergencyContactUseCase.Result.InvalidPhone
+            assertTrue(result.message.isNotBlank())
+        }
 }

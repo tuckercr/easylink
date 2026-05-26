@@ -28,7 +28,6 @@ interface MedicationRepository {
      */
     suspend fun saveMedication(medication: Medication): Medication
 
-
     /**
      * Delete a medication and cancel all its scheduled alarms.
      */

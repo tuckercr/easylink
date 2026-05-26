@@ -18,8 +18,8 @@ import java.time.LocalTime
 data class Medication(
     val id: Long = 0,
     val name: String,
-    val dosage: String,                         // e.g. "1 tablet", "500mg"
-    val notes: String = "",                     // e.g. "Take with food"
+    val dosage: String, // e.g. "1 tablet", "500mg"
+    val notes: String = "", // e.g. "Take with food"
     val reminderTimes: List<LocalTime>,
     val activeDays: Set<DayOfWeek> = DayOfWeek.entries.toSet(),
     val isActive: Boolean = true,
@@ -31,5 +31,9 @@ data class Medication(
 
 /** Colour palette for medication tiles — limited set keeps the UI clean. */
 enum class MedicationColor {
-    BLUE, GREEN, AMBER, CORAL, PURPLE;
+    BLUE,
+    GREEN,
+    AMBER,
+    CORAL,
+    PURPLE,
 }

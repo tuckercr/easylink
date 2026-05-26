@@ -25,5 +25,7 @@ sealed class WeatherInfo {
     }
 
     /** Could not fetch weather (no location fix, network error, etc.). */
-    data class Unavailable(val reason: String = "") : WeatherInfo()
+    data class Unavailable(
+        val reason: String = "",
+    ) : WeatherInfo()
 }

@@ -15,8 +15,11 @@ class UpdateTtsPreferencesUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(preferences: TtsPreferences) {
         val safe = preferences.copy(
-            speechRate = preferences.speechRate.coerceIn(TtsPreferences.MIN_RATE, TtsPreferences.MAX_RATE),
-            pitch      = preferences.pitch.coerceIn(TtsPreferences.MIN_PITCH, TtsPreferences.MAX_PITCH),
+            speechRate = preferences.speechRate.coerceIn(
+                TtsPreferences.MIN_RATE,
+                TtsPreferences.MAX_RATE,
+            ),
+            pitch = preferences.pitch.coerceIn(TtsPreferences.MIN_PITCH, TtsPreferences.MAX_PITCH),
         )
         repository.updatePreferences(safe)
     }

@@ -15,9 +15,17 @@ class SaveEmergencyContactUseCase @Inject constructor(
     private val repository: SosRepository,
 ) {
     sealed class Result {
-        data class Success(val contact: EmergencyContact) : Result()
-        data class InvalidPhone(val message: String) : Result()
-        data class InvalidName(val message: String) : Result()
+        data class Success(
+            val contact: EmergencyContact,
+        ) : Result()
+
+        data class InvalidPhone(
+            val message: String,
+        ) : Result()
+
+        data class InvalidName(
+            val message: String,
+        ) : Result()
     }
 
     suspend operator fun invoke(contact: EmergencyContact): Result {

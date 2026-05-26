@@ -19,12 +19,12 @@ import javax.inject.Singleton
 private const val TAG = "AlarmScheduler"
 
 // Intent extras — shared constants used by receivers
-const val EXTRA_MEDICATION_ID   = "medication_id"
+const val EXTRA_MEDICATION_ID = "medication_id"
 const val EXTRA_MEDICATION_NAME = "medication_name"
-const val EXTRA_DOSAGE          = "dosage"
-const val EXTRA_NOTES           = "notes"
-const val EXTRA_SCHEDULED_TIME  = "scheduled_time"   // ISO-8601 LocalDateTime string
-const val EXTRA_ALARM_REQUEST   = "alarm_request"    // unique Int for cancellation
+const val EXTRA_DOSAGE = "dosage"
+const val EXTRA_NOTES = "notes"
+const val EXTRA_SCHEDULED_TIME = "scheduled_time" // ISO-8601 LocalDateTime string
+const val EXTRA_ALARM_REQUEST = "alarm_request" // unique Int for cancellation
 
 /**
  * Wraps [AlarmManager] to schedule and cancel exact medication reminders.
@@ -74,9 +74,9 @@ class AlarmScheduler @Inject constructor(
                     if (candidate.isAfter(now)) {
                         val requestCode = alarmRequestCode(medication.id, timeIndex, day)
                         scheduleAlarm(
-                            requestCode   = requestCode,
-                            fireAt        = candidate,
-                            medication    = medication,
+                            requestCode = requestCode,
+                            fireAt = candidate,
+                            medication = medication,
                             scheduledTime = candidate,
                         )
                     }
@@ -125,7 +125,9 @@ class AlarmScheduler @Inject constructor(
             Log.w(TAG, "SCHEDULE_EXACT_ALARM not granted — using inexact alarm")
         } else {
             alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP, triggerMs, pendingIntent
+                AlarmManager.RTC_WAKEUP,
+                triggerMs,
+                pendingIntent,
             )
         }
 
@@ -138,12 +140,12 @@ class AlarmScheduler @Inject constructor(
         scheduledTime: LocalDateTime? = null,
     ): PendingIntent {
         val intent = Intent(context, ReminderAlarmReceiver::class.java).apply {
-            putExtra(EXTRA_ALARM_REQUEST,   requestCode)
+            putExtra(EXTRA_ALARM_REQUEST, requestCode)
             medication?.let {
-                putExtra(EXTRA_MEDICATION_ID,   it.id)
+                putExtra(EXTRA_MEDICATION_ID, it.id)
                 putExtra(EXTRA_MEDICATION_NAME, it.name)
-                putExtra(EXTRA_DOSAGE,          it.dosage)
-                putExtra(EXTRA_NOTES,           it.notes)
+                putExtra(EXTRA_DOSAGE, it.dosage)
+                putExtra(EXTRA_NOTES, it.notes)
             }
             scheduledTime?.let {
                 putExtra(EXTRA_SCHEDULED_TIME, it.toString())
@@ -157,17 +159,26 @@ class AlarmScheduler @Inject constructor(
         )
     }
 
-    private fun nextOccurrence(day: DayOfWeek, time: LocalTime): LocalDateTime {
+    private fun nextOccurrence(
+        day: DayOfWeek,
+        time: LocalTime,
+    ): LocalDateTime {
         val today = LocalDate.now()
         var date = today
         // Advance to the correct day of week
         while (date.dayOfWeek != day) date = date.plusDays(1)
         val candidate = LocalDateTime.of(date, time)
         // If that time has already passed today, go to next week
-        return if (candidate.isAfter(LocalDateTime.now())) candidate
-        else candidate.plusWeeks(1)
+        return if (candidate.isAfter(LocalDateTime.now())) {
+            candidate
+        } else {
+            candidate.plusWeeks(1)
+        }
     }
 
-    private fun alarmRequestCode(medicationId: Long, timeIndex: Int, day: DayOfWeek): Int =
-        (medicationId * 10_000 + timeIndex * 10 + day.value).toInt()
+    private fun alarmRequestCode(
+        medicationId: Long,
+        timeIndex: Int,
+        day: DayOfWeek,
+    ): Int = (medicationId * 10_000 + timeIndex * 10 + day.value).toInt()
 }

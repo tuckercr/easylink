@@ -43,17 +43,23 @@ private const val TAG = "ReminderActionReceiver"
 @AndroidEntryPoint
 class ReminderActionReceiver : BroadcastReceiver() {
 
-    @Inject lateinit var repository: MedicationRepository
-    @Inject lateinit var notificationHelper: ReminderNotificationHelper
+    @Inject
+    lateinit var repository: MedicationRepository
+
+    @Inject
+    lateinit var notificationHelper: ReminderNotificationHelper
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    override fun onReceive(context: Context, intent: Intent) {
-        val pendingResult  = goAsync()
-        val medicationId   = intent.getLongExtra(EXTRA_MEDICATION_ID, -1L)
-        val scheduledStr   = intent.getStringExtra(EXTRA_SCHEDULED_TIME) ?: return
-        val notifId        = intent.getIntExtra(EXTRA_NOTIF_ID, -1)
-        val action         = intent.action ?: return
+    override fun onReceive(
+        context: Context,
+        intent: Intent,
+    ) {
+        val pendingResult = goAsync()
+        val medicationId = intent.getLongExtra(EXTRA_MEDICATION_ID, -1L)
+        val scheduledStr = intent.getStringExtra(EXTRA_SCHEDULED_TIME) ?: return
+        val notifId = intent.getIntExtra(EXTRA_NOTIF_ID, -1)
+        val action = intent.action ?: return
 
         Log.d(TAG, "Action=$action for medicationId=$medicationId")
 
@@ -63,12 +69,21 @@ class ReminderActionReceiver : BroadcastReceiver() {
 
                 when (action) {
                     ACTION_TAKEN -> {
-                        repository.logReminderAction(medicationId, scheduledTime, ReminderAction.TAKEN)
+                        repository.logReminderAction(
+                            medicationId,
+                            scheduledTime,
+                            ReminderAction.TAKEN,
+                        )
                         notificationHelper.dismissReminder(medicationId)
                         Log.d(TAG, "Logged TAKEN for med $medicationId")
                     }
+
                     ACTION_SNOOZE -> {
-                        repository.logReminderAction(medicationId, scheduledTime, ReminderAction.SNOOZED)
+                        repository.logReminderAction(
+                            medicationId,
+                            scheduledTime,
+                            ReminderAction.SNOOZED,
+                        )
                         notificationHelper.dismissReminder(medicationId)
                         scheduleSnoozeAlarm(context, intent, medicationId)
                         Log.d(TAG, "Snoozed med $medicationId for $SNOOZE_MINUTES min")
@@ -81,9 +96,13 @@ class ReminderActionReceiver : BroadcastReceiver() {
     }
 
     /** Fire a one-shot alarm [SNOOZE_MINUTES] from now that re-shows the notification. */
-    private fun scheduleSnoozeAlarm(context: Context, originalIntent: Intent, medicationId: Long) {
+    private fun scheduleSnoozeAlarm(
+        context: Context,
+        originalIntent: Intent,
+        medicationId: Long,
+    ) {
         val snoozeTime = LocalDateTime.now().plusMinutes(SNOOZE_MINUTES)
-        val triggerMs  = snoozeTime
+        val triggerMs = snoozeTime
             .atZone(ZoneId.systemDefault())
             .toInstant()
             .toEpochMilli()
@@ -95,12 +114,19 @@ class ReminderActionReceiver : BroadcastReceiver() {
         }
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            (medicationId + 999_000).toInt(),  // distinct from weekly alarm IDs
+            (medicationId + 999_000).toInt(), // distinct from weekly alarm IDs
             snoozeIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-        context.getSystemService(AlarmManager::class.java)
-            .setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerMs, pendingIntent)
+        val alarmManager = context.getSystemService(AlarmManager::class.java)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S &&
+            !alarmManager.canScheduleExactAlarms()
+        ) {
+            // Fallback for snooze: use inexact alarm
+            alarmManager.set(AlarmManager.RTC_WAKEUP, triggerMs, pendingIntent)
+        } else {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerMs, pendingIntent)
+        }
     }
 }

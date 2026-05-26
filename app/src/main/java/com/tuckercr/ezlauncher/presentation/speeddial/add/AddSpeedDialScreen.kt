@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -48,7 +47,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.tuckercr.ezlauncher.R
@@ -66,19 +65,22 @@ fun AddSpeedDialScreen(
 
     LaunchedEffect(state.saveResult) {
         when (val result = state.saveResult) {
-            is AddSpeedDialUiState.SaveResult.Success      -> onBack()
+            is AddSpeedDialUiState.SaveResult.Success -> onBack()
             is AddSpeedDialUiState.SaveResult.AlreadyAdded -> {
                 snackbarHostState.showSnackbar("Already in Speed Dial")
                 viewModel.onSaveResultConsumed()
             }
+
             is AddSpeedDialUiState.SaveResult.InvalidContact -> {
                 snackbarHostState.showSnackbar("Invalid contact — missing name or number")
                 viewModel.onSaveResultConsumed()
             }
+
             is AddSpeedDialUiState.SaveResult.Error -> {
                 snackbarHostState.showSnackbar(result.message)
                 viewModel.onSaveResultConsumed()
             }
+
             null -> Unit
         }
     }
@@ -105,13 +107,13 @@ fun AddSpeedDialScreen(
             TabRow(selectedTabIndex = if (state.isManualEntry) 1 else 0) {
                 Tab(
                     selected = !state.isManualEntry,
-                    onClick  = { if (state.isManualEntry) viewModel.onToggleManualEntry() },
-                    text     = { Text("Search Contacts", fontSize = 15.sp) },
+                    onClick = { if (state.isManualEntry) viewModel.onToggleManualEntry() },
+                    text = { Text("Search Contacts", fontSize = 15.sp) },
                 )
                 Tab(
                     selected = state.isManualEntry,
-                    onClick  = { if (!state.isManualEntry) viewModel.onToggleManualEntry() },
-                    text     = { Text("Enter Manually", fontSize = 15.sp) },
+                    onClick = { if (!state.isManualEntry) viewModel.onToggleManualEntry() },
+                    text = { Text("Enter Manually", fontSize = 15.sp) },
                 )
             }
 
@@ -170,7 +172,9 @@ private fun ManualEntryPanel(
 
         Button(
             onClick = { viewModel.onManualSave() },
-            modifier = Modifier.fillMaxWidth().height(56.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
         ) {
             Text("Add to Speed Dial", fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
@@ -191,7 +195,9 @@ private fun SearchPanel(
             label = { Text("Search contacts") },
             placeholder = { Text("Type a name…") },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
         )
 
         Box(modifier = Modifier.fillMaxSize()) {
@@ -199,21 +205,28 @@ private fun SearchPanel(
                 state.isLoading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
+
                 state.contacts.isEmpty() && state.searchQuery.isNotEmpty() -> {
                     Text(
                         text = "No contacts found for \"${state.searchQuery}\"",
-                        modifier = Modifier.align(Alignment.Center).padding(32.dp),
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(32.dp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+
                 state.contacts.isEmpty() -> {
                     Text(
                         text = "Start typing to search your contacts",
-                        modifier = Modifier.align(Alignment.Center).padding(32.dp),
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(32.dp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 16.sp,
                     )
                 }
+
                 else -> {
                     LazyColumn {
                         items(state.contacts, key = { it.contactId }) { contact ->
@@ -236,7 +249,10 @@ private fun SearchPanel(
 // ── Shared row ────────────────────────────────────────────────────────────────
 
 @Composable
-private fun ContactSearchRow(contact: DeviceContact, onClick: () -> Unit) {
+private fun ContactSearchRow(
+    contact: DeviceContact,
+    onClick: () -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -273,22 +289,33 @@ private fun ContactSearchRow(contact: DeviceContact, onClick: () -> Unit) {
 }
 
 @Composable
-private fun ContactAvatar(photoUri: Uri?, name: String) {
-    val initials = name.split(" ")
-        .filter { it.isNotBlank() }.take(2)
+private fun ContactAvatar(
+    photoUri: Uri?,
+    name: String,
+) {
+    val initials = name
+        .split(" ")
+        .filter { it.isNotBlank() }
+        .take(2)
         .joinToString("") { it.first().uppercaseChar().toString() }
         .ifEmpty { "#" }
 
     if (photoUri != null) {
         AsyncImage(
-            model = photoUri, contentDescription = name,
+            model = photoUri,
+            contentDescription = name,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.size(48.dp).clip(CircleShape),
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape),
         )
     } else {
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier.size(48.dp).clip(CircleShape).background(ColorSpeedDial),
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(ColorSpeedDial),
         ) {
             Text(initials, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }

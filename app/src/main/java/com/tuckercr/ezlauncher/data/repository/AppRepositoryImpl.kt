@@ -38,28 +38,33 @@ class AppRepositoryImpl @Inject constructor(
 
     // ── Installed apps ────────────────────────────────────────────────────────
 
-    override fun getInstalledApps(): Flow<List<AppInfo>> = merge(
-        // Emit immediately on collection
-        flow { emit(queryInstalledApps()) },
-        // Re-emit whenever a package is added/removed/replaced
-        packageChangeFlow()
-    )
+    override fun getInstalledApps(): Flow<List<AppInfo>> =
+        merge(
+            // Emit immediately on collection
+            flow { emit(queryInstalledApps()) },
+            // Re-emit whenever a package is added/removed/replaced
+            packageChangeFlow(),
+        )
 
-    private fun packageChangeFlow(): Flow<List<AppInfo>> = callbackFlow {
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent) {
-                trySend(queryInstalledApps())
+    private fun packageChangeFlow(): Flow<List<AppInfo>> =
+        callbackFlow {
+            val receiver = object : BroadcastReceiver() {
+                override fun onReceive(
+                    context: Context,
+                    intent: Intent,
+                ) {
+                    trySend(queryInstalledApps())
+                }
             }
+            val filter = IntentFilter().apply {
+                addAction(Intent.ACTION_PACKAGE_ADDED)
+                addAction(Intent.ACTION_PACKAGE_REMOVED)
+                addAction(Intent.ACTION_PACKAGE_REPLACED)
+                addDataScheme("package")
+            }
+            context.registerReceiver(receiver, filter)
+            awaitClose { context.unregisterReceiver(receiver) }
         }
-        val filter = IntentFilter().apply {
-            addAction(Intent.ACTION_PACKAGE_ADDED)
-            addAction(Intent.ACTION_PACKAGE_REMOVED)
-            addAction(Intent.ACTION_PACKAGE_REPLACED)
-            addDataScheme("package")
-        }
-        context.registerReceiver(receiver, filter)
-        awaitClose { context.unregisterReceiver(receiver) }
-    }
 
     private fun queryInstalledApps(): List<AppInfo> {
         val launchIntent = Intent(Intent.ACTION_MAIN).apply {
@@ -73,27 +78,30 @@ class AppRepositoryImpl @Inject constructor(
                 if (pkg == context.packageName) return@mapNotNull null
                 AppInfo(
                     packageName = pkg,
-                    label       = resolveInfo.loadLabel(packageManager).toString(),
-                    icon        = resolveInfo.loadIcon(packageManager),
+                    label = resolveInfo.loadLabel(packageManager).toString(),
+                    icon = resolveInfo.loadIcon(packageManager),
                 )
-            }
-            .sorted()
+            }.sorted()
     }
 
     // ── Battery ───────────────────────────────────────────────────────────────
 
-    override fun observeBatteryState(): Flow<BatteryState> = callbackFlow {
-        // Immediately emit current level from the sticky broadcast
-        trySend(readStickyBatteryState())
+    override fun observeBatteryState(): Flow<BatteryState> =
+        callbackFlow {
+            // Immediately emit current level from the sticky broadcast
+            trySend(readStickyBatteryState())
 
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent) {
-                trySend(intent.toBatteryState())
+            val receiver = object : BroadcastReceiver() {
+                override fun onReceive(
+                    context: Context,
+                    intent: Intent,
+                ) {
+                    trySend(intent.toBatteryState())
+                }
             }
+            context.registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+            awaitClose { context.unregisterReceiver(receiver) }
         }
-        context.registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-        awaitClose { context.unregisterReceiver(receiver) }
-    }
 
     /** Reads the sticky battery broadcast without registering a persistent receiver. */
     private fun readStickyBatteryState(): BatteryState {
@@ -106,7 +114,7 @@ class AppRepositoryImpl @Inject constructor(
         val scale = getIntExtra(BatteryManager.EXTRA_SCALE, 100)
         val status = getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN)
         val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                status == BatteryManager.BATTERY_STATUS_FULL
+            status == BatteryManager.BATTERY_STATUS_FULL
         val percent = if (scale > 0) (level * 100) / scale else -1
         return BatteryState(levelPercent = percent, isCharging = isCharging)
     }

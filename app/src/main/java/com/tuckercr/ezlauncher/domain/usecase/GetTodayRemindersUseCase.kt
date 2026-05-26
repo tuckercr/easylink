@@ -9,6 +9,5 @@ import javax.inject.Inject
 class GetTodayRemindersUseCase @Inject constructor(
     private val repository: MedicationRepository,
 ) {
-    operator fun invoke(): Flow<List<TodayReminder>> =
-        repository.getTodayReminders()
+    operator fun invoke(): Flow<List<TodayReminder>> = repository.getTodayReminders()
 }

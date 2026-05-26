@@ -21,27 +21,29 @@ data class MedicationEntity(
     val isActive: Boolean,
     val color: MedicationColor,
 ) {
-    fun toDomain() = Medication(
-        id           = id,
-        name         = name,
-        dosage       = dosage,
-        notes        = notes,
-        reminderTimes = reminderTimes,
-        activeDays   = activeDays,
-        isActive     = isActive,
-        color        = color,
-    )
+    fun toDomain() =
+        Medication(
+            id = id,
+            name = name,
+            dosage = dosage,
+            notes = notes,
+            reminderTimes = reminderTimes,
+            activeDays = activeDays,
+            isActive = isActive,
+            color = color,
+        )
 
     companion object {
-        fun fromDomain(m: Medication) = MedicationEntity(
-            id            = m.id,
-            name          = m.name,
-            dosage        = m.dosage,
-            notes         = m.notes,
-            reminderTimes = m.reminderTimes,
-            activeDays    = m.activeDays,
-            isActive      = m.isActive,
-            color         = m.color,
-        )
+        fun fromDomain(m: Medication) =
+            MedicationEntity(
+                id = m.id,
+                name = m.name,
+                dosage = m.dosage,
+                notes = m.notes,
+                reminderTimes = m.reminderTimes,
+                activeDays = m.activeDays,
+                isActive = m.isActive,
+                color = m.color,
+            )
     }
 }

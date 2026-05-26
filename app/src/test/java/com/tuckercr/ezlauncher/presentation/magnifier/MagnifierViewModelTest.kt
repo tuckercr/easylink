@@ -38,67 +38,75 @@ class MagnifierViewModelTest {
     }
 
     @Test
-    fun `initial state has zoom level 1 and all toggles off`() = runTest {
-        val state = viewModel.uiState.value
-        assertEquals(MagnifierUiState.MIN_ZOOM, state.zoomLevel)
-        assertFalse(state.isHighContrast)
-        assertFalse(state.isFlashlightOn)
-    }
+    fun `initial state has zoom level 1 and all toggles off`() =
+        runTest {
+            val state = viewModel.uiState.value
+            assertEquals(MagnifierUiState.MIN_ZOOM, state.zoomLevel)
+            assertFalse(state.isHighContrast)
+            assertFalse(state.isFlashlightOn)
+        }
 
     @Test
-    fun `zoomIn increases zoom by ZOOM_STEP`() = runTest {
-        viewModel.zoomIn()
-        assertEquals(1.5f, viewModel.uiState.value.zoomLevel)
-    }
+    fun `zoomIn increases zoom by ZOOM_STEP`() =
+        runTest {
+            viewModel.zoomIn()
+            assertEquals(1.5f, viewModel.uiState.value.zoomLevel)
+        }
 
     @Test
-    fun `zoomIn does not exceed MAX_ZOOM`() = runTest {
-        repeat(20) { viewModel.zoomIn() }
-        assertEquals(MagnifierUiState.MAX_ZOOM, viewModel.uiState.value.zoomLevel)
-    }
+    fun `zoomIn does not exceed MAX_ZOOM`() =
+        runTest {
+            repeat(20) { viewModel.zoomIn() }
+            assertEquals(MagnifierUiState.MAX_ZOOM, viewModel.uiState.value.zoomLevel)
+        }
 
     @Test
-    fun `zoomOut decreases zoom by ZOOM_STEP`() = runTest {
-        viewModel.zoomIn()
-        viewModel.zoomIn()
-        viewModel.zoomOut()
-        assertEquals(1.5f, viewModel.uiState.value.zoomLevel)
-    }
+    fun `zoomOut decreases zoom by ZOOM_STEP`() =
+        runTest {
+            viewModel.zoomIn()
+            viewModel.zoomIn()
+            viewModel.zoomOut()
+            assertEquals(1.5f, viewModel.uiState.value.zoomLevel)
+        }
 
     @Test
-    fun `zoomOut does not go below MIN_ZOOM`() = runTest {
-        repeat(20) { viewModel.zoomOut() }
-        assertEquals(MagnifierUiState.MIN_ZOOM, viewModel.uiState.value.zoomLevel)
-    }
+    fun `zoomOut does not go below MIN_ZOOM`() =
+        runTest {
+            repeat(20) { viewModel.zoomOut() }
+            assertEquals(MagnifierUiState.MIN_ZOOM, viewModel.uiState.value.zoomLevel)
+        }
 
     @Test
-    fun `toggleHighContrast flips the flag`() = runTest {
-        assertFalse(viewModel.uiState.value.isHighContrast)
-        viewModel.toggleHighContrast()
-        assertTrue(viewModel.uiState.value.isHighContrast)
-        viewModel.toggleHighContrast()
-        assertFalse(viewModel.uiState.value.isHighContrast)
-    }
+    fun `toggleHighContrast flips the flag`() =
+        runTest {
+            assertFalse(viewModel.uiState.value.isHighContrast)
+            viewModel.toggleHighContrast()
+            assertTrue(viewModel.uiState.value.isHighContrast)
+            viewModel.toggleHighContrast()
+            assertFalse(viewModel.uiState.value.isHighContrast)
+        }
 
     @Test
-    fun `toggleFlashlight flips the flag`() = runTest {
-        assertFalse(viewModel.uiState.value.isFlashlightOn)
-        viewModel.toggleFlashlight()
-        assertTrue(viewModel.uiState.value.isFlashlightOn)
-    }
+    fun `toggleFlashlight flips the flag`() =
+        runTest {
+            assertFalse(viewModel.uiState.value.isFlashlightOn)
+            viewModel.toggleFlashlight()
+            assertTrue(viewModel.uiState.value.isFlashlightOn)
+        }
 
     @Test
-    fun `resetToDefaults restores all values`() = runTest {
-        viewModel.zoomIn()
-        viewModel.zoomIn()
-        viewModel.toggleHighContrast()
-        viewModel.toggleFlashlight()
+    fun `resetToDefaults restores all values`() =
+        runTest {
+            viewModel.zoomIn()
+            viewModel.zoomIn()
+            viewModel.toggleHighContrast()
+            viewModel.toggleFlashlight()
 
-        viewModel.resetToDefaults()
+            viewModel.resetToDefaults()
 
-        val state = viewModel.uiState.value
-        assertEquals(MagnifierUiState.MIN_ZOOM, state.zoomLevel)
-        assertFalse(state.isHighContrast)
-        assertFalse(state.isFlashlightOn)
-    }
+            val state = viewModel.uiState.value
+            assertEquals(MagnifierUiState.MIN_ZOOM, state.zoomLevel)
+            assertFalse(state.isHighContrast)
+            assertFalse(state.isFlashlightOn)
+        }
 }

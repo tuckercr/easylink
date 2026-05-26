@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -49,11 +48,9 @@ class MedicationRepositoryImpl @Inject constructor(
 
     // ── Read ──────────────────────────────────────────────────────────────────
 
-    override fun getMedications(): Flow<List<Medication>> =
-        medicationDao.observeAll().map { entities -> entities.map { it.toDomain() } }
+    override fun getMedications(): Flow<List<Medication>> = medicationDao.observeAll().map { entities -> entities.map { it.toDomain() } }
 
-    override suspend fun getMedicationById(id: Long): Medication? =
-        medicationDao.getById(id)?.toDomain()
+    override suspend fun getMedicationById(id: Long): Medication? = medicationDao.getById(id)?.toDomain()
 
     /**
      * Returns a reactive list of today's dose slots with their current status.
@@ -64,14 +61,15 @@ class MedicationRepositoryImpl @Inject constructor(
      */
     override fun getTodayReminders(): Flow<List<TodayReminder>> {
         val todayStart = LocalDate.now().atStartOfDay()
-        val todayEnd   = todayStart.plusDays(1)
+        val todayEnd = todayStart.plusDays(1)
 
-        val medicationsFlow = medicationDao.getActive()
+        val medicationsFlow = medicationDao
+            .getActive()
             .map { entities -> entities.map { it.toDomain() } }
 
         val logsFlow = reminderLogDao.getLogsForDay(
             dayStart = todayStart,
-            dayEnd   = todayEnd,
+            dayEnd = todayEnd,
         )
 
         return combine(medicationsFlow, logsFlow) { medications, logs ->
@@ -94,18 +92,18 @@ class MedicationRepositoryImpl @Inject constructor(
                     val log = logsByKey[Pair(medication.id, scheduledAt)]
 
                     val status = when {
-                        log == null && scheduledAt.isAfter(now)  -> Status.UPCOMING
+                        log == null && scheduledAt.isAfter(now) -> Status.UPCOMING
                         log == null && !scheduledAt.isAfter(now) -> Status.OVERDUE
-                        log?.action == ReminderAction.TAKEN      -> Status.TAKEN
-                        log?.action == ReminderAction.SNOOZED    -> Status.SNOOZED
-                        log?.action == ReminderAction.MISSED      -> Status.MISSED
-                        else                                      -> Status.UPCOMING
+                        log?.action == ReminderAction.TAKEN -> Status.TAKEN
+                        log?.action == ReminderAction.SNOOZED -> Status.SNOOZED
+                        log?.action == ReminderAction.MISSED -> Status.MISSED
+                        else -> Status.UPCOMING
                     }
 
                     reminders += TodayReminder(
-                        medication  = medication,
+                        medication = medication,
                         scheduledAt = scheduledAt,
-                        status      = status,
+                        status = status,
                     )
                 }
             }
@@ -148,12 +146,12 @@ class MedicationRepositoryImpl @Inject constructor(
     ) {
         val medication = medicationDao.getById(medicationId)
         val entity = ReminderLogEntity(
-            medicationId   = medicationId,
+            medicationId = medicationId,
             medicationName = medication?.name ?: "Unknown",
-            dosage         = medication?.dosage ?: "",
-            scheduledTime  = scheduledTime,
-            actionTime     = LocalDateTime.now(),
-            action         = action,
+            dosage = medication?.dosage ?: "",
+            scheduledTime = scheduledTime,
+            actionTime = LocalDateTime.now(),
+            action = action,
         )
         reminderLogDao.upsert(entity)
     }

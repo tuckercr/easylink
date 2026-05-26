@@ -42,7 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tuckercr.ezlauncher.R
 import com.tuckercr.ezlauncher.domain.model.Medication
@@ -64,7 +64,7 @@ fun MedicationsScreen(
         AlertDialog(
             onDismissRequest = { pendingDelete = null },
             title = { Text("Delete medication?") },
-            text  = { Text("Remove \"${med.name}\" and all its reminders?") },
+            text = { Text("Remove \"${med.name}\" and all its reminders?") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteMedication(med)
@@ -99,14 +99,18 @@ fun MedicationsScreen(
                 is MedicationsUiState.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
+
                 is MedicationsUiState.Error -> {
                     Text(
                         text = s.message,
                         color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(Alignment.Center).padding(16.dp),
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(16.dp),
                         textAlign = TextAlign.Center,
                     )
                 }
+
                 is MedicationsUiState.Success -> {
                     if (s.reminders.isEmpty()) {
                         EmptyMedications(onAdd = onNavigateToAddMedication)
@@ -117,13 +121,16 @@ fun MedicationsScreen(
                                 verticalArrangement = Arrangement.spacedBy(12.dp),
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                             ) {
-                                items(s.reminders, key = { "${it.medication.id}_${it.scheduledAt}" }) { reminder ->
+                                items(
+                                    s.reminders,
+                                    key = { "${it.medication.id}_${it.scheduledAt}" },
+                                ) { reminder ->
                                     ReminderCard(
-                                        reminder  = reminder,
-                                        onEdit    = { onNavigateToEditMedication(reminder.medication.id) },
-                                        onDelete  = { pendingDelete = reminder.medication },
-                                        onTaken   = { viewModel.markTaken(reminder) },
-                                        onSnooze  = { viewModel.snooze(reminder) },
+                                        reminder = reminder,
+                                        onEdit = { onNavigateToEditMedication(reminder.medication.id) },
+                                        onDelete = { pendingDelete = reminder.medication },
+                                        onTaken = { viewModel.markTaken(reminder) },
+                                        onSnooze = { viewModel.snooze(reminder) },
                                     )
                                 }
                             }
@@ -168,14 +175,16 @@ private fun AllDoneBanner() {
 @Composable
 private fun ReminderCard(
     reminder: TodayReminder,
-    onEdit:   () -> Unit,
+    onEdit: () -> Unit,
     onDelete: () -> Unit,
-    onTaken:  () -> Unit,
+    onTaken: () -> Unit,
     onSnooze: () -> Unit,
 ) {
-    val cardColor      = medicationCardColor(reminder.medication.color)
-    val statusColor    = statusBackgroundColor(reminder.status)
-    val statusText     = reminder.status.name.lowercase().replaceFirstChar { it.uppercase() }
+    val cardColor = medicationCardColor(reminder.medication.color)
+    val statusColor = statusBackgroundColor(reminder.status)
+    val statusText = reminder.status.name
+        .lowercase()
+        .replaceFirstChar { it.uppercase() }
     val statusTextColor = statusTextColor(reminder.status)
 
     // Statuses where the user can still act
@@ -335,7 +344,9 @@ private fun ReminderCard(
 @Composable
 private fun EmptyMedications(onAdd: () -> Unit) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -346,11 +357,20 @@ private fun EmptyMedications(onAdd: () -> Unit) {
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(16.dp))
-        Text("No medications today", fontSize = 22.sp, fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center)
+        Text(
+            "No medications today",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+        )
         Spacer(Modifier.height(8.dp))
-        Text("Add a medication to get daily reminders", fontSize = 16.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+        Text(
+            "Add a medication to get daily reminders",
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
         Spacer(Modifier.height(24.dp))
         Button(onClick = onAdd) { Text("Add Medication", fontSize = 18.sp) }
     }
@@ -358,26 +378,29 @@ private fun EmptyMedications(onAdd: () -> Unit) {
 
 // ── Colour helpers ────────────────────────────────────────────────────────────
 
-private fun medicationCardColor(color: MedicationColor): Color = when (color) {
-    MedicationColor.BLUE   -> Color(0xFF1565C0)
-    MedicationColor.GREEN  -> Color(0xFF2E7D32)
-    MedicationColor.AMBER  -> Color(0xFFE65100)
-    MedicationColor.CORAL  -> Color(0xFFC62828)
-    MedicationColor.PURPLE -> Color(0xFF4527A0)
-}
+private fun medicationCardColor(color: MedicationColor): Color =
+    when (color) {
+        MedicationColor.BLUE -> Color(0xFF1565C0)
+        MedicationColor.GREEN -> Color(0xFF2E7D32)
+        MedicationColor.AMBER -> Color(0xFFE65100)
+        MedicationColor.CORAL -> Color(0xFFC62828)
+        MedicationColor.PURPLE -> Color(0xFF4527A0)
+    }
 
-private fun statusBackgroundColor(status: TodayReminder.Status): Color = when (status) {
-    TodayReminder.Status.UPCOMING -> Color(0xFF0D47A1)
-    TodayReminder.Status.TAKEN    -> Color(0xFF1B5E20)
-    TodayReminder.Status.SNOOZED  -> Color(0xFFE65100)
-    TodayReminder.Status.MISSED   -> Color(0xFFBF360C)
-    TodayReminder.Status.OVERDUE  -> Color(0xFFB71C1C)
-}
+private fun statusBackgroundColor(status: TodayReminder.Status): Color =
+    when (status) {
+        TodayReminder.Status.UPCOMING -> Color(0xFF0D47A1)
+        TodayReminder.Status.TAKEN -> Color(0xFF1B5E20)
+        TodayReminder.Status.SNOOZED -> Color(0xFFE65100)
+        TodayReminder.Status.MISSED -> Color(0xFFBF360C)
+        TodayReminder.Status.OVERDUE -> Color(0xFFB71C1C)
+    }
 
-private fun statusTextColor(status: TodayReminder.Status): Color = when (status) {
-    TodayReminder.Status.UPCOMING -> Color(0xFF90CAF9)
-    TodayReminder.Status.TAKEN    -> Color(0xFFA5D6A7)
-    TodayReminder.Status.SNOOZED  -> Color(0xFFFFCC80)
-    TodayReminder.Status.MISSED   -> Color(0xFFFFAB91)
-    TodayReminder.Status.OVERDUE  -> Color(0xFFEF9A9A)
-}
+private fun statusTextColor(status: TodayReminder.Status): Color =
+    when (status) {
+        TodayReminder.Status.UPCOMING -> Color(0xFF90CAF9)
+        TodayReminder.Status.TAKEN -> Color(0xFFA5D6A7)
+        TodayReminder.Status.SNOOZED -> Color(0xFFFFCC80)
+        TodayReminder.Status.MISSED -> Color(0xFFFFAB91)
+        TodayReminder.Status.OVERDUE -> Color(0xFFEF9A9A)
+    }

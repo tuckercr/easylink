@@ -12,10 +12,14 @@ sealed class VoiceCommand {
     // ── Person-directed ───────────────────────────────────────────────────────
 
     /** "Call [name]" — look up the contact and dial. */
-    data class Call(val name: String) : VoiceCommand()
+    data class Call(
+        val name: String,
+    ) : VoiceCommand()
 
     /** "Text [name]" / "Message [name]" — open SMS composer for the contact. */
-    data class Text(val name: String) : VoiceCommand()
+    data class Text(
+        val name: String,
+    ) : VoiceCommand()
 
     // ── App / feature launch ──────────────────────────────────────────────────
 
@@ -23,7 +27,9 @@ sealed class VoiceCommand {
     data object OpenCamera : VoiceCommand()
 
     /** "Open [app name]" / "Launch [app name]" — find and launch an installed app. */
-    data class OpenApp(val appName: String) : VoiceCommand()
+    data class OpenApp(
+        val appName: String,
+    ) : VoiceCommand()
 
     /** "All apps" / "Show apps" — navigate to the full app list screen. */
     data object OpenAllApps : VoiceCommand()
@@ -47,5 +53,7 @@ sealed class VoiceCommand {
     // ── Fallback ──────────────────────────────────────────────────────────────
 
     /** Speech was recognised but matched no known pattern. */
-    data class Unrecognized(val text: String) : VoiceCommand()
+    data class Unrecognized(
+        val text: String,
+    ) : VoiceCommand()
 }

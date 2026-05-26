@@ -31,5 +31,7 @@ sealed class SosResult {
     ) : SosResult()
 
     /** A hard failure (e.g. SMS permission denied, no SIM card). */
-    data class Failure(val reason: String) : SosResult()
+    data class Failure(
+        val reason: String,
+    ) : SosResult()
 }

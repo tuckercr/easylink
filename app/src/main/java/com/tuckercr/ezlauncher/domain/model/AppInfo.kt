@@ -12,14 +12,11 @@ import android.graphics.drawable.Drawable
 data class AppInfo(
     /** Unique package name (e.g. "com.google.android.dialer") */
     val packageName: String,
-
     /** User-visible label (e.g. "Phone") */
     val label: String,
-
     /** Launcher icon — nullable so the UI can show a placeholder */
     val icon: Drawable?,
 ) : Comparable<AppInfo> {
     /** Natural sort order: alphabetical by label, case-insensitive. */
-    override fun compareTo(other: AppInfo): Int =
-        label.compareTo(other.label, ignoreCase = true)
+    override fun compareTo(other: AppInfo): Int = label.compareTo(other.label, ignoreCase = true)
 }

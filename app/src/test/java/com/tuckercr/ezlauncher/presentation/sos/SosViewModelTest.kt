@@ -37,8 +37,10 @@ class SosViewModelTest {
     private lateinit var triggerSos: TriggerSosUseCase
     private lateinit var viewModel: SosViewModel
 
-    private val fakeContact = EmergencyContact(id = 1, name = "Alice", phoneNumber = "5551234", isPrimary = true)
-    private val successResult = SosResult.Success(calledContact = fakeContact, smsRecipients = 1, locationShared = true)
+    private val fakeContact =
+        EmergencyContact(id = 1, name = "Alice", phoneNumber = "5551234", isPrimary = true)
+    private val successResult =
+        SosResult.Success(calledContact = fakeContact, smsRecipients = 1, locationShared = true)
 
     @Before
     fun setup() {
@@ -57,67 +59,73 @@ class SosViewModelTest {
     }
 
     @Test
-    fun `initial state is Counting at COUNTDOWN_SECONDS`() = runTest {
-        val state = viewModel.uiState.value
-        assertTrue(state is SosUiState.Counting)
-        assertEquals(SosUiState.COUNTDOWN_SECONDS, (state as SosUiState.Counting).secondsRemaining)
-    }
+    fun `initial state is Counting at COUNTDOWN_SECONDS`() =
+        runTest {
+            val state = viewModel.uiState.value
+            assertTrue(state is SosUiState.Counting)
+            assertEquals(SosUiState.COUNTDOWN_SECONDS, (state as SosUiState.Counting).secondsRemaining)
+        }
 
     @Test
-    fun `countdown decrements each second`() = runTest {
-        val states = mutableListOf<SosUiState>()
-        val job = launch { viewModel.uiState.toList(states) }
+    fun `countdown decrements each second`() =
+        runTest {
+            val states = mutableListOf<SosUiState>()
+            val job = launch { viewModel.uiState.toList(states) }
 
-        advanceTimeBy(3_100)  // advance 3 seconds
-        job.cancel()
+            advanceTimeBy(3_100) // advance 3 seconds
+            job.cancel()
 
-        val countingStates = states.filterIsInstance<SosUiState.Counting>()
-        assertTrue(countingStates.any { it.secondsRemaining == 3 })
-        assertTrue(countingStates.any { it.secondsRemaining == 2 })
-    }
-
-    @Test
-    fun `after full countdown transitions to Dispatching then Done`() = runTest {
-        val states = mutableListOf<SosUiState>()
-        val job = launch { viewModel.uiState.toList(states) }
-
-        advanceTimeBy((SosUiState.COUNTDOWN_SECONDS + 1) * 1_000L)
-
-        job.cancel()
-
-        assertTrue("Expected Dispatching state", states.any { it is SosUiState.Dispatching })
-        val done = states.filterIsInstance<SosUiState.Done>()
-        assertTrue("Expected Done state", done.isNotEmpty())
-        assertEquals(successResult, done.last().result)
-    }
+            val countingStates = states.filterIsInstance<SosUiState.Counting>()
+            assertTrue(countingStates.any { it.secondsRemaining == 3 })
+            assertTrue(countingStates.any { it.secondsRemaining == 2 })
+        }
 
     @Test
-    fun `cancel during countdown emits Cancelled and does not call triggerSos`() = runTest {
-        advanceTimeBy(2_000)
-        viewModel.cancel()
-        advanceTimeBy(5_000)  // let any pending work complete
+    fun `after full countdown transitions to Dispatching then Done`() =
+        runTest {
+            val states = mutableListOf<SosUiState>()
+            val job = launch { viewModel.uiState.toList(states) }
 
-        assertEquals(SosUiState.Cancelled, viewModel.uiState.value)
-        coVerify(exactly = 0) { triggerSos() }
-    }
+            advanceTimeBy((SosUiState.COUNTDOWN_SECONDS + 1) * 1_000L)
 
-    @Test
-    fun `NoContactsConfigured result propagated to Done state`() = runTest {
-        coEvery { triggerSos() } returns SosResult.NoContactsConfigured
-        val vm = SosViewModel(triggerSos)
+            job.cancel()
 
-        val states = mutableListOf<SosUiState>()
-        val job = launch { vm.uiState.toList(states) }
-        advanceTimeBy((SosUiState.COUNTDOWN_SECONDS + 1) * 1_000L)
-        job.cancel()
-
-        val done = states.filterIsInstance<SosUiState.Done>().lastOrNull()
-        assertTrue(done?.result is SosResult.NoContactsConfigured)
-    }
+            assertTrue("Expected Dispatching state", states.any { it is SosUiState.Dispatching })
+            val done = states.filterIsInstance<SosUiState.Done>()
+            assertTrue("Expected Done state", done.isNotEmpty())
+            assertEquals(successResult, done.last().result)
+        }
 
     @Test
-    fun `triggerSos is called exactly once after countdown`() = runTest {
-        advanceTimeBy((SosUiState.COUNTDOWN_SECONDS + 1) * 1_000L)
-        coVerify(exactly = 1) { triggerSos() }
-    }
+    fun `cancel during countdown emits Cancelled and does not call triggerSos`() =
+        runTest {
+            advanceTimeBy(2_000)
+            viewModel.cancel()
+            advanceTimeBy(5_000) // let any pending work complete
+
+            assertEquals(SosUiState.Cancelled, viewModel.uiState.value)
+            coVerify(exactly = 0) { triggerSos() }
+        }
+
+    @Test
+    fun `NoContactsConfigured result propagated to Done state`() =
+        runTest {
+            coEvery { triggerSos() } returns SosResult.NoContactsConfigured
+            val vm = SosViewModel(triggerSos)
+
+            val states = mutableListOf<SosUiState>()
+            val job = launch { vm.uiState.toList(states) }
+            advanceTimeBy((SosUiState.COUNTDOWN_SECONDS + 1) * 1_000L)
+            job.cancel()
+
+            val done = states.filterIsInstance<SosUiState.Done>().lastOrNull()
+            assertTrue(done?.result is SosResult.NoContactsConfigured)
+        }
+
+    @Test
+    fun `triggerSos is called exactly once after countdown`() =
+        runTest {
+            advanceTimeBy((SosUiState.COUNTDOWN_SECONDS + 1) * 1_000L)
+            coVerify(exactly = 1) { triggerSos() }
+        }
 }

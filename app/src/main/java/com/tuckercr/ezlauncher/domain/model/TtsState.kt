@@ -19,7 +19,9 @@ sealed class TtsState {
      *
      * @param isSpeaking  True while an utterance is actively playing.
      */
-    data class Ready(val isSpeaking: Boolean = false) : TtsState()
+    data class Ready(
+        val isSpeaking: Boolean = false,
+    ) : TtsState()
 
     /**
      * Engine could not be initialised — TTS unavailable on this device.
@@ -27,5 +29,7 @@ sealed class TtsState {
      *
      * @param reason  Human-readable description for logging/debug overlay.
      */
-    data class Unavailable(val reason: String) : TtsState()
+    data class Unavailable(
+        val reason: String,
+    ) : TtsState()
 }

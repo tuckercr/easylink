@@ -68,14 +68,14 @@ import com.tuckercr.ezlauncher.ui.theme.ColorText
 
 private const val BUTTONS_PER_ROW = 3
 
-private val ColorVoice = Color(0xFF5C6BC0)  // indigo
+private val ColorVoice = Color(0xFF5C6BC0) // indigo
 
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     voiceViewModel: VoiceCommandViewModel = hiltViewModel(),
     ttsViewModel: TtsViewModel = hiltViewModel(
-        viewModelStoreOwner = LocalContext.current as androidx.lifecycle.ViewModelStoreOwner
+        viewModelStoreOwner = LocalContext.current as androidx.lifecycle.ViewModelStoreOwner,
     ),
     onNavigateToApps: () -> Unit,
     onNavigateToMagnifier: () -> Unit,
@@ -105,21 +105,25 @@ fun HomeScreen(
 
     // Location permission launcher — called when user taps the weather card
     val locationLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
+        ActivityResultContracts.RequestPermission(),
     ) { granted -> if (granted) viewModel.refreshWeather() }
 
     // RECORD_AUDIO permission launcher — called when user taps the mic button
     val context = LocalContext.current
     val audioPermLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
+        ActivityResultContracts.RequestPermission(),
     ) { granted -> if (granted) voiceViewModel.startListening() }
 
     val onMicTapped: () -> Unit = {
         val hasAudio = ContextCompat.checkSelfPermission(
-            context, Manifest.permission.RECORD_AUDIO
+            context,
+            Manifest.permission.RECORD_AUDIO,
         ) == PackageManager.PERMISSION_GRANTED
-        if (hasAudio) voiceViewModel.startListening()
-        else audioPermLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        if (hasAudio) {
+            voiceViewModel.startListening()
+        } else {
+            audioPermLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
     }
 
     // ── Root Box allows overlay on top of screen content ─────────────────────
@@ -159,20 +163,21 @@ fun HomeScreen(
                                         s.batteryState.isCharging -> R.drawable.ic_battery_charging
                                         s.batteryState.levelPercent <= 20 -> R.drawable.ic_battery_low
                                         else -> R.drawable.ic_battery_full
-                                    }
+                                    },
                                 ),
                                 contentDescription = null,
                                 modifier = Modifier.size(28.dp),
                                 tint = Color.White,
                             )
                             Text(
-                                text = if (s.batteryState.levelPercent >= 0)
+                                text = if (s.batteryState.levelPercent >= 0) {
                                     stringResource(
                                         R.string.battery_level,
-                                        s.batteryState.levelPercent
+                                        s.batteryState.levelPercent,
                                     )
-                                else
-                                    stringResource(R.string.battery_unknown),
+                                } else {
+                                    stringResource(R.string.battery_unknown)
+                                },
                                 color = Color.White,
                                 fontSize = 20.sp,
                                 modifier = Modifier.padding(start = 4.dp),
@@ -226,9 +231,11 @@ fun HomeScreen(
                         isFlashlightOn = s.isFlashlightOn,
                         onPhone = { launchIntent(Intent(Intent.ACTION_DIAL)) },
                         onText = {
-                            launchIntent(Intent(Intent.ACTION_MAIN).apply {
-                                addCategory(Intent.CATEGORY_APP_MESSAGING)
-                            })
+                            launchIntent(
+                                Intent(Intent.ACTION_MAIN).apply {
+                                    addCategory(Intent.CATEGORY_APP_MESSAGING)
+                                },
+                            )
                         },
                         onCamera = { launchIntent(Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)) },
                         onMagnifier = onNavigateToMagnifier,
@@ -579,7 +586,9 @@ private fun FlashlightEffect(enabled: Boolean) {
                 val preview = Preview.Builder().build()
                 provider?.unbindAll()
                 val cam = provider?.bindToLifecycle(
-                    lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview
+                    lifecycleOwner,
+                    CameraSelector.DEFAULT_BACK_CAMERA,
+                    preview,
                 )
                 cam?.cameraControl?.enableTorch(true)
             } catch (_: Exception) {

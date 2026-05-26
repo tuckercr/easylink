@@ -2,8 +2,8 @@ package com.tuckercr.ezlauncher.presentation.inbox
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.provider.Telephony
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tuckercr.ezlauncher.domain.model.InboxItem
@@ -44,13 +44,15 @@ class InboxViewModel @Inject constructor(
 
     val uiState: StateFlow<InboxUiState> = getRecentItems()
         .map { items ->
-            if (items.isEmpty()) InboxUiState.Empty
-            else InboxUiState.Success(items)
-        }
-        .catch { e -> emit(InboxUiState.Error(e.message ?: "Unknown error")) }
+            if (items.isEmpty()) {
+                InboxUiState.Empty
+            } else {
+                InboxUiState.Success(items)
+            }
+        }.catch { e -> emit(InboxUiState.Error(e.message ?: "Unknown error")) }
         .stateIn(
-            scope        = viewModelScope,
-            started      = SharingStarted.WhileSubscribed(5_000),
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
             initialValue = InboxUiState.Loading,
         )
 
@@ -62,7 +64,7 @@ class InboxViewModel @Inject constructor(
      */
     fun onCallTapped(call: InboxItem.Call) {
         val intent = Intent(Intent.ACTION_CALL).apply {
-            data  = Uri.parse("tel:${call.phoneNumber}")
+            data = "tel:${call.phoneNumber}".toUri()
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
         context.startActivity(intent)
@@ -76,7 +78,7 @@ class InboxViewModel @Inject constructor(
      */
     fun onMessageTapped(message: InboxItem.Message) {
         val intent = Intent(Intent.ACTION_SENDTO).apply {
-            data  = Uri.parse("smsto:${message.phoneNumber}")
+            data = "smsto:${message.phoneNumber}".toUri()
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
         // Prefer the default SMS app so threads open in the right conversation
@@ -90,7 +92,7 @@ class InboxViewModel @Inject constructor(
     /** Dial a number shown in a message row (e.g. when user wants to call instead of text). */
     fun onCallFromMessage(message: InboxItem.Message) {
         val intent = Intent(Intent.ACTION_CALL).apply {
-            data  = Uri.parse("tel:${message.phoneNumber}")
+            data = "tel:${message.phoneNumber}".toUri()
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
         context.startActivity(intent)

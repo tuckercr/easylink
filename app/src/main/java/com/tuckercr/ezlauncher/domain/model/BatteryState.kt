@@ -9,7 +9,6 @@ package com.tuckercr.ezlauncher.domain.model
 data class BatteryState(
     /** Battery level in the range 0–100. */
     val levelPercent: Int,
-
     /** True when the device is connected to a power source. */
     val isCharging: Boolean,
 ) {

@@ -13,7 +13,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 const val CHANNEL_ID_REMINDERS = "medication_reminders"
-const val NOTIFICATION_ID_OFFSET = 50_000  // keeps reminder IDs clear of other notifications
+const val NOTIFICATION_ID_OFFSET = 50_000 // keeps reminder IDs clear of other notifications
 
 /**
  * Builds and posts medication reminder notifications.
@@ -90,30 +90,29 @@ class ReminderNotificationHelper @Inject constructor(
             if (notes.isNotBlank()) append("\n$notes")
         }
 
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID_REMINDERS)
+        val notification = NotificationCompat
+            .Builder(context, CHANNEL_ID_REMINDERS)
             .setSmallIcon(R.drawable.ic_pill)
             .setContentTitle("Time to take $name")
             .setContentText(bodyText)
             .setStyle(
-                NotificationCompat.BigTextStyle()
+                NotificationCompat
+                    .BigTextStyle()
                     .bigText(bodyText)
-                    .setBigContentTitle("Time to take $name")
-            )
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .setBigContentTitle("Time to take $name"),
+            ).setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
-            .setAutoCancel(false)                               // stays until user acts
-            .setOngoing(true)                                   // can't swipe away
+            .setAutoCancel(false) // stays until user acts
+            .setOngoing(true) // can't swipe away
             .addAction(
                 R.drawable.ic_check,
                 "TAKEN",
                 takenIntent,
-            )
-            .addAction(
+            ).addAction(
                 R.drawable.ic_snooze,
                 "SNOOZE 15 MIN",
                 snoozeIntent,
-            )
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC) // show on lock screen
+            ).setVisibility(NotificationCompat.VISIBILITY_PUBLIC) // show on lock screen
             .build()
 
         notificationManager.notify(notifId, notification)

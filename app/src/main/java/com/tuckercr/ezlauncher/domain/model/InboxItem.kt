@@ -22,7 +22,7 @@ sealed class InboxItem {
     abstract val displayName: String
     abstract val phoneNumber: String
     abstract val photoUri: Uri?
-    abstract val timestamp: Long     // epoch milliseconds
+    abstract val timestamp: Long // epoch milliseconds
 
     /** Initials placeholder (max 2 chars) when [photoUri] is null. */
     val initials: String

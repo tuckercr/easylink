@@ -44,18 +44,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tuckercr.ezlauncher.R
 import java.time.DayOfWeek
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -90,7 +90,7 @@ fun AddMedicationScreen(
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.onReminderTimeAdded(
-                        LocalTime.of(timePickerState.hour, timePickerState.minute)
+                        LocalTime.of(timePickerState.hour, timePickerState.minute),
                     )
                     showTimePicker = false
                 }) {
@@ -138,7 +138,6 @@ fun AddMedicationScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-
             // ── Name ──────────────────────────────────────────────────────────
             OutlinedTextField(
                 value = state.name,
@@ -146,7 +145,14 @@ fun AddMedicationScreen(
                 label = { Text("Medication name *") },
                 placeholder = { Text("e.g. Aspirin") },
                 isError = state.nameError != null,
-                supportingText = state.nameError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
+                supportingText = state.nameError?.let {
+                    {
+                        Text(
+                            it,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -206,7 +212,10 @@ fun AddMedicationScreen(
                         onClick = { viewModel.onDayToggled(day) },
                         label = {
                             Text(
-                                text = day.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
+                                text = day.getDisplayName(
+                                    TextStyle.SHORT,
+                                    LocalLocale.current.platformLocale,
+                                ),
                                 fontSize = 14.sp,
                             )
                         },
@@ -256,14 +265,20 @@ fun AddMedicationScreen(
 }
 
 @Composable
-private fun SectionLabel(text: String, error: String? = null) {
+private fun SectionLabel(
+    text: String,
+    error: String? = null,
+) {
     Column {
         Text(
             text = text,
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
-            color = if (error != null) MaterialTheme.colorScheme.error
-                    else MaterialTheme.colorScheme.onSurface,
+            color = if (error != null) {
+                MaterialTheme.colorScheme.error
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            },
         )
         if (error != null) {
             Text(
@@ -278,7 +293,10 @@ private fun SectionLabel(text: String, error: String? = null) {
 private val timeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("h:mm a")
 
 @Composable
-private fun TimeChip(time: LocalTime, onRemove: () -> Unit) {
+private fun TimeChip(
+    time: LocalTime,
+    onRemove: () -> Unit,
+) {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))

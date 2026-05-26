@@ -19,7 +19,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val requestHomeRole = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
+        ActivityResultContracts.StartActivityForResult(),
     ) { /* re-checked on next onResume */ }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,18 +39,20 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun isDefaultHome(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    private fun isDefaultHome(): Boolean =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             getSystemService(RoleManager::class.java).isRoleHeld(RoleManager.ROLE_HOME)
         } else {
             val intent = Intent(Intent.ACTION_MAIN).apply { addCategory(Intent.CATEGORY_HOME) }
-            packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
-                ?.activityInfo?.packageName == packageName
+            packageManager
+                .resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+                ?.activityInfo
+                ?.packageName == packageName
         }
-    }
 
     private fun promptSetAsHome() {
-        AlertDialog.Builder(this)
+        AlertDialog
+            .Builder(this)
             .setTitle("Set EZ Launcher as Home")
             .setMessage("Would you like to use EZ Launcher as your home screen?")
             .setPositiveButton("Set Now") { _, _ -> requestDefaultHome() }

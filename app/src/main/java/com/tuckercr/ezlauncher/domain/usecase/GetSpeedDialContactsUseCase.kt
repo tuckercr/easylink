@@ -15,6 +15,5 @@ import javax.inject.Inject
 class GetSpeedDialContactsUseCase @Inject constructor(
     private val repository: SpeedDialRepository,
 ) {
-    operator fun invoke(): Flow<List<SpeedDialContact>> =
-        repository.getSpeedDialContacts()
+    operator fun invoke(): Flow<List<SpeedDialContact>> = repository.getSpeedDialContacts()
 }
