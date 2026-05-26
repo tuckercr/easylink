@@ -1,5 +1,6 @@
 package com.tuckercr.ezlauncher.navigation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +12,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -19,9 +21,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
-import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -165,8 +165,13 @@ fun EzLauncherNavHost(
                             selected = selected,
                             onClick = {
                                 navController.navigate(item.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
+                                    // Pop the entire back stack so no other tab's screens
+                                    // (including HOME) linger below the new destination.
+                                    // This means back from any tab exits the app rather than
+                                    // cycling through HOME each time.
+                                    popUpTo(navController.graph.id) {
                                         saveState = true
+                                        inclusive = true
                                     }
                                     launchSingleTop = true
                                     restoreState = true
@@ -203,6 +208,10 @@ fun EzLauncherNavHost(
 
             // ── Main screens ──────────────────────────────────────────────────
             composable(Routes.HOME) {
+                // This is the launcher root — back gesture should do nothing here.
+                // Without this handler the system would re-launch the home Activity,
+                // causing the screen to flash or reload.
+                BackHandler(enabled = true) { /* consume — launcher root, back does nothing */ }
                 HomeScreen(
                     onNavigateToApps = { navController.navigate(Routes.APPS) },
                     onNavigateToMagnifier = { navController.navigate(Routes.MAGNIFIER) },

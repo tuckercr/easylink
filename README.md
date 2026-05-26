@@ -22,6 +22,8 @@ Long-pressing any button reads its label aloud via text-to-speech.
 
 ![Home screen](screenshots/home_page.png)
 
+![All apps](screenshots/all_apps.png)
+
 ---
 
 ### Weather
@@ -46,6 +48,10 @@ Tap **"Say a Command"** (the indigo microphone button above SOS) and speak natur
 | "Go home" | Returns to the home screen |
 
 Unrecognised phrases show a "not understood" card with example commands and a Retry button.
+
+![Voice commands](screenshots/voice_commands.png)
+
+![Voice commands hint](screenshots/voice_commands-hint.png)
 
 ---
 

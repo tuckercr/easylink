@@ -74,13 +74,17 @@ class MainActivity : ComponentActivity() {
         }
 
     private fun promptSetAsHome() {
-        AlertDialog
+        val dialog = AlertDialog
             .Builder(this)
             .setTitle("Set EZ Launcher as Home")
             .setMessage("Would you like to use EZ Launcher as your home screen?")
             .setPositiveButton("Set Now") { _, _ -> requestDefaultHome() }
-            .setNegativeButton("Not Now") { dialog, _ -> dialog.dismiss() }
-            .show()
+            .setNegativeButton("Not Now") { d, _ -> d.dismiss() }
+            .create()
+        dialog.show()
+        // Override the theme's accent colour so the buttons are readable on a dark background
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(android.graphics.Color.WHITE)
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(android.graphics.Color.WHITE)
     }
 
     private fun requestDefaultHome() {
