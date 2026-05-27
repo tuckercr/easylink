@@ -32,10 +32,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tuckercr.ezlauncher.R
 import com.tuckercr.ezlauncher.domain.model.FallSensitivity
@@ -51,7 +52,7 @@ fun CustomizeHomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Settings", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.settings), fontWeight = FontWeight.Bold) },
                 windowInsets = WindowInsets(0),
             )
         },
@@ -64,9 +65,9 @@ fun CustomizeHomeScreen(
         ) {
             // ── Section: Home buttons ─────────────────────────────────────────
             item {
-                SectionHeader("Home Screen Buttons")
+                SectionHeader(stringResource(R.string.customize_home_buttons_header))
                 Text(
-                    "Choose which quick-action buttons appear on the Home screen.",
+                    stringResource(R.string.customize_home_buttons_description),
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 8.dp),
@@ -98,10 +99,9 @@ fun CustomizeHomeScreen(
             // ── Section: Fall Detection ───────────────────────────────────────
             item {
                 Spacer(Modifier.height(24.dp))
-                SectionHeader("Fall Detection")
+                SectionHeader(stringResource(R.string.customize_fall_detection_header))
                 Text(
-                    "Uses the phone's accelerometer to detect a fall and automatically " +
-                        "call your emergency contact after 30 seconds.",
+                    stringResource(R.string.customize_fall_detection_description),
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 12.dp),
@@ -119,9 +119,9 @@ fun CustomizeHomeScreen(
 
             // ── Section: Emergency Contacts ───────────────────────────────────
             item {
-                SectionHeader("Emergency Contacts")
+                SectionHeader(stringResource(R.string.customize_emergency_contacts_header))
                 Text(
-                    "Set up contacts that SOS will call and text in an emergency.",
+                    stringResource(R.string.customize_emergency_contacts_description),
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 12.dp),
@@ -144,7 +144,7 @@ fun CustomizeHomeScreen(
                         tint = Color.White,
                     )
                     Text(
-                        "  Manage Emergency Contacts",
+                        stringResource(R.string.customize_manage_emergency_contacts),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
@@ -180,20 +180,20 @@ private fun FallDetectionCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "Enable Fall Detection",
+                    stringResource(R.string.customize_fall_enable),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 if (enabled) {
                     Text(
-                        "🛡️ Active — monitoring in background",
+                        stringResource(R.string.customize_fall_active),
                         fontSize = 13.sp,
                         color = Color(0xFF81C784),
                     )
                 } else {
                     Text(
-                        "Tap to turn on",
+                        stringResource(R.string.customize_fall_tap_to_enable),
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -209,7 +209,7 @@ private fun FallDetectionCard(
             Spacer(Modifier.height(12.dp))
 
             Text(
-                "Sensitivity",
+                stringResource(R.string.customize_fall_sensitivity),
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface,

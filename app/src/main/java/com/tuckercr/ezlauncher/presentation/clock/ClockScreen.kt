@@ -36,6 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
@@ -43,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tuckercr.ezlauncher.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,7 +62,7 @@ fun ClockScreen(viewModel: ClockViewModel = hiltViewModel()) {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Clock & Timer", fontWeight = FontWeight.Bold) },
+                    title = { Text(stringResource(R.string.clock_title), fontWeight = FontWeight.Bold) },
                     windowInsets = WindowInsets(0),
                 )
             },
@@ -89,7 +91,7 @@ fun ClockScreen(viewModel: ClockViewModel = hiltViewModel()) {
 
                 // ── Timer section ─────────────────────────────────────────────
                 Text(
-                    text = "TIMER",
+                    text = stringResource(R.string.clock_timer_label),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 4.sp,
@@ -101,10 +103,10 @@ fun ClockScreen(viewModel: ClockViewModel = hiltViewModel()) {
                 // Preset duration chips
                 PresetRow(
                     presets = listOf(
-                        "5 min" to 5 * 60,
-                        "10 min" to 10 * 60,
-                        "20 min" to 20 * 60,
-                        "30 min" to 30 * 60,
+                        stringResource(R.string.clock_preset_5min) to 5 * 60,
+                        stringResource(R.string.clock_preset_10min) to 10 * 60,
+                        stringResource(R.string.clock_preset_20min) to 20 * 60,
+                        stringResource(R.string.clock_preset_30min) to 30 * 60,
                     ),
                     onSelect = { viewModel.setTimer(it) },
                 )
@@ -113,9 +115,9 @@ fun ClockScreen(viewModel: ClockViewModel = hiltViewModel()) {
 
                 PresetRow(
                     presets = listOf(
-                        "1 hr" to 60 * 60,
-                        "2 hr" to 120 * 60,
-                        "5 min" to 5 * 60, // kept for balance — alternative row
+                        stringResource(R.string.clock_preset_1hr) to 60 * 60,
+                        stringResource(R.string.clock_preset_2hr) to 120 * 60,
+                        stringResource(R.string.clock_preset_5min) to 5 * 60, // kept for balance — alternative row
                     ),
                     onSelect = { viewModel.setTimer(it) },
                 )
@@ -149,9 +151,9 @@ fun ClockScreen(viewModel: ClockViewModel = hiltViewModel()) {
                         ) {
                             Text(
                                 text = when {
-                                    timer.isFinished -> "Done"
-                                    timer.isRunning -> "Pause"
-                                    else -> "Start"
+                                    timer.isFinished -> stringResource(R.string.clock_timer_done)
+                                    timer.isRunning -> stringResource(R.string.clock_timer_pause)
+                                    else -> stringResource(R.string.clock_timer_start)
                                 },
                                 fontSize = 22.sp,
                                 fontWeight = FontWeight.Bold,
@@ -165,7 +167,7 @@ fun ClockScreen(viewModel: ClockViewModel = hiltViewModel()) {
                                 .height(64.dp),
                             shape = RoundedCornerShape(12.dp),
                         ) {
-                            Text("Reset", fontSize = 22.sp, color = Color.White)
+                            Text(stringResource(R.string.clock_timer_reset), fontSize = 22.sp, color = Color.White)
                         }
                     }
                 }
@@ -181,7 +183,7 @@ fun ClockScreen(viewModel: ClockViewModel = hiltViewModel()) {
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            text = "⏰  Timer finished!",
+                            text = stringResource(R.string.clock_timer_finished),
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFA5D6A7),
@@ -258,7 +260,7 @@ private fun TimerRing(timer: TimerState) {
             )
             if (timer.isRunning) {
                 Text(
-                    text = "running",
+                    text = stringResource(R.string.clock_timer_running),
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -104,16 +105,16 @@ class StartupViewModel @Inject constructor(
 
 private data class BottomNavItem(
     val route: String,
-    val labelRes: String,
+    val labelRes: Int,
     val iconRes: Int,
 )
 
 private val bottomNavItems = listOf(
-    BottomNavItem(Routes.HOME, "Home", R.drawable.ic_home),
-    BottomNavItem(Routes.SPEED_DIAL, "Call", R.drawable.ic_call),
-    BottomNavItem(Routes.MEDICATIONS, "Meds", R.drawable.ic_pill),
-    BottomNavItem(Routes.CLOCK, "Clock", R.drawable.ic_alarm),
-    BottomNavItem(Routes.CUSTOMIZE_HOME, "Settings", R.drawable.ic_settings),
+    BottomNavItem(Routes.HOME, R.string.home, R.drawable.ic_home),
+    BottomNavItem(Routes.SPEED_DIAL, R.string.nav_call, R.drawable.ic_call),
+    BottomNavItem(Routes.MEDICATIONS, R.string.nav_meds, R.drawable.ic_pill),
+    BottomNavItem(Routes.CLOCK, R.string.clock, R.drawable.ic_alarm),
+    BottomNavItem(Routes.CUSTOMIZE_HOME, R.string.settings, R.drawable.ic_settings),
 )
 
 private val bottomNavRoutes = bottomNavItems.map { it.route }.toSet()
@@ -217,10 +218,10 @@ fun EzLauncherNavHost(
                                 icon = {
                                     Icon(
                                         painter = painterResource(item.iconRes),
-                                        contentDescription = item.labelRes,
+                                        contentDescription = stringResource(item.labelRes),
                                     )
                                 },
-                                label = { Text(item.labelRes, fontSize = 11.sp) },
+                                label = { Text(stringResource(item.labelRes), fontSize = 11.sp) },
                             )
                         }
                     }

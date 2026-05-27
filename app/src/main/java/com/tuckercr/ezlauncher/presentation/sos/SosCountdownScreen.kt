@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -79,14 +80,14 @@ private fun CountingContent(
         modifier = Modifier.padding(32.dp),
     ) {
         Text(
-            text = "SOS",
+            text = stringResource(R.string.sos),
             fontSize = 48.sp,
             fontWeight = FontWeight.ExtraBold,
             color = ColorSos,
             letterSpacing = 8.sp,
         )
         Text(
-            text = "Sending in",
+            text = stringResource(R.string.sos_sending_in),
             fontSize = 24.sp,
             color = Color.White,
         )
@@ -108,7 +109,7 @@ private fun CountingContent(
             )
         }
         Text(
-            text = "seconds",
+            text = stringResource(R.string.sos_seconds),
             fontSize = 24.sp,
             color = Color.White,
         )
@@ -125,7 +126,7 @@ private fun CountingContent(
             shape = RoundedCornerShape(16.dp),
         ) {
             Text(
-                text = "CANCEL",
+                text = stringResource(R.string.sos_cancel),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 4.sp,
@@ -147,14 +148,14 @@ private fun DispatchingContent() {
             strokeWidth = 6.dp,
         )
         Text(
-            text = "Sending SOS…",
+            text = stringResource(R.string.sos_dispatching),
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White,
             textAlign = TextAlign.Center,
         )
         Text(
-            text = "Contacting emergency contacts",
+            text = stringResource(R.string.sos_contacting),
             fontSize = 18.sp,
             color = Color.White.copy(alpha = 0.7f),
             textAlign = TextAlign.Center,
@@ -169,32 +170,60 @@ private fun DoneContent(result: SosResult) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.padding(32.dp),
     ) {
+        val strSosSent = stringResource(R.string.sos_sent_title)
+        val strPartiallySent = stringResource(R.string.sos_partially_sent_title)
+        val strNoContacts = stringResource(R.string.sos_no_contacts_title)
+        val strNoContactsDetail = stringResource(R.string.sos_no_contacts_detail)
+        val strSosFailed = stringResource(R.string.sos_failed_title)
+        val strLocationIncluded = stringResource(R.string.sos_location_included)
+        // Pre-capture result-dependent format strings at composable scope
+        val successResult = result as? SosResult.Success
+        val strCalledContact = if (successResult?.calledContact != null) {
+            stringResource(R.string.sos_called, successResult.calledContact.name)
+        } else {
+            null
+        }
+        val strSmsSent = if ((successResult?.smsRecipients ?: 0) > 0) {
+            stringResource(R.string.sos_partial, successResult!!.smsRecipients)
+        } else {
+            null
+        }
+        val strPartialDetail = if (result is SosResult.PartialSuccess) {
+            stringResource(R.string.sos_partial_detail, result.smsRecipients, result.reason)
+        } else {
+            null
+        }
+
         val (icon, iconTint, headline, detail) = when (result) {
             is SosResult.Success -> SosDisplay(
                 icon = R.drawable.ic_check,
                 tint = Color(0xFF4CAF50),
-                headline = "SOS Sent",
-                detail = buildSuccessDetail(result),
+                headline = strSosSent,
+                detail = buildString {
+                    strCalledContact?.also { append("$it\n") }
+                    strSmsSent?.also { append(it) }
+                    if (result.locationShared) append("\n$strLocationIncluded")
+                },
             )
 
             is SosResult.PartialSuccess -> SosDisplay(
                 icon = R.drawable.ic_check,
                 tint = Color(0xFFFFCC80),
-                headline = "Partially Sent",
-                detail = "SMS sent to ${result.smsRecipients} contact(s).\n${result.reason}",
+                headline = strPartiallySent,
+                detail = strPartialDetail ?: "",
             )
 
             is SosResult.NoContactsConfigured -> SosDisplay(
                 icon = R.drawable.ic_call,
                 tint = Color(0xFFEF9A9A),
-                headline = "No Contacts",
-                detail = "No emergency contacts configured. Please add one in Settings.",
+                headline = strNoContacts,
+                detail = strNoContactsDetail,
             )
 
             is SosResult.Failure -> SosDisplay(
                 icon = R.drawable.ic_call,
                 tint = Color(0xFFEF9A9A),
-                headline = "SOS Failed",
+                headline = strSosFailed,
                 detail = result.reason,
             )
         }
@@ -229,13 +258,13 @@ private fun CancelledContent() {
         modifier = Modifier.padding(32.dp),
     ) {
         Text(
-            text = "Cancelled",
+            text = stringResource(R.string.sos_cancelled_title),
             fontSize = 36.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White,
         )
         Text(
-            text = "SOS was not sent",
+            text = stringResource(R.string.sos_was_not_sent),
             fontSize = 20.sp,
             color = Color.White.copy(alpha = 0.7f),
         )
@@ -248,10 +277,3 @@ private data class SosDisplay(
     val headline: String,
     val detail: String,
 )
-
-private fun buildSuccessDetail(result: SosResult.Success): String =
-    buildString {
-        result.calledContact?.let { append("Called ${it.name}.\n") }
-        if (result.smsRecipients > 0) append("SMS sent to ${result.smsRecipients} contact(s).")
-        if (result.locationShared) append("\nLocation shared.")
-    }

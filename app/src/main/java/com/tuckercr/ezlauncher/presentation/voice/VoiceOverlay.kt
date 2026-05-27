@@ -39,6 +39,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -141,7 +142,7 @@ private fun ListeningCard(onCancel: () -> Unit) {
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_mic),
-                    contentDescription = "Microphone",
+                    contentDescription = stringResource(R.string.voice_microphone),
                     tint = Color.White,
                     modifier = Modifier.size(36.dp),
                 )
@@ -151,7 +152,7 @@ private fun ListeningCard(onCancel: () -> Unit) {
         Spacer(Modifier.height(24.dp))
 
         Text(
-            text = "Listening…",
+            text = stringResource(R.string.voice_listening),
             color = Color.White,
             fontSize = 22.sp,
             fontWeight = FontWeight.SemiBold,
@@ -178,7 +179,7 @@ private fun ListeningCard(onCancel: () -> Unit) {
             onClick = onCancel,
             colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
         ) {
-            Text("Cancel", fontSize = 16.sp)
+            Text(stringResource(R.string.voice_cancel), fontSize = 16.sp)
         }
     }
 }
@@ -230,7 +231,7 @@ private fun HeardCard(text: String) {
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "Processing…",
+            text = stringResource(R.string.voice_processing),
             color = Color.White.copy(alpha = 0.6f),
             fontSize = 14.sp,
         )
@@ -251,7 +252,7 @@ private fun SuccessCard(actionLabel: String) {
         ) {
             Icon(
                 painter = painterResource(R.drawable.ic_check),
-                contentDescription = "Done",
+                contentDescription = stringResource(R.string.voice_done),
                 tint = Color.White,
                 modifier = Modifier.size(40.dp),
             )
@@ -288,7 +289,7 @@ private fun NotUnderstoodCard(
         Text("🤔", fontSize = 44.sp)
         Spacer(Modifier.height(12.dp))
         Text(
-            text = "I didn't understand that",
+            text = stringResource(R.string.voice_not_understood),
             color = Color.White,
             fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold,
@@ -303,7 +304,7 @@ private fun NotUnderstoodCard(
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            text = "Try saying:",
+            text = stringResource(R.string.voice_try_saying),
             color = Color.White.copy(alpha = 0.7f),
             fontSize = 14.sp,
         )
@@ -384,7 +385,7 @@ private fun ActionButtons(
             onClick = onCancel,
             colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
         ) {
-            Text("Cancel", fontSize = 16.sp)
+            Text(stringResource(R.string.voice_cancel), fontSize = 16.sp)
         }
         Button(
             onClick = onRetry,
@@ -396,7 +397,7 @@ private fun ActionButtons(
                 modifier = Modifier.size(18.dp),
             )
             Spacer(Modifier.width(6.dp))
-            Text("Try again", fontSize = 16.sp)
+            Text(stringResource(R.string.voice_try_again), fontSize = 16.sp)
         }
     }
 }

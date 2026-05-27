@@ -41,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -65,16 +66,16 @@ fun SpeedDialScreen(
     pendingDelete?.let { contact ->
         AlertDialog(
             onDismissRequest = { pendingDelete = null },
-            title = { Text("Remove from Speed Dial?") },
-            text = { Text("Remove \"${contact.name}\" from your speed dial contacts?") },
+            title = { Text(stringResource(R.string.speed_dial_remove_title)) },
+            text = { Text(stringResource(R.string.speed_dial_remove_body, contact.name)) },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.onRemoveContact(contact)
                     pendingDelete = null
-                }) { Text("Remove", color = MaterialTheme.colorScheme.error) }
+                }) { Text(stringResource(R.string.speed_dial_remove_confirm), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(onClick = { pendingDelete = null }) { Text("Cancel") }
+                TextButton(onClick = { pendingDelete = null }) { Text(stringResource(R.string.cancel)) }
             },
         )
     }
@@ -82,13 +83,13 @@ fun SpeedDialScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Speed Dial", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.speed_dial_title), fontWeight = FontWeight.Bold) },
                 actions = {
                     Button(
                         onClick = onNavigateToAddContact,
                         modifier = Modifier.padding(end = 8.dp),
                     ) {
-                        Text("+ Add")
+                        Text(stringResource(R.string.add))
                     }
                 },
                 windowInsets = WindowInsets(0),
@@ -159,7 +160,7 @@ private fun EmptySpeedDial(onAdd: () -> Unit) {
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            text = "No favorites yet",
+            text = stringResource(R.string.speed_dial_empty_title),
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
@@ -167,7 +168,7 @@ private fun EmptySpeedDial(onAdd: () -> Unit) {
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "Add contacts here for one-tap calling",
+            text = stringResource(R.string.speed_dial_empty_body),
             fontSize = 16.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -177,7 +178,7 @@ private fun EmptySpeedDial(onAdd: () -> Unit) {
             onClick = onAdd,
             colors = ButtonDefaults.buttonColors(containerColor = ColorSpeedDial),
         ) {
-            Text("Add Favorite", fontSize = 18.sp, color = Color.White)
+            Text(stringResource(R.string.speed_dial_add_favorite), fontSize = 18.sp, color = Color.White)
         }
     }
 }

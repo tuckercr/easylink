@@ -36,6 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -89,12 +90,12 @@ fun MagnifierScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Magnifier", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.magnifier), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             painter = painterResource(R.drawable.ic_home),
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.cd_back),
                         )
                     }
                 },
@@ -258,7 +259,7 @@ private fun ControlPanel(
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF444444)),
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("Reset", fontSize = 16.sp)
+            Text(stringResource(R.string.clock_timer_reset), fontSize = 16.sp)
         }
     }
 }

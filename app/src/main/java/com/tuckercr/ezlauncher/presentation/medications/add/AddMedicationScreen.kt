@@ -47,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -95,15 +96,15 @@ fun AddMedicationScreen(
                     )
                     showTimePicker = false
                 }) {
-                    Text("OK", fontSize = 16.sp)
+                    Text(stringResource(R.string.ok), fontSize = 16.sp)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showTimePicker = false }) {
-                    Text("Cancel", fontSize = 16.sp)
+                    Text(stringResource(R.string.cancel), fontSize = 16.sp)
                 }
             },
-            title = { Text("Pick reminder time") },
+            title = { Text(stringResource(R.string.add_medication_time_picker_title)) },
             text = {
                 TimePicker(state = timePickerState)
             },
@@ -115,7 +116,13 @@ fun AddMedicationScreen(
             TopAppBar(
                 title = {
                     Text(
-                        if (state.isEditing) "Edit Medication" else "Add Medication",
+                        if (state.isEditing) {
+                            stringResource(R.string.add_medication_title_edit)
+                        } else {
+                            stringResource(
+                                R.string.add_medication_title_add,
+                            )
+                        },
                         fontWeight = FontWeight.Bold,
                     )
                 },
@@ -123,7 +130,7 @@ fun AddMedicationScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             painter = painterResource(R.drawable.ic_home),
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.cd_back),
                         )
                     }
                 },
@@ -144,8 +151,8 @@ fun AddMedicationScreen(
             OutlinedTextField(
                 value = state.name,
                 onValueChange = { viewModel.onNameChanged(it) },
-                label = { Text("Medication name *") },
-                placeholder = { Text("e.g. Aspirin") },
+                label = { Text(stringResource(R.string.add_medication_name_label)) },
+                placeholder = { Text(stringResource(R.string.add_medication_name_placeholder)) },
                 isError = state.nameError != null,
                 supportingText = state.nameError?.let {
                     {
@@ -163,8 +170,8 @@ fun AddMedicationScreen(
             OutlinedTextField(
                 value = state.dosage,
                 onValueChange = { viewModel.onDosageChanged(it) },
-                label = { Text("Dosage") },
-                placeholder = { Text("e.g. 1 tablet, 500mg") },
+                label = { Text(stringResource(R.string.add_medication_dosage_label)) },
+                placeholder = { Text(stringResource(R.string.add_medication_dosage_placeholder)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -173,15 +180,15 @@ fun AddMedicationScreen(
             OutlinedTextField(
                 value = state.notes,
                 onValueChange = { viewModel.onNotesChanged(it) },
-                label = { Text("Notes") },
-                placeholder = { Text("e.g. Take with food") },
+                label = { Text(stringResource(R.string.add_medication_notes_label)) },
+                placeholder = { Text(stringResource(R.string.add_medication_notes_placeholder)) },
                 maxLines = 3,
                 modifier = Modifier.fillMaxWidth(),
             )
 
             // ── Reminder times ────────────────────────────────────────────────
             SectionLabel(
-                text = "Reminder times *",
+                text = stringResource(R.string.add_medication_reminder_times),
                 error = state.reminderTimesError,
             )
             FlowRow(
@@ -195,13 +202,13 @@ fun AddMedicationScreen(
                     )
                 }
                 TextButton(onClick = { showTimePicker = true }) {
-                    Text("+ Add time", fontSize = 16.sp)
+                    Text(stringResource(R.string.add_medication_add_time), fontSize = 16.sp)
                 }
             }
 
             // ── Active days ───────────────────────────────────────────────────
             SectionLabel(
-                text = "Active days *",
+                text = stringResource(R.string.add_medication_active_days),
                 error = state.activeDaysError,
             )
             FlowRow(
@@ -231,7 +238,11 @@ fun AddMedicationScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text("Active", fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface)
+                Text(
+                    stringResource(R.string.add_medication_active),
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
                 Switch(
                     checked = state.isActive,
                     onCheckedChange = { viewModel.onActiveToggled(it) },
@@ -256,7 +267,13 @@ fun AddMedicationScreen(
                     )
                 } else {
                     Text(
-                        if (state.isEditing) "Save Changes" else "Save Medication",
+                        if (state.isEditing) {
+                            stringResource(R.string.add_medication_save_changes)
+                        } else {
+                            stringResource(
+                                R.string.add_medication_save,
+                            )
+                        },
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                     )

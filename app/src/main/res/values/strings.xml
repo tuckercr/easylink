@@ -25,9 +25,21 @@
     <string name="contacts">Contacts</string>
     <string name="search">Search</string>
 
+    <!-- Shared UI -->
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="ok">OK</string>
+    <string name="cd_back">Back</string>
+    <string name="add">+ Add</string>
+    <string name="field_name">Name</string>
+    <string name="field_phone_number">Phone number</string>
+    <string name="field_phone_placeholder">e.g. 555-123-4567</string>
+
     <!-- Flashlight -->
     <string name="flashlight_on">Flashlight on</string>
     <string name="flashlight_off">Flashlight off</string>
+    <string name="home_button_light_on">Light On</string>
+    <string name="home_tts_text_messages">Text messages</string>
 
     <!-- SOS -->
     <string name="sos_countdown_label">Calling for help in…</string>
@@ -38,9 +50,183 @@
     <string name="sos_failed">SOS failed: %1$s</string>
     <string name="sos_no_contacts">No emergency contacts set up</string>
     <string name="sos_location_included">Location included in message</string>
+    <string name="sos_sending_in">Sending in</string>
+    <string name="sos_seconds">seconds</string>
+    <string name="sos_cancel">CANCEL</string>
+    <string name="sos_contacting">Contacting emergency contacts</string>
+    <string name="sos_sent_title">SOS Sent</string>
+    <string name="sos_partially_sent_title">Partially Sent</string>
+    <string name="sos_no_contacts_title">No Contacts</string>
+    <string name="sos_no_contacts_detail">No emergency contacts configured. Please add one in Settings.</string>
+    <string name="sos_failed_title">SOS Failed</string>
+    <string name="sos_cancelled_title">Cancelled</string>
+    <string name="sos_was_not_sent">SOS was not sent</string>
+    <string name="sos_partial_detail">SMS sent to %1$d contact(s).\n%2$s</string>
 
     <!-- Magnifier -->
     <string name="ez_magnifier">EZ Magnifier</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_call">Call</string>
+    <string name="nav_meds">Meds</string>
+
+    <!-- Home Screen -->
+    <string name="weather_loading">Getting weather…</string>
+    <string name="weather_tap_to_enable">Tap to enable weather</string>
+    <string name="weather_location_off">Location is off</string>
+    <string name="weather_tap_location_settings">Tap to open location settings</string>
+    <string name="weather_unavailable">Weather unavailable — tap to retry</string>
+    <string name="weather_saved_location">📍 Saved location</string>
+    <string name="home_voice_command_button">Say a Command</string>
+
+    <!-- Speed Dial -->
+    <string name="speed_dial_title">Speed Dial</string>
+    <string name="speed_dial_empty_title">No favorites yet</string>
+    <string name="speed_dial_empty_body">Add contacts here for one-tap calling</string>
+    <string name="speed_dial_add_favorite">Add Favorite</string>
+    <string name="speed_dial_remove_title">Remove from Speed Dial?</string>
+    <string name="speed_dial_remove_body">Remove \"%1$s\" from your speed dial contacts?</string>
+    <string name="speed_dial_remove_confirm">Remove</string>
+
+    <!-- Add Speed Dial -->
+    <string name="add_speed_dial_title">Add Speed Dial</string>
+    <string name="add_speed_dial_already_added">Already in Speed Dial</string>
+    <string name="add_speed_dial_invalid_contact">Invalid contact — missing name or number</string>
+    <string name="add_speed_dial_tab_search">Search Contacts</string>
+    <string name="add_speed_dial_tab_manual">Enter Manually</string>
+    <string name="add_speed_dial_manual_body">Type a name and phone number to add them directly to Speed Dial.</string>
+    <string name="add_speed_dial_name_placeholder">e.g. Dr. Smith</string>
+    <string name="add_speed_dial_save_button">Add to Speed Dial</string>
+    <string name="add_speed_dial_search_label">Search contacts</string>
+    <string name="add_speed_dial_search_placeholder">Type a name…</string>
+    <string name="add_speed_dial_no_results">No contacts found for \"%1$s\"</string>
+    <string name="add_speed_dial_search_hint">Start typing to search your contacts</string>
+
+    <!-- Medications -->
+    <string name="medications_title">Medications</string>
+    <string name="medications_empty_title">No medications today</string>
+    <string name="medications_empty_body">Add a medication to get daily reminders</string>
+    <string name="medications_add_medication">Add Medication</string>
+    <string name="medications_delete_title">Delete medication?</string>
+    <string name="medications_delete_body">Remove \"%1$s\" and all its reminders?</string>
+    <string name="medications_delete_confirm">Delete</string>
+    <string name="medications_all_done">  All done for today!</string>
+    <string name="medications_taken_well_done">  Taken — well done!</string>
+    <string name="medications_taken">  Taken</string>
+    <string name="medications_snooze">  Snooze</string>
+
+    <!-- Add Medication -->
+    <string name="add_medication_title_add">Add Medication</string>
+    <string name="add_medication_title_edit">Edit Medication</string>
+    <string name="add_medication_name_label">Medication name *</string>
+    <string name="add_medication_name_placeholder">e.g. Aspirin</string>
+    <string name="add_medication_dosage_label">Dosage</string>
+    <string name="add_medication_dosage_placeholder">e.g. 1 tablet, 500mg</string>
+    <string name="add_medication_notes_label">Notes</string>
+    <string name="add_medication_notes_placeholder">e.g. Take with food</string>
+    <string name="add_medication_reminder_times">Reminder times *</string>
+    <string name="add_medication_add_time">+ Add time</string>
+    <string name="add_medication_active_days">Active days *</string>
+    <string name="add_medication_active">Active</string>
+    <string name="add_medication_save_changes">Save Changes</string>
+    <string name="add_medication_save">Save Medication</string>
+    <string name="add_medication_time_picker_title">Pick reminder time</string>
+
+    <!-- Clock -->
+    <string name="clock_title">Clock &amp; Timer</string>
+    <string name="clock_timer_label">TIMER</string>
+    <string name="clock_preset_5min">5 min</string>
+    <string name="clock_preset_10min">10 min</string>
+    <string name="clock_preset_20min">20 min</string>
+    <string name="clock_preset_30min">30 min</string>
+    <string name="clock_preset_1hr">1 hr</string>
+    <string name="clock_preset_2hr">2 hr</string>
+    <string name="clock_timer_start">Start</string>
+    <string name="clock_timer_pause">Pause</string>
+    <string name="clock_timer_done">Done</string>
+    <string name="clock_timer_reset">Reset</string>
+    <string name="clock_timer_finished">⏰  Timer finished!</string>
+    <string name="clock_timer_running">running</string>
+
+    <!-- Weather Forecast -->
+    <string name="forecast_title">7-Day Forecast</string>
+    <string name="forecast_saved_location">📍 Saved location</string>
+    <string name="forecast_location_off_title">Location is off</string>
+    <string name="forecast_location_off_body">Turn on location services so the forecast can use your current position.</string>
+    <string name="forecast_open_location_settings">Open Location Settings</string>
+    <string name="forecast_permission_title">Location permission needed</string>
+    <string name="forecast_permission_body">Grant location permission to EZ Launcher so the forecast knows where you are.</string>
+    <string name="forecast_open_app_settings">Open App Settings</string>
+    <string name="forecast_unavailable_title">Forecast unavailable</string>
+    <string name="forecast_retry">Retry</string>
+
+    <!-- Emergency Contacts -->
+    <string name="emergency_contacts_title">Emergency Contacts</string>
+    <string name="emergency_contacts_description">The primary contact will be called first during SOS. All contacts receive a text with your location.</string>
+    <string name="emergency_contacts_add_another">Add Another Contact</string>
+    <string name="emergency_contacts_empty_title">No emergency contacts yet</string>
+    <string name="emergency_contacts_empty_body">Add at least one contact so SOS can call or text them if you need help.</string>
+    <string name="emergency_contacts_add">Add Emergency Contact</string>
+    <string name="emergency_contacts_tap_to_edit">Tap to edit</string>
+    <string name="emergency_contacts_primary_badge">PRIMARY</string>
+    <string name="emergency_contacts_dialog_add_title">Add Emergency Contact</string>
+    <string name="emergency_contacts_dialog_edit_title">Edit Contact</string>
+    <string name="emergency_contacts_name_placeholder">e.g. Jane Smith</string>
+    <string name="emergency_contacts_primary_label">Primary contact</string>
+    <string name="emergency_contacts_primary_body">Will be called first during SOS</string>
+
+    <!-- Apps screen -->
+    <string name="apps_no_apps">No apps found</string>
+
+    <!-- Customize / Settings screen -->
+    <string name="customize_home_buttons_header">Home Screen Buttons</string>
+    <string name="customize_home_buttons_description">Choose which quick-action buttons appear on the Home screen.</string>
+    <string name="customize_fall_detection_header">Fall Detection</string>
+    <string name="customize_fall_detection_description">Uses the phone\'s accelerometer to detect a fall and automatically call your emergency contact after 30 seconds.</string>
+    <string name="customize_emergency_contacts_header">Emergency Contacts</string>
+    <string name="customize_emergency_contacts_description">Set up contacts that SOS will call and text in an emergency.</string>
+    <string name="customize_manage_emergency_contacts">  Manage Emergency Contacts</string>
+    <string name="customize_fall_enable">Enable Fall Detection</string>
+    <string name="customize_fall_active">🛡️ Active — monitoring in background</string>
+    <string name="customize_fall_tap_to_enable">Tap to turn on</string>
+    <string name="customize_fall_sensitivity">Sensitivity</string>
+
+    <!-- Fall Alert -->
+    <string name="fall_alert_title">Fall Detected!</string>
+    <string name="fall_alert_seconds">seconds</string>
+    <string name="fall_alert_calling">Calling in %1$ds…</string>
+    <string name="fall_alert_no_contact">No emergency contact set.</string>
+    <string name="fall_alert_set_contact">Set Emergency Contact</string>
+    <string name="fall_alert_im_ok">I\'m OK</string>
+    <string name="fall_alert_call_now">Call Now</string>
+
+    <!-- Voice overlay -->
+    <string name="voice_microphone">Microphone</string>
+    <string name="voice_listening">Listening…</string>
+    <string name="voice_cancel">Cancel</string>
+    <string name="voice_processing">Processing…</string>
+    <string name="voice_done">Done</string>
+    <string name="voice_not_understood">I didn\'t understand that</string>
+    <string name="voice_try_saying">Try saying:</string>
+    <string name="voice_try_again">Try again</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_phone_title">Phone &amp; Contacts</string>
+    <string name="onboarding_phone_desc">EZ Launcher can call your contacts directly and powers Speed Dial and voice commands like \"Call John\".</string>
+    <string name="onboarding_sms_title">Text Messages</string>
+    <string name="onboarding_sms_desc">Allows EZ Launcher to send SOS alert messages to your emergency contacts when you trigger an SOS.</string>
+    <string name="onboarding_location_title">Location</string>
+    <string name="onboarding_location_desc">Your location is included in SOS messages so emergency contacts know where to find you. Also powers the weather widget.</string>
+    <string name="onboarding_camera_title">Camera</string>
+    <string name="onboarding_camera_desc">Powers the Magnifier (great for small print) and the Flashlight. Your camera is never used without your knowledge.</string>
+    <string name="onboarding_notifications_title">Notifications</string>
+    <string name="onboarding_notifications_desc">Required to deliver medication reminders and fall detection alerts reliably.</string>
+    <string name="onboarding_microphone_title">Microphone</string>
+    <string name="onboarding_microphone_desc">Enables voice commands like \"Call John\", \"Open Camera\", or \"Flashlight on\". The microphone is only active when you tap the voice button.</string>
+    <string name="onboarding_allow_access">Allow Access</string>
+    <string name="onboarding_allow_and_start">Allow &amp; Get Started</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_skip_for_now">Skip for now</string>
 
     <plurals name="sos_sms_sent">
         <item quantity="one">SMS sent to %1$d person</item>

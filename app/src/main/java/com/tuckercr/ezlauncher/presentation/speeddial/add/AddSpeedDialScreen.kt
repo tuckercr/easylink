@@ -43,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -64,16 +65,19 @@ fun AddSpeedDialScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val strAlreadyAdded = stringResource(R.string.add_speed_dial_already_added)
+    val strInvalidContact = stringResource(R.string.add_speed_dial_invalid_contact)
+
     LaunchedEffect(state.saveResult) {
         when (val result = state.saveResult) {
             is AddSpeedDialUiState.SaveResult.Success -> onBack()
             is AddSpeedDialUiState.SaveResult.AlreadyAdded -> {
-                snackbarHostState.showSnackbar("Already in Speed Dial")
+                snackbarHostState.showSnackbar(strAlreadyAdded)
                 viewModel.onSaveResultConsumed()
             }
 
             is AddSpeedDialUiState.SaveResult.InvalidContact -> {
-                snackbarHostState.showSnackbar("Invalid contact — missing name or number")
+                snackbarHostState.showSnackbar(strInvalidContact)
                 viewModel.onSaveResultConsumed()
             }
 
@@ -89,10 +93,10 @@ fun AddSpeedDialScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Add Speed Dial", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.add_speed_dial_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(painterResource(R.drawable.ic_home), contentDescription = "Back")
+                        Icon(painterResource(R.drawable.ic_home), contentDescription = stringResource(R.string.cd_back))
                     }
                 },
                 windowInsets = WindowInsets(0),
@@ -110,12 +114,12 @@ fun AddSpeedDialScreen(
                 Tab(
                     selected = !state.isManualEntry,
                     onClick = { if (state.isManualEntry) viewModel.onToggleManualEntry() },
-                    text = { Text("Search Contacts", fontSize = 15.sp) },
+                    text = { Text(stringResource(R.string.add_speed_dial_tab_search), fontSize = 15.sp) },
                 )
                 Tab(
                     selected = state.isManualEntry,
                     onClick = { if (!state.isManualEntry) viewModel.onToggleManualEntry() },
-                    text = { Text("Enter Manually", fontSize = 15.sp) },
+                    text = { Text(stringResource(R.string.add_speed_dial_tab_manual), fontSize = 15.sp) },
                 )
             }
 
@@ -142,7 +146,7 @@ private fun ManualEntryPanel(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
-            text = "Type a name and phone number to add them directly to Speed Dial.",
+            text = stringResource(R.string.add_speed_dial_manual_body),
             fontSize = 15.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -150,8 +154,8 @@ private fun ManualEntryPanel(
         OutlinedTextField(
             value = state.manualName,
             onValueChange = { viewModel.onManualNameChanged(it) },
-            label = { Text("Name") },
-            placeholder = { Text("e.g. Dr. Smith") },
+            label = { Text(stringResource(R.string.field_name)) },
+            placeholder = { Text(stringResource(R.string.add_speed_dial_name_placeholder)) },
             isError = state.manualNameError != null,
             supportingText = state.manualNameError?.let { { Text(it) } },
             singleLine = true,
@@ -161,8 +165,8 @@ private fun ManualEntryPanel(
         OutlinedTextField(
             value = state.manualPhone,
             onValueChange = { viewModel.onManualPhoneChanged(it) },
-            label = { Text("Phone number") },
-            placeholder = { Text("e.g. 555-123-4567") },
+            label = { Text(stringResource(R.string.field_phone_number)) },
+            placeholder = { Text(stringResource(R.string.field_phone_placeholder)) },
             isError = state.manualPhoneError != null,
             supportingText = state.manualPhoneError?.let { { Text(it) } },
             singleLine = true,
@@ -178,7 +182,7 @@ private fun ManualEntryPanel(
                 .fillMaxWidth()
                 .height(56.dp),
         ) {
-            Text("Add to Speed Dial", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.add_speed_dial_save_button), fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -194,8 +198,8 @@ private fun SearchPanel(
         OutlinedTextField(
             value = state.searchQuery,
             onValueChange = { viewModel.onSearchQueryChanged(it) },
-            label = { Text("Search contacts") },
-            placeholder = { Text("Type a name…") },
+            label = { Text(stringResource(R.string.add_speed_dial_search_label)) },
+            placeholder = { Text(stringResource(R.string.add_speed_dial_search_placeholder)) },
             singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
@@ -210,7 +214,7 @@ private fun SearchPanel(
 
                 state.contacts.isEmpty() && state.searchQuery.isNotEmpty() -> {
                     Text(
-                        text = "No contacts found for \"${state.searchQuery}\"",
+                        text = stringResource(R.string.add_speed_dial_no_results, state.searchQuery),
                         modifier = Modifier
                             .align(Alignment.Center)
                             .padding(32.dp),
@@ -220,7 +224,7 @@ private fun SearchPanel(
 
                 state.contacts.isEmpty() -> {
                     Text(
-                        text = "Start typing to search your contacts",
+                        text = stringResource(R.string.add_speed_dial_search_hint),
                         modifier = Modifier
                             .align(Alignment.Center)
                             .padding(32.dp),

@@ -46,12 +46,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tuckercr.ezlauncher.R
 import com.tuckercr.ezlauncher.domain.model.EmergencyContact
@@ -94,12 +95,17 @@ fun EmergencyContactsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Emergency Contacts", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        stringResource(R.string.emergency_contacts_title),
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             painter = painterResource(R.drawable.ic_home),
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.cd_back),
                         )
                     }
                 },
@@ -139,8 +145,7 @@ fun EmergencyContactsScreen(
                     ) {
                         item {
                             Text(
-                                text = "The primary contact will be called first during SOS. " +
-                                    "All contacts receive a text with your location.",
+                                text = stringResource(R.string.emergency_contacts_description),
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -167,7 +172,7 @@ fun EmergencyContactsScreen(
                                     .height(56.dp),
                             ) {
                                 Text(
-                                    "Add Another Contact",
+                                    stringResource(R.string.emergency_contacts_add_another),
                                     fontSize = 17.sp,
                                     fontWeight = FontWeight.Bold,
                                 )
@@ -200,7 +205,7 @@ private fun EmptyContactsState(
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            text = "No emergency contacts yet",
+            text = stringResource(R.string.emergency_contacts_empty_title),
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
@@ -208,7 +213,7 @@ private fun EmptyContactsState(
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "Add at least one contact so SOS can call or text them if you need help.",
+            text = stringResource(R.string.emergency_contacts_empty_body),
             fontSize = 16.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -224,7 +229,11 @@ private fun EmptyContactsState(
                 .fillMaxWidth()
                 .height(60.dp),
         ) {
-            Text("Add Emergency Contact", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(
+                stringResource(R.string.emergency_contacts_add),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+            )
         }
     }
 }
@@ -266,7 +275,7 @@ private fun ContactCard(
                             .padding(horizontal = 8.dp, vertical = 3.dp),
                     ) {
                         Text(
-                            text = "PRIMARY",
+                            text = stringResource(R.string.emergency_contacts_primary_badge),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
@@ -282,7 +291,7 @@ private fun ContactCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-                text = "Tap to edit",
+                text = stringResource(R.string.emergency_contacts_tap_to_edit),
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             )
@@ -329,7 +338,13 @@ private fun ContactEditDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = if (isNew) "Add Emergency Contact" else "Edit Contact",
+                text = if (isNew) {
+                    stringResource(R.string.emergency_contacts_dialog_add_title)
+                } else {
+                    stringResource(
+                        R.string.emergency_contacts_dialog_edit_title,
+                    )
+                },
                 fontWeight = FontWeight.Bold,
             )
         },
@@ -338,16 +353,16 @@ private fun ContactEditDialog(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Name") },
-                    placeholder = { Text("e.g. Jane Smith") },
+                    label = { Text(stringResource(R.string.field_name)) },
+                    placeholder = { Text(stringResource(R.string.emergency_contacts_name_placeholder)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 OutlinedTextField(
                     value = phone,
                     onValueChange = { phone = it },
-                    label = { Text("Phone number") },
-                    placeholder = { Text("e.g. 555-123-4567") },
+                    label = { Text(stringResource(R.string.field_phone_number)) },
+                    placeholder = { Text(stringResource(R.string.field_phone_placeholder)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     modifier = Modifier.fillMaxWidth(),
@@ -359,12 +374,12 @@ private fun ContactEditDialog(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Primary contact",
+                            text = stringResource(R.string.emergency_contacts_primary_label),
                             fontWeight = FontWeight.Medium,
                             fontSize = 16.sp,
                         )
                         Text(
-                            text = "Will be called first during SOS",
+                            text = stringResource(R.string.emergency_contacts_primary_body),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -385,12 +400,12 @@ private fun ContactEditDialog(
         },
         confirmButton = {
             TextButton(onClick = { onSave(name, phone, isPrimary) }) {
-                Text("Save", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(stringResource(R.string.save), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", fontSize = 16.sp)
+                Text(stringResource(R.string.cancel), fontSize = 16.sp)
             }
         },
     )

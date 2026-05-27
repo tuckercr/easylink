@@ -41,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
@@ -74,16 +75,16 @@ fun MedicationsScreen(
         pendingDelete?.let { med ->
             AlertDialog(
                 onDismissRequest = { pendingDelete = null },
-                title = { Text("Delete medication?") },
-                text = { Text("Remove \"${med.name}\" and all its reminders?") },
+                title = { Text(stringResource(R.string.medications_delete_title)) },
+                text = { Text(stringResource(R.string.medications_delete_body, med.name)) },
                 confirmButton = {
                     TextButton(onClick = {
                         viewModel.deleteMedication(med)
                         pendingDelete = null
-                    }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
+                    }) { Text(stringResource(R.string.medications_delete_confirm), color = MaterialTheme.colorScheme.error) }
                 },
                 dismissButton = {
-                    TextButton(onClick = { pendingDelete = null }) { Text("Cancel") }
+                    TextButton(onClick = { pendingDelete = null }) { Text(stringResource(R.string.cancel)) }
                 },
             )
         }
@@ -91,12 +92,12 @@ fun MedicationsScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Medications", fontWeight = FontWeight.Bold) },
+                    title = { Text(stringResource(R.string.medications_title), fontWeight = FontWeight.Bold) },
                     actions = {
                         Button(
                             onClick = onNavigateToAddMedication,
                             modifier = Modifier.padding(end = 8.dp),
-                        ) { Text("+ Add") }
+                        ) { Text(stringResource(R.string.add)) }
                     },
                     windowInsets = WindowInsets(0),
                 )
@@ -177,7 +178,7 @@ private fun AllDoneBanner() {
                 modifier = Modifier.size(24.dp),
             )
             Text(
-                text = "  All done for today!",
+                text = stringResource(R.string.medications_all_done),
                 color = Color(0xFFA5D6A7),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
@@ -302,7 +303,7 @@ private fun ReminderCard(
                         tint = Color.White,
                     )
                     Text(
-                        text = "  Taken",
+                        text = stringResource(R.string.medications_taken),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
@@ -320,7 +321,7 @@ private fun ReminderCard(
                         tint = Color.White,
                     )
                     Text(
-                        text = "  Snooze",
+                        text = stringResource(R.string.medications_snooze),
                         fontSize = 16.sp,
                         color = Color.White,
                     )
@@ -345,7 +346,7 @@ private fun ReminderCard(
                     modifier = Modifier.size(20.dp),
                 )
                 Text(
-                    text = "  Taken — well done!",
+                    text = stringResource(R.string.medications_taken_well_done),
                     color = Color(0xFFA5D6A7),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -374,7 +375,7 @@ private fun EmptyMedications(onAdd: () -> Unit) {
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            "No medications today",
+            stringResource(R.string.medications_empty_title),
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
@@ -382,13 +383,13 @@ private fun EmptyMedications(onAdd: () -> Unit) {
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "Add a medication to get daily reminders",
+            stringResource(R.string.medications_empty_body),
             fontSize = 16.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(24.dp))
-        Button(onClick = onAdd) { Text("Add Medication", fontSize = 18.sp) }
+        Button(onClick = onAdd) { Text(stringResource(R.string.medications_add_medication), fontSize = 18.sp) }
     }
 }
 

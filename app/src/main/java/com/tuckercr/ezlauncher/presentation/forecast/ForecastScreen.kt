@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
@@ -149,7 +150,7 @@ fun ForecastScreen(
                 IconButton(onClick = onBack) {
                     Icon(
                         painter = painterResource(R.drawable.ic_home),
-                        contentDescription = "Back",
+                        contentDescription = stringResource(R.string.cd_back),
                         tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.size(28.dp),
                     )
@@ -157,8 +158,8 @@ fun ForecastScreen(
                 Column {
                     Text(
                         text = when (val s = state) {
-                            is ForecastUiState.Success -> s.city ?: "7-Day Forecast"
-                            else -> "7-Day Forecast"
+                            is ForecastUiState.Success -> s.city ?: stringResource(R.string.forecast_title)
+                            else -> stringResource(R.string.forecast_title)
                         },
                         fontWeight = FontWeight.Bold,
                         fontSize = 22.sp,
@@ -169,7 +170,7 @@ fun ForecastScreen(
                         (state as ForecastUiState.Success).usingCachedLocation
                     ) {
                         Text(
-                            text = "📍 Saved location",
+                            text = stringResource(R.string.forecast_saved_location),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                         )
@@ -200,9 +201,9 @@ fun ForecastScreen(
                 is ForecastUiState.LocationDisabled -> {
                     ForecastInfoBox(
                         emoji = "📍",
-                        title = "Location is off",
-                        body = "Turn on location services so the forecast can use your current position.",
-                        actionLabel = "Open Location Settings",
+                        title = stringResource(R.string.forecast_location_off_title),
+                        body = stringResource(R.string.forecast_location_off_body),
+                        actionLabel = stringResource(R.string.forecast_open_location_settings),
                         onAction = {
                             context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
                         },
@@ -212,9 +213,9 @@ fun ForecastScreen(
                 is ForecastUiState.PermissionNeeded -> {
                     ForecastInfoBox(
                         emoji = "🌤️",
-                        title = "Location permission needed",
-                        body = "Grant location permission to EZ Launcher so the forecast knows where you are.",
-                        actionLabel = "Open App Settings",
+                        title = stringResource(R.string.forecast_permission_title),
+                        body = stringResource(R.string.forecast_permission_body),
+                        actionLabel = stringResource(R.string.forecast_open_app_settings),
                         onAction = {
                             context.startActivity(
                                 Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
@@ -233,9 +234,9 @@ fun ForecastScreen(
                 is ForecastUiState.Error -> {
                     ForecastInfoBox(
                         emoji = "🌡️",
-                        title = "Forecast unavailable",
+                        title = stringResource(R.string.forecast_unavailable_title),
                         body = s.message,
-                        actionLabel = "Retry",
+                        actionLabel = stringResource(R.string.forecast_retry),
                         onAction = { viewModel.retry() },
                     )
                 }

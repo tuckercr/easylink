@@ -219,7 +219,7 @@ fun HomeScreen(
                             )
                             Spacer(Modifier.size(10.dp))
                             Text(
-                                "Say a Command",
+                                stringResource(R.string.home_voice_command_button),
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color.White,
@@ -288,7 +288,7 @@ private fun WeatherCard(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                Text("Getting weather…", color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
+                Text(stringResource(R.string.weather_loading), color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
             }
         }
 
@@ -324,7 +324,7 @@ private fun WeatherCard(
                         )
                         if (weather.usingCachedLocation && !weather.usingCachedWeather) {
                             Text(
-                                text = "📍 Saved location",
+                                text = stringResource(R.string.weather_saved_location),
                                 color = Color.White.copy(alpha = 0.5f),
                                 fontSize = 11.sp,
                             )
@@ -344,7 +344,7 @@ private fun WeatherCard(
             ) {
                 Text("🌤️", fontSize = 22.sp)
                 Text(
-                    "Tap to enable weather",
+                    stringResource(R.string.weather_tap_to_enable),
                     color = Color.White.copy(alpha = 0.7f),
                     fontSize = 14.sp,
                 )
@@ -363,13 +363,13 @@ private fun WeatherCard(
                 Text("📍", fontSize = 22.sp)
                 Column {
                     Text(
-                        "Location is off",
+                        stringResource(R.string.weather_location_off),
                         color = Color.White.copy(alpha = 0.85f),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                     )
                     Text(
-                        "Tap to open location settings",
+                        stringResource(R.string.weather_tap_location_settings),
                         color = Color.White.copy(alpha = 0.55f),
                         fontSize = 12.sp,
                     )
@@ -385,7 +385,7 @@ private fun WeatherCard(
             ) {
                 Text("🌡️", fontSize = 22.sp)
                 Text(
-                    "Weather unavailable — tap to retry",
+                    stringResource(R.string.weather_unavailable),
                     color = Color.White.copy(alpha = 0.6f),
                     fontSize = 14.sp,
                 )
@@ -468,59 +468,79 @@ private fun SingleHomeButton(
     modifier: Modifier,
 ) {
     when (button) {
-        HomeButton.PHONE -> HomeActionButton(
-            label = "Phone",
-            iconRes = R.drawable.ic_call,
-            color = ColorPhone,
-            modifier = modifier,
-            onClick = onPhone,
-            onLongClick = { onLongPress("Phone") },
-        )
+        HomeButton.PHONE -> {
+            val label = stringResource(R.string.phone)
+            HomeActionButton(
+                label = label,
+                iconRes = R.drawable.ic_call,
+                color = ColorPhone,
+                modifier = modifier,
+                onClick = onPhone,
+                onLongClick = { onLongPress(label) },
+            )
+        }
 
-        HomeButton.TEXT -> HomeActionButton(
-            label = "Text",
-            iconRes = R.drawable.ic_sms,
-            color = ColorText,
-            modifier = modifier,
-            onClick = onText,
-            onLongClick = { onLongPress("Text messages") },
-        )
+        HomeButton.TEXT -> {
+            val label = stringResource(R.string.sms)
+            val ttsText = stringResource(R.string.home_tts_text_messages)
+            HomeActionButton(
+                label = label,
+                iconRes = R.drawable.ic_sms,
+                color = ColorText,
+                modifier = modifier,
+                onClick = onText,
+                onLongClick = { onLongPress(ttsText) },
+            )
+        }
 
-        HomeButton.CAMERA -> HomeActionButton(
-            label = "Camera",
-            iconRes = R.drawable.ic_camera,
-            color = ColorCamera,
-            modifier = modifier,
-            onClick = onCamera,
-            onLongClick = { onLongPress("Camera") },
-        )
+        HomeButton.CAMERA -> {
+            val label = stringResource(R.string.camera)
+            HomeActionButton(
+                label = label,
+                iconRes = R.drawable.ic_camera,
+                color = ColorCamera,
+                modifier = modifier,
+                onClick = onCamera,
+                onLongClick = { onLongPress(label) },
+            )
+        }
 
-        HomeButton.MAGNIFIER -> HomeActionButton(
-            label = "Magnifier",
-            iconRes = R.drawable.ic_magnifier,
-            color = ColorMagnifier,
-            modifier = modifier,
-            onClick = onMagnifier,
-            onLongClick = { onLongPress("Magnifier") },
-        )
+        HomeButton.MAGNIFIER -> {
+            val label = stringResource(R.string.magnifier)
+            HomeActionButton(
+                label = label,
+                iconRes = R.drawable.ic_magnifier,
+                color = ColorMagnifier,
+                modifier = modifier,
+                onClick = onMagnifier,
+                onLongClick = { onLongPress(label) },
+            )
+        }
 
-        HomeButton.ALL_APPS -> HomeActionButton(
-            label = "All Apps",
-            iconRes = R.drawable.ic_home,
-            color = ColorAllApps,
-            modifier = modifier,
-            onClick = onAllApps,
-            onLongClick = { onLongPress("All apps") },
-        )
+        HomeButton.ALL_APPS -> {
+            val label = stringResource(R.string.apps)
+            HomeActionButton(
+                label = label,
+                iconRes = R.drawable.ic_home,
+                color = ColorAllApps,
+                modifier = modifier,
+                onClick = onAllApps,
+                onLongClick = { onLongPress(label) },
+            )
+        }
 
-        HomeButton.FLASHLIGHT -> HomeActionButton(
-            label = if (isFlashlightOn) "Light On" else "Flashlight",
-            iconRes = R.drawable.ic_flashlight,
-            color = if (isFlashlightOn) ColorFlashlight else ColorFlashlight.copy(alpha = 0.6f),
-            modifier = modifier,
-            onClick = onFlashlight,
-            onLongClick = { onLongPress(if (isFlashlightOn) flashlightOnText else flashlightOffText) },
-        )
+        HomeButton.FLASHLIGHT -> {
+            val lightOnLabel = stringResource(R.string.home_button_light_on)
+            val flashLabel = stringResource(R.string.flash_light)
+            HomeActionButton(
+                label = if (isFlashlightOn) lightOnLabel else flashLabel,
+                iconRes = R.drawable.ic_flashlight,
+                color = if (isFlashlightOn) ColorFlashlight else ColorFlashlight.copy(alpha = 0.6f),
+                modifier = modifier,
+                onClick = onFlashlight,
+                onLongClick = { onLongPress(if (isFlashlightOn) flashlightOnText else flashlightOffText) },
+            )
+        }
     }
 }
 

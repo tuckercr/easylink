@@ -26,12 +26,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tuckercr.ezlauncher.R
 
 private val ColorAlertBg = Color(0xFFB71C1C) // deep red background
 private val ColorAlertSurface = Color(0xFFD32F2F) // slightly lighter for cards
@@ -78,7 +80,7 @@ fun FallAlertScreen(
             )
 
             Text(
-                text = "Fall Detected!",
+                text = stringResource(R.string.fall_alert_title),
                 fontSize = 42.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color.White,
@@ -104,7 +106,7 @@ fun FallAlertScreen(
                         color = Color.White,
                     )
                     Text(
-                        text = "seconds",
+                        text = stringResource(R.string.fall_alert_seconds),
                         fontSize = 16.sp,
                         color = Color.White.copy(alpha = 0.8f),
                     )
@@ -123,7 +125,7 @@ fun FallAlertScreen(
             ) {
                 if (contact != null) {
                     Text(
-                        "Calling in ${state.secondsRemaining}s…",
+                        stringResource(R.string.fall_alert_calling, state.secondsRemaining),
                         color = Color.White.copy(alpha = 0.9f),
                         fontSize = 16.sp,
                     )
@@ -141,7 +143,7 @@ fun FallAlertScreen(
                     )
                 } else {
                     Text(
-                        "No emergency contact set.",
+                        stringResource(R.string.fall_alert_no_contact),
                         color = Color.White,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
@@ -154,7 +156,7 @@ fun FallAlertScreen(
                         shape = RoundedCornerShape(12.dp),
                     ) {
                         Text(
-                            "Set Emergency Contact",
+                            stringResource(R.string.fall_alert_set_contact),
                             color = ColorAlertBg,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
@@ -178,7 +180,7 @@ fun FallAlertScreen(
                     shape = RoundedCornerShape(16.dp),
                 ) {
                     Text(
-                        "I'm OK",
+                        stringResource(R.string.fall_alert_im_ok),
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
@@ -196,7 +198,7 @@ fun FallAlertScreen(
                     shape = RoundedCornerShape(16.dp),
                 ) {
                     Text(
-                        "Call Now",
+                        stringResource(R.string.fall_alert_call_now),
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,

@@ -30,6 +30,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -65,13 +66,13 @@ fun AppsScreen(
             IconButton(onClick = onBack) {
                 Icon(
                     painter = painterResource(R.drawable.ic_home),
-                    contentDescription = "Home",
+                    contentDescription = stringResource(R.string.home),
                     tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.size(28.dp),
                 )
             }
             Text(
-                text = "All Apps",
+                text = stringResource(R.string.all_applications),
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -85,6 +86,7 @@ fun AppsScreen(
                     CircularProgressIndicator()
                 }
             }
+
             is AppsUiState.Error -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
@@ -95,10 +97,14 @@ fun AppsScreen(
                     )
                 }
             }
+
             is AppsUiState.Success -> {
                 if (s.apps.isEmpty()) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No apps found", color = MaterialTheme.colorScheme.onBackground)
+                        Text(
+                            stringResource(R.string.apps_no_apps),
+                            color = MaterialTheme.colorScheme.onBackground,
+                        )
                     }
                 } else {
                     LazyVerticalGrid(
