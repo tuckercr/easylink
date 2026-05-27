@@ -32,6 +32,13 @@ sealed class WeatherInfo {
          * live location is currently off or unavailable.
          */
         val usingCachedLocation: Boolean = false,
+        /**
+         * True when the weather data itself is from a previous fetch because
+         * the device is currently offline.
+         */
+        val usingCachedWeather: Boolean = false,
+        /** Epoch millis when the weather data was last successfully fetched from the network. */
+        val weatherCachedAt: Long = 0L,
     ) : WeatherInfo() {
         val displayTemp: String get() = "${temperatureCelsius.toInt()}°C"
     }

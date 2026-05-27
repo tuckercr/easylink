@@ -24,14 +24,17 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -105,9 +108,7 @@ class ForecastViewModel @Inject constructor(
 
                 is ForecastResult.PermissionNeeded -> ForecastUiState.PermissionNeeded
                 is ForecastResult.LocationDisabled -> ForecastUiState.LocationDisabled
-                is ForecastResult.Unavailable -> ForecastUiState.Error(
-                    "Could not get a location fix. Make sure location services are on and try again.",
-                )
+                is ForecastResult.Unavailable -> ForecastUiState.Error(result.message)
             }
         }
     }
@@ -125,109 +126,122 @@ fun ForecastScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+    // Cap font scale so the row layout stays legible at max accessibility settings.
+    val density = LocalDensity.current
+    CompositionLocalProvider(
+        LocalDensity provides Density(
+            density = density.density,
+            fontScale = density.fontScale.coerceAtMost(1.3f),
+        ),
     ) {
-        // ── Header ────────────────────────────────────────────────────────────
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
         ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_home),
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.size(28.dp),
-                )
-            }
-            Column {
-                Text(
-                    text = when (val s = state) {
-                        is ForecastUiState.Success -> s.city ?: "7-Day Forecast"
-                        else -> "7-Day Forecast"
-                    },
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 22.sp,
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
-                // Subtle "saved location" note when using cached coords
-                if (state is ForecastUiState.Success &&
-                    (state as ForecastUiState.Success).usingCachedLocation
-                ) {
-                    Text(
-                        text = "📍 Saved location",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+            // ── Header ────────────────────────────────────────────────────────────
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_home),
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.size(28.dp),
                     )
                 }
-            }
-        }
-
-        // ── Content ───────────────────────────────────────────────────────────
-        when (val s = state) {
-            is ForecastUiState.Loading -> {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            }
-
-            is ForecastUiState.Success -> {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(s.days) { day ->
-                        ForecastRow(day = day)
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.08f),
-                            thickness = 1.dp,
+                Column {
+                    Text(
+                        text = when (val s = state) {
+                            is ForecastUiState.Success -> s.city ?: "7-Day Forecast"
+                            else -> "7-Day Forecast"
+                        },
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp,
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
+                    // Subtle "saved location" note when using cached coords
+                    if (state is ForecastUiState.Success &&
+                        (state as ForecastUiState.Success).usingCachedLocation
+                    ) {
+                        Text(
+                            text = "📍 Saved location",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                         )
                     }
                 }
             }
 
-            is ForecastUiState.LocationDisabled -> {
-                ForecastInfoBox(
-                    emoji = "📍",
-                    title = "Location is off",
-                    body = "Turn on location services so the forecast can use your current position.",
-                    actionLabel = "Open Location Settings",
-                    onAction = {
-                        context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-                    },
-                )
-            }
+            // ── Content ───────────────────────────────────────────────────────────
+            when (val s = state) {
+                is ForecastUiState.Loading -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
 
-            is ForecastUiState.PermissionNeeded -> {
-                ForecastInfoBox(
-                    emoji = "🌤️",
-                    title = "Location permission needed",
-                    body = "Grant location permission to EZ Launcher so the forecast knows where you are.",
-                    actionLabel = "Open App Settings",
-                    onAction = {
-                        context.startActivity(
-                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                data =
-                                    android.net.Uri.fromParts("package", context.packageName, null)
-                            },
-                        )
-                    },
-                )
-            }
+                is ForecastUiState.Success -> {
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        items(s.days) { day ->
+                            ForecastRow(day = day)
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.08f),
+                                thickness = 1.dp,
+                            )
+                        }
+                    }
+                }
 
-            is ForecastUiState.Error -> {
-                ForecastInfoBox(
-                    emoji = "🌡️",
-                    title = "Forecast unavailable",
-                    body = s.message,
-                    actionLabel = "Retry",
-                    onAction = { viewModel.retry() },
-                )
+                is ForecastUiState.LocationDisabled -> {
+                    ForecastInfoBox(
+                        emoji = "📍",
+                        title = "Location is off",
+                        body = "Turn on location services so the forecast can use your current position.",
+                        actionLabel = "Open Location Settings",
+                        onAction = {
+                            context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                        },
+                    )
+                }
+
+                is ForecastUiState.PermissionNeeded -> {
+                    ForecastInfoBox(
+                        emoji = "🌤️",
+                        title = "Location permission needed",
+                        body = "Grant location permission to EZ Launcher so the forecast knows where you are.",
+                        actionLabel = "Open App Settings",
+                        onAction = {
+                            context.startActivity(
+                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                    data =
+                                        android.net.Uri.fromParts(
+                                            "package",
+                                            context.packageName,
+                                            null,
+                                        )
+                                },
+                            )
+                        },
+                    )
+                }
+
+                is ForecastUiState.Error -> {
+                    ForecastInfoBox(
+                        emoji = "🌡️",
+                        title = "Forecast unavailable",
+                        body = s.message,
+                        actionLabel = "Retry",
+                        onAction = { viewModel.retry() },
+                    )
+                }
             }
         }
-    }
+    } // end CompositionLocalProvider
 }
 
 // ── Shared info/error box ─────────────────────────────────────────────────────

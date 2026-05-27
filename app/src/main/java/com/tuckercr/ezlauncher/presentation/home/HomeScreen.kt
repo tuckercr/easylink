@@ -31,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -39,11 +40,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -319,7 +322,7 @@ private fun WeatherCard(
                             color = Color.White.copy(alpha = 0.8f),
                             fontSize = 13.sp,
                         )
-                        if (weather.usingCachedLocation) {
+                        if (weather.usingCachedLocation && !weather.usingCachedWeather) {
                             Text(
                                 text = "📍 Saved location",
                                 color = Color.White.copy(alpha = 0.5f),
@@ -409,35 +412,44 @@ private fun ButtonGrid(
 ) {
     if (enabledButtons.isEmpty()) return
 
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        enabledButtons.chunked(BUTTONS_PER_ROW).forEach { rowButtons ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                rowButtons.forEach { button ->
-                    SingleHomeButton(
-                        button = button,
-                        isFlashlightOn = isFlashlightOn,
-                        onPhone = onPhone,
-                        onText = onText,
-                        onCamera = onCamera,
-                        onMagnifier = onMagnifier,
-                        onAllApps = onAllApps,
-                        onFlashlight = onFlashlight,
-                        onLongPress = onLongPress,
-                        flashlightOnText = flashlightOnText,
-                        flashlightOffText = flashlightOffText,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                // Fill empty slots so partial rows keep consistent button widths
-                repeat(BUTTONS_PER_ROW - rowButtons.size) {
-                    Spacer(Modifier.weight(1f))
+    // Cap font scale so button labels stay legible at max accessibility settings.
+    val density = LocalDensity.current
+    CompositionLocalProvider(
+        LocalDensity provides Density(
+            density = density.density,
+            fontScale = density.fontScale.coerceAtMost(1.3f),
+        ),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            enabledButtons.chunked(BUTTONS_PER_ROW).forEach { rowButtons ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    rowButtons.forEach { button ->
+                        SingleHomeButton(
+                            button = button,
+                            isFlashlightOn = isFlashlightOn,
+                            onPhone = onPhone,
+                            onText = onText,
+                            onCamera = onCamera,
+                            onMagnifier = onMagnifier,
+                            onAllApps = onAllApps,
+                            onFlashlight = onFlashlight,
+                            onLongPress = onLongPress,
+                            flashlightOnText = flashlightOnText,
+                            flashlightOffText = flashlightOffText,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    // Fill empty slots so partial rows keep consistent button widths
+                    repeat(BUTTONS_PER_ROW - rowButtons.size) {
+                        Spacer(Modifier.weight(1f))
+                    }
                 }
             }
         }
-    }
+    } // end CompositionLocalProvider
 }
 
 @Composable

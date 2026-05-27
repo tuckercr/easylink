@@ -25,6 +25,11 @@ sealed class ForecastResult {
      */
     data object LocationDisabled : ForecastResult()
 
-    /** Location fix unavailable and no cached location exists. */
-    data object Unavailable : ForecastResult()
+    /**
+     * Forecast could not be loaded. [message] describes the specific reason
+     * (e.g. no network, no location fix) so the UI can show actionable text.
+     */
+    data class Unavailable(
+        val message: String,
+    ) : ForecastResult()
 }

@@ -17,7 +17,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  * ## Migration policy
  * Always provide an explicit [Migration] rather than using
  * `fallbackToDestructiveMigration`. Deleting a user's emergency contacts,
- * medication schedule, or speed-dial favourites on upgrade is a serious bug,
+ * medication schedule, or speed-dial favorites on upgrade is a serious bug,
  * not a convenience.
  */
 @Database(

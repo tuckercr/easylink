@@ -1,5 +1,6 @@
 package com.tuckercr.ezlauncher.navigation
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -12,15 +13,20 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -104,7 +110,7 @@ private data class BottomNavItem(
 
 private val bottomNavItems = listOf(
     BottomNavItem(Routes.HOME, "Home", R.drawable.ic_home),
-    BottomNavItem(Routes.SPEED_DIAL, "Speed Dial", R.drawable.ic_call),
+    BottomNavItem(Routes.SPEED_DIAL, "Call", R.drawable.ic_call),
     BottomNavItem(Routes.MEDICATIONS, "Meds", R.drawable.ic_pill),
     BottomNavItem(Routes.CLOCK, "Clock", R.drawable.ic_alarm),
     BottomNavItem(Routes.CUSTOMIZE_HOME, "Settings", R.drawable.ic_settings),
@@ -138,6 +144,29 @@ fun EzLauncherNavHost(
 
     val navController = rememberNavController()
 
+    // ── Navigation logging ────────────────────────────────────────────────────
+    DisposableEffect(navController) {
+        val listener =
+            NavController.OnDestinationChangedListener { _, destination, arguments ->
+                val route = destination.route ?: "unknown"
+                val args = arguments
+                    ?.keySet()
+                    // Skip internal navigation keys — they can hold non-String types
+                    // (e.g. Intent) which cause a ClassCastException if read as String.
+                    ?.filter { !it.startsWith("android-support-nav:") }
+                    ?.mapNotNull { key ->
+                        @Suppress("DEPRECATION")
+                        arguments.get(key)?.let { v -> "$key=$v" }
+                    }?.joinToString()
+                    ?.takeIf { it.isNotEmpty() }
+                    ?.let { " [$it]" }
+                    ?: ""
+                Log.d("Navigation", "→ $route$args")
+            }
+        navController.addOnDestinationChangedListener(listener)
+        onDispose { navController.removeOnDestinationChangedListener(listener) }
+    }
+
     // Navigate to the pending target (e.g. from FallAlertActivity → Emergency Contacts)
     LaunchedEffect(pendingNavTarget) {
         if (pendingNavTarget != null) {
@@ -154,39 +183,48 @@ fun EzLauncherNavHost(
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
-                NavigationBar {
-                    bottomNavItems.forEach { item ->
-                        val selected = navBackStackEntry
-                            ?.destination
-                            ?.hierarchy
-                            ?.any { it.route == item.route } == true
+                // Cap font scale so nav labels stay legible at max accessibility settings.
+                // The rest of the app honours the full system font scale.
+                val density = LocalDensity.current
+                val clampedDensity = Density(
+                    density = density.density,
+                    fontScale = density.fontScale.coerceAtMost(1.3f),
+                )
+                CompositionLocalProvider(LocalDensity provides clampedDensity) {
+                    NavigationBar {
+                        bottomNavItems.forEach { item ->
+                            val selected = navBackStackEntry
+                                ?.destination
+                                ?.hierarchy
+                                ?.any { it.route == item.route } == true
 
-                        NavigationBarItem(
-                            selected = selected,
-                            onClick = {
-                                navController.navigate(item.route) {
-                                    // Pop the entire back stack so no other tab's screens
-                                    // (including HOME) linger below the new destination.
-                                    // This means back from any tab exits the app rather than
-                                    // cycling through HOME each time.
-                                    popUpTo(navController.graph.id) {
-                                        saveState = true
-                                        inclusive = true
+                            NavigationBarItem(
+                                selected = selected,
+                                onClick = {
+                                    navController.navigate(item.route) {
+                                        // Pop the entire back stack so no other tab's screens
+                                        // (including HOME) linger below the new destination.
+                                        // This means back from any tab exits the app rather than
+                                        // cycling through HOME each time.
+                                        popUpTo(navController.graph.id) {
+                                            saveState = true
+                                            inclusive = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            icon = {
-                                Icon(
-                                    painter = painterResource(item.iconRes),
-                                    contentDescription = item.labelRes,
-                                )
-                            },
-                            label = { Text(item.labelRes, fontSize = 11.sp) },
-                        )
+                                },
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(item.iconRes),
+                                        contentDescription = item.labelRes,
+                                    )
+                                },
+                                label = { Text(item.labelRes, fontSize = 11.sp) },
+                            )
+                        }
                     }
-                }
+                } // end CompositionLocalProvider
             }
         },
     ) { innerPadding ->

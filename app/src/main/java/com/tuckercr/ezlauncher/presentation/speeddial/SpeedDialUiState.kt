@@ -6,7 +6,7 @@ import com.tuckercr.ezlauncher.domain.model.SpeedDialContact
  * UI state for the Speed Dial screen.
  *
  *  - [Loading]  — initial Room query in flight
- *  - [Empty]    — no contacts pinned yet; show "Add favourite" prompt
+ *  - [Empty]    — no contacts pinned yet; show "Add favorite" prompt
  *  - [Success]  — grid of photo tiles
  *  - [Error]    — DB read failed
  *

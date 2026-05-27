@@ -125,22 +125,30 @@ class WeatherService @Inject constructor(
             return@withContext try {
                 val url = buildCurrentUrl(lat, lon)
                 Log.d(TAG, "Fetching weather: $url (fromCache=$fromCache)")
-                val json = httpGet(url) ?: return@withContext WeatherInfo.Unavailable("No response")
+                val json = httpGet(url) ?: run {
+                    Log.w(TAG, "No response from weather API — trying cached weather")
+                    return@withContext cachedWeatherFallback(city, fromCache)
+                }
                 val current = json.getJSONObject("current")
                 val temp = current.getDouble("temperature_2m")
                 val code = current.getInt("weather_code")
+                val description = codeToDescription(code)
+                val emoji = codeToEmoji(code)
                 Log.d(TAG, "Weather: temp=$temp, code=$code, city=$city, fromCache=$fromCache")
+
+                // Persist so we can show it the next time the network is unavailable
+                weatherPrefs.saveWeather(temp, description, emoji)
 
                 WeatherInfo.Available(
                     temperatureCelsius = temp,
-                    description = codeToDescription(code),
-                    emoji = codeToEmoji(code),
+                    description = description,
+                    emoji = emoji,
                     city = city,
                     usingCachedLocation = fromCache,
                 )
             } catch (e: Exception) {
                 Log.e(TAG, "Weather fetch failed", e)
-                WeatherInfo.Unavailable(e.message ?: "Network error")
+                cachedWeatherFallback(city, fromCache)
             }
         }
 
@@ -167,14 +175,18 @@ class WeatherService @Inject constructor(
                     ?: return@withContext if (locationDisabled) {
                         ForecastResult.LocationDisabled
                     } else {
-                        ForecastResult.Unavailable
+                        ForecastResult.Unavailable(
+                            "Could not get a location fix. Make sure location services are on and try again.",
+                        )
                     }
                 Triple(cached.latitude, cached.longitude, cached.city)
             }
 
             return@withContext try {
                 val url = buildForecastUrl(lat, lon)
-                val json = httpGet(url) ?: return@withContext ForecastResult.Unavailable
+                val json = httpGet(url) ?: return@withContext ForecastResult.Unavailable(
+                    "No internet connection. Check your network settings and try again.",
+                )
 
                 val daily = json.getJSONObject("daily")
                 val times = daily.getJSONArray("time")
@@ -197,7 +209,9 @@ class WeatherService @Inject constructor(
                 ForecastResult.Success(city = city, days = days, usingCachedLocation = fromCache)
             } catch (e: Exception) {
                 Log.e(TAG, "fetchForecast network error", e)
-                ForecastResult.Unavailable
+                ForecastResult.Unavailable(
+                    "No internet connection. Check your network settings and try again.",
+                )
             }
         }
 
@@ -211,7 +225,9 @@ class WeatherService @Inject constructor(
 
     private fun isLocationEnabled(): Boolean {
         val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        return lm.isLocationEnabled
+        // isLocationEnabled requires API 28; isProviderEnabled is available since API 1.
+        return lm.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+            lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
     /**
@@ -314,6 +330,35 @@ class WeatherService @Inject constructor(
                 if (cont.isActive) cont.resume(null)
             }
         }
+
+    // ── Cached-weather fallback ───────────────────────────────────────────────
+
+    /**
+     * Returns the last successfully fetched weather as [WeatherInfo.Available] with
+     * [WeatherInfo.Available.usingCachedWeather] = true, or [WeatherInfo.Unavailable]
+     * if no weather has ever been cached (i.e. first launch in airplane mode).
+     */
+    private suspend fun cachedWeatherFallback(
+        city: String?,
+        usingCachedLocation: Boolean,
+    ): WeatherInfo {
+        val cached = weatherPrefs.getCachedWeather()
+        return if (cached != null) {
+            Log.d(TAG, "Network unavailable — returning cached weather from ${cached.fetchedAt}")
+            WeatherInfo.Available(
+                temperatureCelsius = cached.temperatureCelsius,
+                description = cached.description,
+                emoji = cached.emoji,
+                city = city,
+                usingCachedLocation = usingCachedLocation,
+                usingCachedWeather = true,
+                weatherCachedAt = cached.fetchedAt,
+            )
+        } else {
+            Log.w(TAG, "Network unavailable and no cached weather — Unavailable")
+            WeatherInfo.Unavailable("No internet connection. Connect to a network and try again.")
+        }
+    }
 
     // ── URL builders ──────────────────────────────────────────────────────────
 

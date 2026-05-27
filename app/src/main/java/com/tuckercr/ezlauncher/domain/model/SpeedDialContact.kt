@@ -3,7 +3,7 @@ package com.tuckercr.ezlauncher.domain.model
 import android.net.Uri
 
 /**
- * A pinned favourite contact shown as a large photo tile on the Speed Dial screen.
+ * A pinned favorite contact shown as a large photo tile on the Speed Dial screen.
  *
  * @param id             Room primary key (0 for unsaved contacts)
  * @param contactId      Android Contacts content-provider ID — used to open the

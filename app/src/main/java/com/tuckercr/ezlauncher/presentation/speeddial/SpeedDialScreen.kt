@@ -136,7 +136,7 @@ private fun EmptySpeedDial(onAdd: () -> Unit) {
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            text = "No favourites yet",
+            text = "No favorites yet",
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
@@ -154,7 +154,7 @@ private fun EmptySpeedDial(onAdd: () -> Unit) {
             onClick = onAdd,
             colors = ButtonDefaults.buttonColors(containerColor = ColorSpeedDial),
         ) {
-            Text("Add Favourite", fontSize = 18.sp)
+            Text("Add Favorite", fontSize = 18.sp, color = Color.White)
         }
     }
 }

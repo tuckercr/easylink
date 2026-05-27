@@ -44,7 +44,7 @@ data class TimerState(
 @HiltViewModel
 class ClockViewModel @Inject constructor() : ViewModel() {
 
-    private val clockFormatter = DateTimeFormatter.ofPattern("h:mm:ss a")
+    private val clockFormatter = DateTimeFormatter.ofPattern("h:mm a")
 
     private val _currentTime = MutableStateFlow(LocalTime.now().format(clockFormatter))
     val currentTime: StateFlow<String> = _currentTime.asStateFlow()
@@ -64,8 +64,11 @@ class ClockViewModel @Inject constructor() : ViewModel() {
     private fun startClock() {
         clockJob = viewModelScope.launch {
             while (true) {
-                _currentTime.value = LocalTime.now().format(clockFormatter)
-                delay(1_000.milliseconds)
+                val now = LocalTime.now()
+                _currentTime.value = now.format(clockFormatter)
+                // Sleep until the top of the next minute so the display flips on time.
+                val msUntilNextMinute = (60 - now.second) * 1_000L - now.nano / 1_000_000L
+                delay(msUntilNextMinute.milliseconds)
             }
         }
     }

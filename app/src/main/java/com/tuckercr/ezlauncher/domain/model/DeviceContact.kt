@@ -5,7 +5,7 @@ import android.net.Uri
 /**
  * A contact read from the Android Contacts content-provider.
  *
- * Used only in the "add favourite" picker — distinct from [SpeedDialContact]
+ * Used only in the "add favorite" picker — distinct from [SpeedDialContact]
  * which represents a contact already pinned to the Speed Dial screen.
  */
 data class DeviceContact(

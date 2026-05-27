@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,9 +39,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -60,80 +63,91 @@ fun MedicationsScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    var pendingDelete by remember { mutableStateOf<Medication?>(null) }
-    pendingDelete?.let { med ->
-        AlertDialog(
-            onDismissRequest = { pendingDelete = null },
-            title = { Text("Delete medication?") },
-            text = { Text("Remove \"${med.name}\" and all its reminders?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.deleteMedication(med)
-                    pendingDelete = null
-                }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
-            },
-            dismissButton = {
-                TextButton(onClick = { pendingDelete = null }) { Text("Cancel") }
-            },
-        )
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Medications", fontWeight = FontWeight.Bold) },
-                actions = {
-                    Button(
-                        onClick = onNavigateToAddMedication,
-                        modifier = Modifier.padding(end = 8.dp),
-                    ) { Text("+ Add") }
+    val density = LocalDensity.current
+    CompositionLocalProvider(
+        LocalDensity provides Density(
+            density = density.density,
+            fontScale = density.fontScale.coerceAtMost(1.3f),
+        ),
+    ) {
+        var pendingDelete by remember { mutableStateOf<Medication?>(null) }
+        pendingDelete?.let { med ->
+            AlertDialog(
+                onDismissRequest = { pendingDelete = null },
+                title = { Text("Delete medication?") },
+                text = { Text("Remove \"${med.name}\" and all its reminders?") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.deleteMedication(med)
+                        pendingDelete = null
+                    }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
                 },
-                windowInsets = WindowInsets(0),
+                dismissButton = {
+                    TextButton(onClick = { pendingDelete = null }) { Text("Cancel") }
+                },
             )
-        },
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-        ) {
-            when (val s = state) {
-                is MedicationsUiState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
+        }
 
-                is MedicationsUiState.Error -> {
-                    Text(
-                        text = s.message,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(16.dp),
-                        textAlign = TextAlign.Center,
-                    )
-                }
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Medications", fontWeight = FontWeight.Bold) },
+                    actions = {
+                        Button(
+                            onClick = onNavigateToAddMedication,
+                            modifier = Modifier.padding(end = 8.dp),
+                        ) { Text("+ Add") }
+                    },
+                    windowInsets = WindowInsets(0),
+                )
+            },
+        ) { innerPadding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+            ) {
+                when (val s = state) {
+                    is MedicationsUiState.Loading -> {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    }
 
-                is MedicationsUiState.Success -> {
-                    if (s.reminders.isEmpty()) {
-                        EmptyMedications(onAdd = onNavigateToAddMedication)
-                    } else {
-                        Column {
-                            if (s.allDone) AllDoneBanner()
-                            LazyColumn(
-                                verticalArrangement = Arrangement.spacedBy(12.dp),
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                            ) {
-                                items(
-                                    s.reminders,
-                                    key = { "${it.medication.id}_${it.scheduledAt}" },
-                                ) { reminder ->
-                                    ReminderCard(
-                                        reminder = reminder,
-                                        onEdit = { onNavigateToEditMedication(reminder.medication.id) },
-                                        onDelete = { pendingDelete = reminder.medication },
-                                        onTaken = { viewModel.markTaken(reminder) },
-                                        onSnooze = { viewModel.snooze(reminder) },
-                                    )
+                    is MedicationsUiState.Error -> {
+                        Text(
+                            text = s.message,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(16.dp),
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+
+                    is MedicationsUiState.Success -> {
+                        if (s.reminders.isEmpty()) {
+                            EmptyMedications(onAdd = onNavigateToAddMedication)
+                        } else {
+                            Column {
+                                if (s.allDone) AllDoneBanner()
+                                LazyColumn(
+                                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                                    modifier = Modifier.padding(
+                                        horizontal = 16.dp,
+                                        vertical = 8.dp,
+                                    ),
+                                ) {
+                                    items(
+                                        s.reminders,
+                                        key = { "${it.medication.id}_${it.scheduledAt}" },
+                                    ) { reminder ->
+                                        ReminderCard(
+                                            reminder = reminder,
+                                            onEdit = { onNavigateToEditMedication(reminder.medication.id) },
+                                            onDelete = { pendingDelete = reminder.medication },
+                                            onTaken = { viewModel.markTaken(reminder) },
+                                            onSnooze = { viewModel.snooze(reminder) },
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -141,7 +155,7 @@ fun MedicationsScreen(
                 }
             }
         }
-    }
+    } // end CompositionLocalProvider
 }
 
 // ── Banner ────────────────────────────────────────────────────────────────────
