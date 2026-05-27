@@ -68,18 +68,32 @@ class AppRepositoryImpl @Inject constructor(
         val launchIntent = Intent(Intent.ACTION_MAIN).apply {
             addCategory(Intent.CATEGORY_LAUNCHER)
         }
+        val launcherPackages = queryLauncherPackages()
         return packageManager
             .queryIntentActivities(launchIntent, 0)
             .mapNotNull { resolveInfo ->
                 val pkg = resolveInfo.activityInfo.packageName
-                // Exclude ourselves — launchers shouldn't list themselves
+                // Exclude ourselves and all other home screen launchers
                 if (pkg == context.packageName) return@mapNotNull null
+                if (pkg in launcherPackages) return@mapNotNull null
                 AppInfo(
                     packageName = pkg,
                     label = resolveInfo.loadLabel(packageManager).toString(),
                     icon = resolveInfo.loadIcon(packageManager),
                 )
-            }.sorted()
+            }.distinctBy { it.packageName }
+            .sorted()
+    }
+
+    /** Returns the set of package names that register as home screen launchers. */
+    private fun queryLauncherPackages(): Set<String> {
+        val homeIntent = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_HOME)
+        }
+        return packageManager
+            .queryIntentActivities(homeIntent, 0)
+            .map { it.activityInfo.packageName }
+            .toSet()
     }
 
     // ── App launching ─────────────────────────────────────────────────────────
