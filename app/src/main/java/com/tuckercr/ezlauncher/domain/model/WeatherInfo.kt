@@ -22,9 +22,12 @@ sealed class WeatherInfo {
 
     /** Weather data successfully retrieved. */
     data class Available(
-        val temperatureCelsius: Double,
+        /** Temperature value in whichever unit was requested (Celsius or Fahrenheit). */
+        val temperature: Double,
         val description: String,
         val emoji: String,
+        /** True when [temperature] is in Fahrenheit; false for Celsius. */
+        val isFahrenheit: Boolean = false,
         /** Reverse-geocoded city name, or null if geocoding is unavailable. */
         val city: String? = null,
         /**
@@ -40,7 +43,8 @@ sealed class WeatherInfo {
         /** Epoch millis when the weather data was last successfully fetched from the network. */
         val weatherCachedAt: Long = 0L,
     ) : WeatherInfo() {
-        val displayTemp: String get() = "${temperatureCelsius.toInt()}°C"
+        val displayTemp: String
+            get() = "${temperature.toInt()}${if (isFahrenheit) "°F" else "°C"}"
     }
 
     /** Could not fetch weather (no location fix, network error, etc.). */

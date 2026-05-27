@@ -2,6 +2,7 @@ package com.tuckercr.ezlauncher.data.preferences
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
@@ -32,6 +33,7 @@ class WeatherPreferencesDataSource @Inject constructor(
         private val KEY_WEATHER_DESC = stringPreferencesKey("cached_weather_desc")
         private val KEY_WEATHER_EMOJI = stringPreferencesKey("cached_weather_emoji")
         private val KEY_WEATHER_AT = longPreferencesKey("cached_weather_at")
+        private val KEY_WEATHER_IS_FAHRENHEIT = booleanPreferencesKey("cached_weather_is_fahrenheit")
     }
 
     data class CachedLocation(
@@ -41,9 +43,12 @@ class WeatherPreferencesDataSource @Inject constructor(
     )
 
     data class CachedWeather(
-        val temperatureCelsius: Double,
+        /** Temperature value in the unit that was active when the data was fetched. */
+        val temperature: Double,
         val description: String,
         val emoji: String,
+        /** True when [temperature] is in Fahrenheit; false for Celsius. */
+        val isFahrenheit: Boolean,
         /** Epoch millis when this weather was originally fetched from the network. */
         val fetchedAt: Long,
     )
@@ -76,20 +81,23 @@ class WeatherPreferencesDataSource @Inject constructor(
         val desc = prefs[KEY_WEATHER_DESC] ?: return null
         val emoji = prefs[KEY_WEATHER_EMOJI] ?: return null
         val at = prefs[KEY_WEATHER_AT] ?: return null
-        return CachedWeather(temp, desc, emoji, at)
+        val isFahrenheit = prefs[KEY_WEATHER_IS_FAHRENHEIT] ?: false
+        return CachedWeather(temp, desc, emoji, isFahrenheit, at)
     }
 
     /** Persists weather data after a successful network fetch. */
     suspend fun saveWeather(
-        temperatureCelsius: Double,
+        temperature: Double,
         description: String,
         emoji: String,
+        isFahrenheit: Boolean,
     ) {
         dataStore.edit { prefs ->
-            prefs[KEY_WEATHER_TEMP] = temperatureCelsius
+            prefs[KEY_WEATHER_TEMP] = temperature
             prefs[KEY_WEATHER_DESC] = description
             prefs[KEY_WEATHER_EMOJI] = emoji
             prefs[KEY_WEATHER_AT] = System.currentTimeMillis()
+            prefs[KEY_WEATHER_IS_FAHRENHEIT] = isFahrenheit
         }
     }
 }

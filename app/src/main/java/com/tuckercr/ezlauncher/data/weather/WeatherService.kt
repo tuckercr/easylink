@@ -19,6 +19,7 @@ import com.tuckercr.ezlauncher.data.weather.WeatherService.Companion.LOCATION_TI
 import com.tuckercr.ezlauncher.domain.model.ForecastDay
 import com.tuckercr.ezlauncher.domain.model.ForecastResult
 import com.tuckercr.ezlauncher.domain.model.WeatherInfo
+import com.tuckercr.ezlauncher.util.resolveWeatherUnits
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -31,6 +32,7 @@ import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Fetches weather data from Open-Meteo (open-source, no API key required).
@@ -70,6 +72,8 @@ class WeatherService @Inject constructor(
     suspend fun fetch(): WeatherInfo =
         withContext(Dispatchers.IO) {
             Log.d(TAG, "fetch() called")
+            val units = context.resolveWeatherUnits()
+            Log.d(TAG, "Temperature units: $units")
 
             if (!hasLocationPermission()) {
                 Log.d(TAG, "Permission not granted → PermissionNeeded")
@@ -123,7 +127,7 @@ class WeatherService @Inject constructor(
             }
 
             return@withContext try {
-                val url = buildCurrentUrl(lat, lon)
+                val url = buildCurrentUrl(lat, lon, units)
                 Log.d(TAG, "Fetching weather: $url (fromCache=$fromCache)")
                 val json = httpGet(url) ?: run {
                     Log.w(TAG, "No response from weather API — trying cached weather")
@@ -134,15 +138,19 @@ class WeatherService @Inject constructor(
                 val code = current.getInt("weather_code")
                 val description = codeToDescription(code)
                 val emoji = codeToEmoji(code)
-                Log.d(TAG, "Weather: temp=$temp, code=$code, city=$city, fromCache=$fromCache")
+                Log.d(
+                    TAG,
+                    "Weather: temp=$temp ${units.symbol}, code=$code, city=$city, fromCache=$fromCache",
+                )
 
                 // Persist so we can show it the next time the network is unavailable
-                weatherPrefs.saveWeather(temp, description, emoji)
+                weatherPrefs.saveWeather(temp, description, emoji, units.isFahrenheit)
 
                 WeatherInfo.Available(
-                    temperatureCelsius = temp,
+                    temperature = temp,
                     description = description,
                     emoji = emoji,
+                    isFahrenheit = units.isFahrenheit,
                     city = city,
                     usingCachedLocation = fromCache,
                 )
@@ -154,6 +162,7 @@ class WeatherService @Inject constructor(
 
     suspend fun fetchForecast(): ForecastResult =
         withContext(Dispatchers.IO) {
+            val units = context.resolveWeatherUnits()
             if (!hasLocationPermission()) return@withContext ForecastResult.PermissionNeeded
 
             val locationDisabled = !isLocationEnabled()
@@ -183,7 +192,7 @@ class WeatherService @Inject constructor(
             }
 
             return@withContext try {
-                val url = buildForecastUrl(lat, lon)
+                val url = buildForecastUrl(lat, lon, units)
                 val json = httpGet(url) ?: return@withContext ForecastResult.Unavailable(
                     "No internet connection. Check your network settings and try again.",
                 )
@@ -199,8 +208,8 @@ class WeatherService @Inject constructor(
                     val code = codes.getInt(i)
                     ForecastDay(
                         date = times.getString(i),
-                        tempMaxCelsius = maxT.getDouble(i),
-                        tempMinCelsius = minT.getDouble(i),
+                        tempMax = maxT.getDouble(i),
+                        tempMin = minT.getDouble(i),
                         emoji = codeToEmoji(code),
                         description = codeToDescription(code),
                         precipitationChance = if (precip.isNull(i)) 0 else precip.getInt(i),
@@ -238,7 +247,7 @@ class WeatherService @Inject constructor(
      * Stage 3 — requestLocationUpdates (wakes hardware, waits up to timeout)
      */
     private suspend fun getLocation(): Location? =
-        withTimeoutOrNull(LOCATION_TIMEOUT_MS) {
+        withTimeoutOrNull(LOCATION_TIMEOUT_MS.milliseconds) {
             getFusedLastLocation()
                 ?: getLocationManagerCached()
                 ?: requestFreshLocation()
@@ -346,9 +355,10 @@ class WeatherService @Inject constructor(
         return if (cached != null) {
             Log.d(TAG, "Network unavailable — returning cached weather from ${cached.fetchedAt}")
             WeatherInfo.Available(
-                temperatureCelsius = cached.temperatureCelsius,
+                temperature = cached.temperature,
                 description = cached.description,
                 emoji = cached.emoji,
+                isFahrenheit = cached.isFahrenheit,
                 city = city,
                 usingCachedLocation = usingCachedLocation,
                 usingCachedWeather = true,
@@ -365,19 +375,21 @@ class WeatherService @Inject constructor(
     private fun buildCurrentUrl(
         lat: Double,
         lon: Double,
+        units: com.tuckercr.ezlauncher.domain.model.WeatherUnits,
     ) = "https://api.open-meteo.com/v1/forecast" +
         "?latitude=$lat&longitude=$lon" +
         "&current=temperature_2m,weather_code" +
-        "&temperature_unit=celsius"
+        "&temperature_unit=${units.apiParam}"
 
     private fun buildForecastUrl(
         lat: Double,
         lon: Double,
+        units: com.tuckercr.ezlauncher.domain.model.WeatherUnits,
     ) = "https://api.open-meteo.com/v1/forecast" +
         "?latitude=$lat&longitude=$lon" +
         "&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max" +
         "&forecast_days=7" +
-        "&temperature_unit=celsius" +
+        "&temperature_unit=${units.apiParam}" +
         "&timezone=auto"
 
     // ── HTTP helper ───────────────────────────────────────────────────────────

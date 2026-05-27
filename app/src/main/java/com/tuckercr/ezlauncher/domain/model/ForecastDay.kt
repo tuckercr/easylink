@@ -13,15 +13,17 @@ import java.util.Locale
 data class ForecastDay(
     /** ISO date string, e.g. "2024-06-01". */
     val date: String,
-    val tempMaxCelsius: Double,
-    val tempMinCelsius: Double,
+    /** High temperature in whichever unit was requested (Celsius or Fahrenheit). */
+    val tempMax: Double,
+    /** Low temperature in whichever unit was requested (Celsius or Fahrenheit). */
+    val tempMin: Double,
     val emoji: String,
     val description: String,
     /** 0–100 % chance of precipitation. */
     val precipitationChance: Int,
 ) {
-    val displayMax: String get() = "${tempMaxCelsius.toInt()}°"
-    val displayMin: String get() = "${tempMinCelsius.toInt()}°"
+    val displayMax: String get() = "${tempMax.toInt()}°"
+    val displayMin: String get() = "${tempMin.toInt()}°"
 
     /** "Today", "Tomorrow", or abbreviated weekday ("Mon", "Tue", …). */
     val dayLabel: String
