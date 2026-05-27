@@ -10,7 +10,10 @@ plugins {
 }
 
 val localProps = Properties().also { props ->
-    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()
+    rootProject
+        .file("local.properties")
+        .takeIf { it.exists() }
+        ?.inputStream()
         ?.use { props.load(it) }
 }
 
