@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.parcelize)
@@ -5,6 +7,11 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ktlint)
+}
+
+val localProps = Properties().also { props ->
+    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()
+        ?.use { props.load(it) }
 }
 
 android {
@@ -23,12 +30,12 @@ android {
 
     signingConfigs {
         create("release") {
-            val path = System.getenv("KEYSTORE_PATH")
+            val path = localProps["KEYSTORE_PATH"] as String?
             if (path != null) {
                 storeFile = file(path)
-                storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
-                keyAlias = System.getenv("KEY_ALIAS") ?: ""
-                keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+                storePassword = localProps["KEYSTORE_PASSWORD"] as String? ?: ""
+                keyAlias = localProps["KEY_ALIAS"] as String? ?: ""
+                keyPassword = localProps["KEY_PASSWORD"] as String? ?: ""
             }
         }
     }
