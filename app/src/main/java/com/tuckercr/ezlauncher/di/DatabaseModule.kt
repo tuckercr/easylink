@@ -2,6 +2,7 @@ package com.tuckercr.ezlauncher.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.RoomDatabase
 import com.tuckercr.ezlauncher.data.local.EZLauncherDatabase
 import com.tuckercr.ezlauncher.data.local.EmergencyContactDao
 import com.tuckercr.ezlauncher.data.local.MIGRATION_1_2
@@ -51,6 +52,11 @@ object DatabaseModule {
                 EZLauncherDatabase::class.java,
                 "ezlauncher.db",
             ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            // TRUNCATE journal mode writes directly to the .db file instead of
+            // WAL side-car files (.db-wal / .db-shm).  This keeps the database
+            // as a single consistent file, which Android Auto Backup can capture
+            // reliably without risk of restoring an inconsistent WAL state.
+            .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
             .build()
 
     @Provides

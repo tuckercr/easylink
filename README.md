@@ -123,6 +123,12 @@ Accessible at any time from the **Settings** tab in the bottom navigation bar. L
 
 ---
 
+### Data Backup & Restore
+
+All user data — medications, emergency contacts, speed dial, and app preferences — is automatically backed up to Google Drive via Android Auto Backup. Data is restored silently when the app is reinstalled or transferred to a new phone, with no action required from the user.
+
+---
+
 ## Navigation
 
 The bottom navigation bar provides access to five top-level destinations:

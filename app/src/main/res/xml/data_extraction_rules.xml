@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Data extraction rules for API 31+ (android:dataExtractionRules).
+    Older devices use backup_descriptor.xml (android:fullBackupContent).
+
+    cloud-backup   → Google Drive Auto Backup
+    device-transfer → device-to-device transfers (e.g. phone setup wizard)
+-->
+<data-extraction-rules>
+
+    <cloud-backup>
+        <!-- Room database (single file; WAL disabled via JournalMode.TRUNCATE) -->
+        <include domain="database" path="ezlauncher.db" />
+
+        <!-- DataStore preference stores -->
+        <include domain="file" path="datastore/home_prefs.preferences_pb" />
+        <include domain="file" path="datastore/onboarding_prefs.preferences_pb" />
+        <include domain="file" path="datastore/fall_prefs.preferences_pb" />
+        <include domain="file" path="datastore/weather_prefs.preferences_pb" />
+    </cloud-backup>
+
+    <device-transfer>
+        <!-- Include everything for a full transfer to a new phone -->
+        <include domain="database" path="ezlauncher.db" />
+        <include domain="file" path="datastore/home_prefs.preferences_pb" />
+        <include domain="file" path="datastore/onboarding_prefs.preferences_pb" />
+        <include domain="file" path="datastore/fall_prefs.preferences_pb" />
+        <include domain="file" path="datastore/weather_prefs.preferences_pb" />
+    </device-transfer>
+
+</data-extraction-rules>
