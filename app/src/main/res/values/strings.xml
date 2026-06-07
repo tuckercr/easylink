@@ -64,7 +64,6 @@
     <string name="sos_location_included">Location included in message</string>
     <string name="sos_sending_in">Sending in</string>
     <string name="sos_seconds">seconds</string>
-    <string name="sos_cancel">CANCEL</string>
     <string name="sos_contacting">Contacting emergency contacts</string>
     <string name="sos_sent_title">SOS Sent</string>
     <string name="sos_partially_sent_title">Partially Sent</string>

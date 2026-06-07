@@ -30,7 +30,8 @@ class HomePreferencesDataSource @Inject constructor(
 ) {
     companion object {
         private val DISABLED_BUTTONS = stringSetPreferencesKey("disabled_home_buttons")
-        private val ENABLED_OPTIONAL_BUTTONS = stringSetPreferencesKey("enabled_optional_home_buttons")
+        private val ENABLED_OPTIONAL_BUTTONS =
+            stringSetPreferencesKey("enabled_optional_home_buttons")
     }
 
     /** Emits the current set of enabled buttons whenever it changes. */
@@ -39,13 +40,14 @@ class HomePreferencesDataSource @Inject constructor(
         .map { prefs ->
             val disabled = prefs[DISABLED_BUTTONS] ?: emptySet()
             val enabledOptional = prefs[ENABLED_OPTIONAL_BUTTONS] ?: emptySet()
-            HomeButton.entries.filter { button ->
-                if (button.defaultEnabled) {
-                    button.name !in disabled
-                } else {
-                    button.name in enabledOptional
-                }
-            }.toSet()
+            HomeButton.entries
+                .filter { button ->
+                    if (button.defaultEnabled) {
+                        button.name !in disabled
+                    } else {
+                        button.name in enabledOptional
+                    }
+                }.toSet()
         }
 
     /** Persist the enabled/disabled state for a single button. */

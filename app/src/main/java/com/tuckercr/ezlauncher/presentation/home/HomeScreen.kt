@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
-import android.net.Uri
 import android.provider.MediaStore
 import android.provider.Settings
 import android.view.HapticFeedbackConstants
@@ -51,6 +50,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tuckercr.ezlauncher.R
@@ -197,8 +197,15 @@ fun HomeScreen(
                         onMagnifier = onNavigateToMagnifier,
                         onAllApps = onNavigateToApps,
                         onFlashlight = { viewModel.toggleFlashlight() },
-                        onWeb = { launchIntent(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com"))) },
-                        onMaps = { launchIntent(Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0"))) },
+                        onWeb = {
+                            launchIntent(
+                                Intent(
+                                    Intent.ACTION_VIEW,
+                                    "https://www.google.com".toUri(),
+                                ),
+                            )
+                        },
+                        onMaps = { launchIntent(Intent(Intent.ACTION_VIEW, "geo:0,0".toUri())) },
                         onEmail = {
                             launchIntent(
                                 Intent(Intent.ACTION_MAIN).apply {
@@ -213,7 +220,14 @@ fun HomeScreen(
                                 },
                             )
                         },
-                        onYouTube = { launchIntent(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com"))) },
+                        onYouTube = {
+                            launchIntent(
+                                Intent(
+                                    Intent.ACTION_VIEW,
+                                    "https://www.youtube.com".toUri(),
+                                ),
+                            )
+                        },
                         onCalculator = {
                             launchIntent(
                                 Intent(Intent.ACTION_MAIN).apply {
@@ -321,7 +335,11 @@ private fun WeatherCard(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                Text(stringResource(R.string.weather_loading), color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
+                Text(
+                    stringResource(R.string.weather_loading),
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 14.sp,
+                )
             }
         }
 
