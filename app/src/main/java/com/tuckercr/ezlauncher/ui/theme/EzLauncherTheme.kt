@@ -13,6 +13,12 @@ val ColorAllApps = Color(0xFF565989)
 val ColorFlashlight = Color(0xFFDAB129)
 val ColorSos = Color(0xFFDE3226)
 val ColorSpeedDial = Color(0xFF3C6478)
+val ColorWeb = Color(0xFF1565C0)
+val ColorMaps = Color(0xFF2E7D32)
+val ColorEmail = Color(0xFF6D4C41)
+val ColorPhotos = Color(0xFF6A1B9A)
+val ColorYouTube = Color(0xFFC62828)
+val ColorCalculator = Color(0xFF00695C)
 
 private val DarkColors = darkColorScheme(
     primary = Color(0xFF90CAF9),

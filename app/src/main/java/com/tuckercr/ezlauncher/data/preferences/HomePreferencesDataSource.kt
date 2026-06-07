@@ -16,8 +16,13 @@ import javax.inject.Singleton
 /**
  * Persists which Home screen buttons the user has enabled.
  *
- * We store the SET OF DISABLED button names (so new buttons default to enabled
- * without any migration needed).
+ * Storage uses two sets:
+ * - DISABLED_BUTTONS: buttons with defaultEnabled=true that the user turned off
+ * - ENABLED_OPTIONAL_BUTTONS: buttons with defaultEnabled=false that the user turned on
+ *
+ * This means new opt-in buttons (defaultEnabled=false) stay hidden on upgrade
+ * until the user explicitly enables them, while existing on-by-default buttons
+ * are unaffected.
  */
 @Singleton
 class HomePreferencesDataSource @Inject constructor(
@@ -25,6 +30,7 @@ class HomePreferencesDataSource @Inject constructor(
 ) {
     companion object {
         private val DISABLED_BUTTONS = stringSetPreferencesKey("disabled_home_buttons")
+        private val ENABLED_OPTIONAL_BUTTONS = stringSetPreferencesKey("enabled_optional_home_buttons")
     }
 
     /** Emits the current set of enabled buttons whenever it changes. */
@@ -32,7 +38,14 @@ class HomePreferencesDataSource @Inject constructor(
         .catch { emit(emptyPreferences()) }
         .map { prefs ->
             val disabled = prefs[DISABLED_BUTTONS] ?: emptySet()
-            HomeButton.entries.filter { it.name !in disabled }.toSet()
+            val enabledOptional = prefs[ENABLED_OPTIONAL_BUTTONS] ?: emptySet()
+            HomeButton.entries.filter { button ->
+                if (button.defaultEnabled) {
+                    button.name !in disabled
+                } else {
+                    button.name in enabledOptional
+                }
+            }.toSet()
         }
 
     /** Persist the enabled/disabled state for a single button. */
@@ -41,9 +54,15 @@ class HomePreferencesDataSource @Inject constructor(
         enabled: Boolean,
     ) {
         dataStore.edit { prefs ->
-            val current = (prefs[DISABLED_BUTTONS] ?: emptySet()).toMutableSet()
-            if (enabled) current.remove(button.name) else current.add(button.name)
-            prefs[DISABLED_BUTTONS] = current
+            if (button.defaultEnabled) {
+                val current = (prefs[DISABLED_BUTTONS] ?: emptySet()).toMutableSet()
+                if (enabled) current.remove(button.name) else current.add(button.name)
+                prefs[DISABLED_BUTTONS] = current
+            } else {
+                val current = (prefs[ENABLED_OPTIONAL_BUTTONS] ?: emptySet()).toMutableSet()
+                if (enabled) current.add(button.name) else current.remove(button.name)
+                prefs[ENABLED_OPTIONAL_BUTTONS] = current
+            }
         }
     }
 }
