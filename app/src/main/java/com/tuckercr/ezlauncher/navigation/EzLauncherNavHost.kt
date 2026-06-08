@@ -2,6 +2,8 @@ package com.tuckercr.ezlauncher.navigation
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -246,10 +248,31 @@ fun EzLauncherNavHost(
             }
 
             // ── Main screens ──────────────────────────────────────────────────
-            composable(Routes.HOME) {
-                // This is the launcher root — back gesture should do nothing here.
-                // Without this handler the system would re-launch the home Activity,
-                // causing the screen to flash or reload.
+            composable(
+                route = Routes.HOME,
+                // Custom slide transitions for navigating to/from the All Apps screen.
+                exitTransition = {
+                    when (targetState.destination.route) {
+                        Routes.APPS -> slideOutOfContainer(
+                            towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                            animationSpec = tween(300),
+                        )
+
+                        else -> null
+                    }
+                },
+                popEnterTransition = {
+                    when (initialState.destination.route) {
+                        Routes.APPS -> slideIntoContainer(
+                            towards = AnimatedContentTransitionScope.SlideDirection.End,
+                            animationSpec = tween(300),
+                        )
+
+                        else -> null
+                    }
+                },
+            ) {
+                // Launcher root: intercept back gesture to prevent activity re-launch or reload.
                 BackHandler(enabled = true) { /* consume — launcher root, back does nothing */ }
                 HomeScreen(
                     onNavigateToApps = { navController.navigate(Routes.APPS) },
@@ -268,7 +291,23 @@ fun EzLauncherNavHost(
             composable(Routes.EMERGENCY_CONTACTS) {
                 EmergencyContactsScreen(onBack = { navController.popBackStack() })
             }
-            composable(Routes.APPS) {
+            composable(
+                route = Routes.APPS,
+                // Slide in from the right (standard Android push pattern).
+                enterTransition = {
+                    slideIntoContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                        animationSpec = tween(300),
+                    )
+                },
+                // Slide out to the right when the user presses back / the home button.
+                popExitTransition = {
+                    slideOutOfContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.End,
+                        animationSpec = tween(300),
+                    )
+                },
+            ) {
                 AppsScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.SPEED_DIAL) {

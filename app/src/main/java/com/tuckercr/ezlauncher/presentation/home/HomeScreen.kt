@@ -198,12 +198,15 @@ fun HomeScreen(
                         onAllApps = onNavigateToApps,
                         onFlashlight = { viewModel.toggleFlashlight() },
                         onWeb = {
-                            launchIntent(
-                                Intent(
-                                    Intent.ACTION_VIEW,
-                                    "https://www.google.com".toUri(),
-                                ),
-                            )
+                            // Launch browser app to restore last session, falling back to system default if Chrome is missing.
+                            val intent =
+                                context.packageManager.getLaunchIntentForPackage("com.android.chrome")
+                                    ?: context.packageManager.getLaunchIntentForPackage("com.chrome.beta")
+                                    ?: context.packageManager.getLaunchIntentForPackage("com.chrome.dev")
+                                    ?: Intent(Intent.ACTION_MAIN).apply {
+                                        addCategory(Intent.CATEGORY_APP_BROWSER)
+                                    }
+                            launchIntent(intent)
                         },
                         onMaps = { launchIntent(Intent(Intent.ACTION_VIEW, "geo:0,0".toUri())) },
                         onEmail = {

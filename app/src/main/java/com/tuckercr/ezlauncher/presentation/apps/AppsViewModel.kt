@@ -2,6 +2,7 @@ package com.tuckercr.ezlauncher.presentation.apps
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tuckercr.ezlauncher.data.cache.AppListCache
 import com.tuckercr.ezlauncher.domain.usecase.GetInstalledAppsUseCase
 import com.tuckercr.ezlauncher.domain.usecase.LaunchAppUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,7 +34,11 @@ class AppsViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = AppsUiState.Loading,
+            // Seed from pre-warmed cache for instant visibility, falling back to Loading if empty.
+            initialValue = AppListCache.apps.value
+                .takeIf { it.isNotEmpty() }
+                ?.let { AppsUiState.Success(it) }
+                ?: AppsUiState.Loading,
         )
 
     fun onAppTapped(packageName: String) {
