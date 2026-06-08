@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
+import android.util.Log
 import com.tuckercr.ezlauncher.data.cache.AppListCache.apps
 import com.tuckercr.ezlauncher.data.cache.AppListCache.prewarm
 import com.tuckercr.ezlauncher.domain.model.AppInfo
@@ -13,6 +14,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
+
+private const val TAG = "AppListCache"
 
 /**
  * Process-lifetime singleton that holds the pre-warmed installed-apps list.
@@ -38,10 +41,31 @@ internal object AppListCache {
 
     /**
      * Kicks off a package-manager query on [Dispatchers.Default].
+     *
+     * If the query returns an empty list while the cache already holds a valid
+     * list, the result is discarded and a warning is logged. This guards against
+     * a known Android behaviour where [PackageManager.queryIntentActivities]
+     * transiently returns nothing while a package operation (install/update/remove)
+     * is in progress — which would otherwise flash "No Apps Found" on screen.
      */
     internal fun refresh(context: Context) {
         scope.launch {
-            apps.value = queryApps(context)
+            val previousCount = apps.value.size
+            Log.d(TAG, "refresh: starting query (previous count=$previousCount)")
+            val result = queryApps(context)
+            if (result.isEmpty() && previousCount > 0) {
+                // PackageManager returned nothing while we already have a valid list.
+                // This is almost certainly a transient state during a package operation;
+                // retain the existing list rather than wiping the screen.
+                Log.w(
+                    TAG,
+                    "refresh: queryApps returned 0 apps while cache held $previousCount — " +
+                        "discarding empty result to prevent 'No Apps Found' flash",
+                )
+            } else {
+                Log.d(TAG, "refresh: complete, new count=${result.size} (was $previousCount)")
+                apps.value = result
+            }
         }
     }
 

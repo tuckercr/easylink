@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.util.Log
 import com.tuckercr.ezlauncher.data.cache.AppListCache
 import com.tuckercr.ezlauncher.domain.model.AppInfo
 import com.tuckercr.ezlauncher.domain.repository.AppRepository
@@ -21,6 +22,8 @@ import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Duration.Companion.milliseconds
+
+private const val TAG = "AppRepository"
 
 /**
  * Concrete implementation of [AppRepository].
@@ -46,8 +49,10 @@ class AppRepositoryImpl @Inject constructor(
         // Debounce handles batch updates (e.g. Play Store updating multiple apps).
         packageChangeFlow()
             .debounce(1000.milliseconds)
-            .onEach { AppListCache.refresh(context) }
-            .launchIn(scope)
+            .onEach {
+                Log.d(TAG, "debounce elapsed — triggering cache refresh")
+                AppListCache.refresh(context)
+            }.launchIn(scope)
     }
 
     override fun getInstalledApps(): Flow<List<AppInfo>> = AppListCache.apps
@@ -69,6 +74,7 @@ class AppRepositoryImpl @Inject constructor(
                     context: Context,
                     intent: Intent,
                 ) {
+                    Log.d(TAG, "package change received: action=${intent.action} pkg=${intent.data}")
                     trySend(Unit)
                 }
             }
