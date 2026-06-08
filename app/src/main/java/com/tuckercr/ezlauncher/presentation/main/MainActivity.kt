@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -30,7 +31,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        // This app is always dark — force light (white) status bar icons unconditionally.
+        // The default SystemBarStyle.auto() reads the DayNight XML theme and flips to dark
+        // icons when the system is in light mode, which is wrong for an always-dark app.
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+        )
         pendingNavTarget = intent.getStringExtra(EXTRA_NAVIGATE_TO)
         setContent {
             EzLauncherTheme {
