@@ -4,54 +4,72 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
+import com.tuckercr.ezlauncher.data.cache.AppListCache
 import com.tuckercr.ezlauncher.domain.model.AppInfo
 import com.tuckercr.ezlauncher.domain.repository.AppRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Concrete implementation of [AppRepository].
  *
- * Lives in the data layer — it is the only class that knows about:
- *   - [PackageManager] (installed apps)
- *   - [BroadcastReceiver] (package changes, battery)
- *   - [Context] (launching intents)
- *
- * The domain layer never imports this class. Hilt injects it wherever
- * the [AppRepository] interface is requested.
+ * The installed-apps list is pre-warmed by [com.tuckercr.ezlauncher.data.cache.AppListInitializer]
+ * (Jetpack Startup) before [android.app.Application.onCreate], so [getInstalledApps] returns
+ * cached data with no perceptible delay. This class is responsible only for keeping
+ * that cache fresh as packages are installed or removed.
  */
+@OptIn(FlowPreview::class)
 @Singleton
 class AppRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : AppRepository {
 
-    private val packageManager: PackageManager get() = context.packageManager
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-    // ── Installed apps ────────────────────────────────────────────────────────
+    init {
+        // If the Startup initializer was disabled this would be required
+        AppListCache.prewarm(context)
 
-    override fun getInstalledApps(): Flow<List<AppInfo>> =
-        merge(
-            // Emit immediately on collection
-            flow { emit(queryInstalledApps()) },
-            // Re-emit whenever a package is added/removed/replaced
-            packageChangeFlow(),
-        )
+        // Re-query on Dispatchers.Default whenever packages change.
+        // Debounce handles batch updates (e.g. Play Store updating multiple apps).
+        packageChangeFlow()
+            .debounce(1000.milliseconds)
+            .onEach { AppListCache.refresh(context) }
+            .launchIn(scope)
+    }
 
-    private fun packageChangeFlow(): Flow<List<AppInfo>> =
+    override fun getInstalledApps(): Flow<List<AppInfo>> = AppListCache.apps
+
+    override suspend fun launchApp(packageName: String): Boolean {
+        val intent = context.packageManager.getLaunchIntentForPackage(packageName) ?: return false
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+        return true
+    }
+
+    /**
+     * Emits whenever a package is installed, removed, or replaced.
+     */
+    private fun packageChangeFlow(): Flow<Unit> =
         callbackFlow {
             val receiver = object : BroadcastReceiver() {
                 override fun onReceive(
                     context: Context,
                     intent: Intent,
                 ) {
-                    trySend(queryInstalledApps())
+                    trySend(Unit)
                 }
             }
             val filter = IntentFilter().apply {
@@ -63,45 +81,4 @@ class AppRepositoryImpl @Inject constructor(
             context.registerReceiver(receiver, filter)
             awaitClose { context.unregisterReceiver(receiver) }
         }
-
-    private fun queryInstalledApps(): List<AppInfo> {
-        val launchIntent = Intent(Intent.ACTION_MAIN).apply {
-            addCategory(Intent.CATEGORY_LAUNCHER)
-        }
-        val launcherPackages = queryLauncherPackages()
-        return packageManager
-            .queryIntentActivities(launchIntent, 0)
-            .mapNotNull { resolveInfo ->
-                val pkg = resolveInfo.activityInfo.packageName
-                // Exclude ourselves and all other home screen launchers
-                if (pkg == context.packageName) return@mapNotNull null
-                if (pkg in launcherPackages) return@mapNotNull null
-                AppInfo(
-                    packageName = pkg,
-                    label = resolveInfo.loadLabel(packageManager).toString(),
-                    icon = resolveInfo.loadIcon(packageManager),
-                )
-            }.distinctBy { it.packageName }
-            .sorted()
-    }
-
-    /** Returns the set of package names that register as home screen launchers. */
-    private fun queryLauncherPackages(): Set<String> {
-        val homeIntent = Intent(Intent.ACTION_MAIN).apply {
-            addCategory(Intent.CATEGORY_HOME)
-        }
-        return packageManager
-            .queryIntentActivities(homeIntent, 0)
-            .map { it.activityInfo.packageName }
-            .toSet()
-    }
-
-    // ── App launching ─────────────────────────────────────────────────────────
-
-    override suspend fun launchApp(packageName: String): Boolean {
-        val intent = packageManager.getLaunchIntentForPackage(packageName) ?: return false
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(intent)
-        return true
-    }
 }

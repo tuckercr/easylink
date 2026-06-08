@@ -41,6 +41,18 @@
     <string name="home_button_light_on">Light On</string>
     <string name="home_tts_text_messages">Text messages</string>
 
+    <!-- Optional home buttons -->
+    <string name="web">Web</string>
+    <string name="photos">Photos</string>
+    <string name="youtube">YouTube</string>
+    <string name="calculator">Calculator</string>
+    <string name="home_tts_web">Web browser</string>
+    <string name="home_tts_maps">Maps and directions</string>
+    <string name="home_tts_email">Email</string>
+    <string name="home_tts_photos">Photos and pictures</string>
+    <string name="home_tts_youtube">YouTube videos</string>
+    <string name="home_tts_calculator">Calculator</string>
+
     <!-- SOS -->
     <string name="sos_countdown_label">Calling for help in…</string>
     <string name="sos_dispatching">Sending SOS…</string>
@@ -52,7 +64,6 @@
     <string name="sos_location_included">Location included in message</string>
     <string name="sos_sending_in">Sending in</string>
     <string name="sos_seconds">seconds</string>
-    <string name="sos_cancel">CANCEL</string>
     <string name="sos_contacting">Contacting emergency contacts</string>
     <string name="sos_sent_title">SOS Sent</string>
     <string name="sos_partially_sent_title">Partially Sent</string>

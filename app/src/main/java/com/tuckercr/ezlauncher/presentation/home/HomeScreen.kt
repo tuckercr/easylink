@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tuckercr.ezlauncher.R
@@ -61,12 +62,18 @@ import com.tuckercr.ezlauncher.presentation.voice.VoiceEffect
 import com.tuckercr.ezlauncher.presentation.voice.VoiceOverlay
 import com.tuckercr.ezlauncher.presentation.voice.VoiceUiState
 import com.tuckercr.ezlauncher.ui.theme.ColorAllApps
+import com.tuckercr.ezlauncher.ui.theme.ColorCalculator
 import com.tuckercr.ezlauncher.ui.theme.ColorCamera
+import com.tuckercr.ezlauncher.ui.theme.ColorEmail
 import com.tuckercr.ezlauncher.ui.theme.ColorFlashlight
 import com.tuckercr.ezlauncher.ui.theme.ColorMagnifier
+import com.tuckercr.ezlauncher.ui.theme.ColorMaps
 import com.tuckercr.ezlauncher.ui.theme.ColorPhone
+import com.tuckercr.ezlauncher.ui.theme.ColorPhotos
 import com.tuckercr.ezlauncher.ui.theme.ColorSos
 import com.tuckercr.ezlauncher.ui.theme.ColorText
+import com.tuckercr.ezlauncher.ui.theme.ColorWeb
+import com.tuckercr.ezlauncher.ui.theme.ColorYouTube
 
 private const val BUTTONS_PER_ROW = 3
 
@@ -165,8 +172,10 @@ fun HomeScreen(
                     val view = LocalView.current
                     val launchIntent: (Intent) -> Unit = { intent ->
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        if (intent.resolveActivity(context.packageManager) != null) {
+                        try {
                             context.startActivity(intent)
+                        } catch (_: android.content.ActivityNotFoundException) {
+                            // No app handles this intent — silently ignore
                         }
                     }
 
@@ -188,6 +197,44 @@ fun HomeScreen(
                         onMagnifier = onNavigateToMagnifier,
                         onAllApps = onNavigateToApps,
                         onFlashlight = { viewModel.toggleFlashlight() },
+                        onWeb = {
+                            launchIntent(
+                                Intent(
+                                    Intent.ACTION_VIEW,
+                                    "https://www.google.com".toUri(),
+                                ),
+                            )
+                        },
+                        onMaps = { launchIntent(Intent(Intent.ACTION_VIEW, "geo:0,0".toUri())) },
+                        onEmail = {
+                            launchIntent(
+                                Intent(Intent.ACTION_MAIN).apply {
+                                    addCategory(Intent.CATEGORY_APP_EMAIL)
+                                },
+                            )
+                        },
+                        onPhotos = {
+                            launchIntent(
+                                Intent(Intent.ACTION_MAIN).apply {
+                                    addCategory(Intent.CATEGORY_APP_GALLERY)
+                                },
+                            )
+                        },
+                        onYouTube = {
+                            launchIntent(
+                                Intent(
+                                    Intent.ACTION_VIEW,
+                                    "https://www.youtube.com".toUri(),
+                                ),
+                            )
+                        },
+                        onCalculator = {
+                            launchIntent(
+                                Intent(Intent.ACTION_MAIN).apply {
+                                    addCategory(Intent.CATEGORY_APP_CALCULATOR)
+                                },
+                            )
+                        },
                         onLongPress = { label ->
                             view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                             ttsViewModel.speak(label)
@@ -288,7 +335,11 @@ private fun WeatherCard(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                Text(stringResource(R.string.weather_loading), color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
+                Text(
+                    stringResource(R.string.weather_loading),
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 14.sp,
+                )
             }
         }
 
@@ -406,6 +457,12 @@ private fun ButtonGrid(
     onMagnifier: () -> Unit,
     onAllApps: () -> Unit,
     onFlashlight: () -> Unit,
+    onWeb: () -> Unit,
+    onMaps: () -> Unit,
+    onEmail: () -> Unit,
+    onPhotos: () -> Unit,
+    onYouTube: () -> Unit,
+    onCalculator: () -> Unit,
     onLongPress: (label: String) -> Unit,
     flashlightOnText: String,
     flashlightOffText: String,
@@ -436,6 +493,12 @@ private fun ButtonGrid(
                             onMagnifier = onMagnifier,
                             onAllApps = onAllApps,
                             onFlashlight = onFlashlight,
+                            onWeb = onWeb,
+                            onMaps = onMaps,
+                            onEmail = onEmail,
+                            onPhotos = onPhotos,
+                            onYouTube = onYouTube,
+                            onCalculator = onCalculator,
                             onLongPress = onLongPress,
                             flashlightOnText = flashlightOnText,
                             flashlightOffText = flashlightOffText,
@@ -462,6 +525,12 @@ private fun SingleHomeButton(
     onMagnifier: () -> Unit,
     onAllApps: () -> Unit,
     onFlashlight: () -> Unit,
+    onWeb: () -> Unit,
+    onMaps: () -> Unit,
+    onEmail: () -> Unit,
+    onPhotos: () -> Unit,
+    onYouTube: () -> Unit,
+    onCalculator: () -> Unit,
     onLongPress: (label: String) -> Unit,
     flashlightOnText: String,
     flashlightOffText: String,
@@ -539,6 +608,84 @@ private fun SingleHomeButton(
                 modifier = modifier,
                 onClick = onFlashlight,
                 onLongClick = { onLongPress(if (isFlashlightOn) flashlightOnText else flashlightOffText) },
+            )
+        }
+
+        HomeButton.WEB -> {
+            val label = stringResource(R.string.web)
+            val ttsText = stringResource(R.string.home_tts_web)
+            HomeActionButton(
+                label = label,
+                iconRes = R.drawable.ic_web,
+                color = ColorWeb,
+                modifier = modifier,
+                onClick = onWeb,
+                onLongClick = { onLongPress(ttsText) },
+            )
+        }
+
+        HomeButton.MAPS -> {
+            val label = stringResource(R.string.maps)
+            val ttsText = stringResource(R.string.home_tts_maps)
+            HomeActionButton(
+                label = label,
+                iconRes = R.drawable.ic_map,
+                color = ColorMaps,
+                modifier = modifier,
+                onClick = onMaps,
+                onLongClick = { onLongPress(ttsText) },
+            )
+        }
+
+        HomeButton.EMAIL -> {
+            val label = stringResource(R.string.email)
+            val ttsText = stringResource(R.string.home_tts_email)
+            HomeActionButton(
+                label = label,
+                iconRes = R.drawable.ic_email,
+                color = ColorEmail,
+                modifier = modifier,
+                onClick = onEmail,
+                onLongClick = { onLongPress(ttsText) },
+            )
+        }
+
+        HomeButton.PHOTOS -> {
+            val label = stringResource(R.string.photos)
+            val ttsText = stringResource(R.string.home_tts_photos)
+            HomeActionButton(
+                label = label,
+                iconRes = R.drawable.ic_photos,
+                color = ColorPhotos,
+                modifier = modifier,
+                onClick = onPhotos,
+                onLongClick = { onLongPress(ttsText) },
+            )
+        }
+
+        HomeButton.YOUTUBE -> {
+            val label = stringResource(R.string.youtube)
+            val ttsText = stringResource(R.string.home_tts_youtube)
+            HomeActionButton(
+                label = label,
+                iconRes = R.drawable.ic_youtube,
+                color = ColorYouTube,
+                modifier = modifier,
+                onClick = onYouTube,
+                onLongClick = { onLongPress(ttsText) },
+            )
+        }
+
+        HomeButton.CALCULATOR -> {
+            val label = stringResource(R.string.calculator)
+            val ttsText = stringResource(R.string.home_tts_calculator)
+            HomeActionButton(
+                label = label,
+                iconRes = R.drawable.ic_calculator,
+                color = ColorCalculator,
+                modifier = modifier,
+                onClick = onCalculator,
+                onLongClick = { onLongPress(ttsText) },
             )
         }
     }

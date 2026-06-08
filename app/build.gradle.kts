@@ -138,6 +138,9 @@ dependencies {
     // Location
     implementation(libs.play.services.location)
 
+    // Jetpack Startup
+    implementation(libs.startup.runtime)
+
     // DataStore
     implementation(libs.datastore.preferences)
 

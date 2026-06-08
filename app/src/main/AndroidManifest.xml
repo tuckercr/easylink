@@ -123,7 +123,16 @@
             </intent-filter>
         </receiver>
 
-
+        <!-- ── Jetpack Startup — pre-warms caches before Application.onCreate ── -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="com.tuckercr.ezlauncher.data.cache.AppListInitializer"
+                android:value="androidx.startup" />
+        </provider>
 
     </application>
 

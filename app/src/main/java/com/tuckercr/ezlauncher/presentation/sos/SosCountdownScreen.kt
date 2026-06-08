@@ -126,7 +126,7 @@ private fun CountingContent(
             shape = RoundedCornerShape(16.dp),
         ) {
             Text(
-                text = stringResource(R.string.sos_cancel),
+                text = stringResource(android.R.string.cancel),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 4.sp,
