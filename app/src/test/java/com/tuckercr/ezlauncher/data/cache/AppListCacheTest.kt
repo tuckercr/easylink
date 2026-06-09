@@ -12,6 +12,7 @@ import io.mockk.spyk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -146,6 +147,21 @@ class AppListCacheTest {
             assertFalse("com.big.launcher.demo" in packages)
         }
 
+    @Test
+    fun `queryApps falls back to package name if loadLabel throws`() =
+        runTest {
+            val brokenApp = launcherApp(pkg = "com.broken.label", label = "Irrelevant")
+            // Simulate loadLabel throwing (e.g. package just uninstalled/broken during query)
+            every { brokenApp.loadLabel(any()) } throws RuntimeException("Package Manager error")
+
+            givenAllMainActivities(brokenApp)
+
+            val result = AppListCache.queryApps(context)
+
+            assertEquals(1, result.size)
+            assertEquals("com.broken.label", result.first().label)
+        }
+
     // ── prewarm idempotency ───────────────────────────────────────────────────
 
     @Test
@@ -154,8 +170,9 @@ class AppListCacheTest {
             // AppListCache is a singleton — prewarm may already have been called by a
             // prior test. We can only assert apps.value is accessible without throwing.
             AppListCache.prewarm(context)
-            val apps = AppListCache.apps.value
-            assertFalse("Expected apps list to be non-null", apps === null)
+            // StateFlow.value is always non-null; we just confirm the call doesn't throw.
+            @Suppress("USELESS_CAST")
+            assertNotNull("Expected apps list to be accessible", AppListCache.apps.value as Any?)
         }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

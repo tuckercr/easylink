@@ -195,4 +195,23 @@ class HomePreferencesDataSourceTest {
                 assertFalse(HomeButton.WEB in afterDisable)
             }
         }
+
+    // ── Voice button ──────────────────────────────────────────────────────────
+
+    @Test
+    fun `fresh prefs - voice button is disabled by default`() =
+        testScope.runTest {
+            dataSource.voiceButtonEnabled.test {
+                assertFalse(awaitItem())
+            }
+        }
+
+    @Test
+    fun `enabling voice button updates the preference`() =
+        testScope.runTest {
+            dataSource.setVoiceButtonEnabled(true)
+            dataSource.voiceButtonEnabled.test {
+                assertTrue(awaitItem())
+            }
+        }
 }

@@ -2,6 +2,7 @@ package com.tuckercr.ezlauncher.data.preferences
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringSetPreferencesKey
@@ -32,6 +33,7 @@ class HomePreferencesDataSource @Inject constructor(
         private val DISABLED_BUTTONS = stringSetPreferencesKey("disabled_home_buttons")
         private val ENABLED_OPTIONAL_BUTTONS =
             stringSetPreferencesKey("enabled_optional_home_buttons")
+        private val VOICE_BUTTON_ENABLED = booleanPreferencesKey("voice_button_enabled")
     }
 
     /** Emits the current set of enabled buttons whenever it changes. */
@@ -49,6 +51,15 @@ class HomePreferencesDataSource @Inject constructor(
                     }
                 }.toSet()
         }
+
+    /** Whether the full-width voice command button is shown on the Home screen. */
+    val voiceButtonEnabled: Flow<Boolean> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { prefs -> prefs[VOICE_BUTTON_ENABLED] ?: false }
+
+    suspend fun setVoiceButtonEnabled(enabled: Boolean) {
+        dataStore.edit { prefs -> prefs[VOICE_BUTTON_ENABLED] = enabled }
+    }
 
     /** Persist the enabled/disabled state for a single button. */
     suspend fun setButtonEnabled(

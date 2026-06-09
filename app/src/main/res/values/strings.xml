@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">EZ Launcher</string>
     <string name="action_settings">Settings</string>
 
@@ -33,7 +33,7 @@
     <string name="add">+ Add</string>
     <string name="field_name">Name</string>
     <string name="field_phone_number">Phone number</string>
-    <string name="field_phone_placeholder">e.g. 555-123-4567</string>
+    <string name="field_phone_placeholder" tools:ignore="TypographyDashes">e.g. 555-123-4567</string>
 
     <!-- Flashlight -->
     <string name="flashlight_on">Flashlight on</string>
@@ -192,6 +192,8 @@
     <!-- Customize / Settings screen -->
     <string name="customize_home_buttons_header">Home Screen Buttons</string>
     <string name="customize_home_buttons_description">Choose which quick-action buttons appear on the Home screen.</string>
+    <string name="customize_voice_button_label">Voice Command Button</string>
+    <string name="customize_voice_button_description">Show the \"Say a Command\" button on the Home screen.</string>
     <string name="customize_fall_detection_header">Fall Detection</string>
     <string name="customize_fall_detection_description">Uses the phone\'s accelerometer to detect a fall and automatically call your emergency contact after 30 seconds.</string>
     <string name="customize_emergency_contacts_header">Emergency Contacts</string>

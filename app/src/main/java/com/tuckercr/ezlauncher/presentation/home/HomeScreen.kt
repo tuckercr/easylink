@@ -16,9 +16,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,6 +37,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,6 +51,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -166,7 +172,7 @@ fun HomeScreen(
                         onNavigateToForecast = onNavigateToForecast,
                     )
 
-                    Spacer(Modifier.weight(1f))
+                    Spacer(Modifier.height(12.dp))
 
                     // ── Dynamic button grid ─────────────────────────────────
                     val view = LocalView.current
@@ -183,6 +189,7 @@ fun HomeScreen(
                     val flashlightOffText = stringResource(R.string.flashlight_off)
 
                     ButtonGrid(
+                        modifier = Modifier.weight(1f),
                         enabledButtons = s.enabledButtons,
                         isFlashlightOn = s.isFlashlightOn,
                         onPhone = { launchIntent(Intent(Intent.ACTION_DIAL)) },
@@ -198,14 +205,14 @@ fun HomeScreen(
                         onAllApps = onNavigateToApps,
                         onFlashlight = { viewModel.toggleFlashlight() },
                         onWeb = {
-                            // Launch browser app to restore last session, falling back to system default if Chrome is missing.
+                            // Try Chrome variants first (restores last session without a URL).
+                            // Fall back to ACTION_VIEW on a URL — this opens any installed
+                            // browser (Firefox, Brave, etc.) and is universally supported.
                             val intent =
                                 context.packageManager.getLaunchIntentForPackage("com.android.chrome")
                                     ?: context.packageManager.getLaunchIntentForPackage("com.chrome.beta")
                                     ?: context.packageManager.getLaunchIntentForPackage("com.chrome.dev")
-                                    ?: Intent(Intent.ACTION_MAIN).apply {
-                                        addCategory(Intent.CATEGORY_APP_BROWSER)
-                                    }
+                                    ?: Intent(Intent.ACTION_VIEW, "https://www.google.com".toUri())
                             launchIntent(intent)
                         },
                         onMaps = { launchIntent(Intent(Intent.ACTION_VIEW, "geo:0,0".toUri())) },
@@ -246,38 +253,42 @@ fun HomeScreen(
                         flashlightOffText = flashlightOffText,
                     )
 
-                    Spacer(Modifier.height(12.dp))
+                    // ── Voice command button (only when enabled in Settings) ──
+                    if (s.voiceButtonEnabled) {
+                        Spacer(Modifier.height(12.dp))
 
-                    // ── Voice command button ─────────────────────────────────
-                    Surface(
-                        onClick = onMicTapped,
-                        color = ColorVoice,
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(64.dp),
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
+                        Surface(
+                            onClick = onMicTapped,
+                            color = ColorVoice,
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(64.dp),
                         ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_mic),
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(26.dp),
-                            )
-                            Spacer(Modifier.size(10.dp))
-                            Text(
-                                stringResource(R.string.home_voice_command_button),
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.White,
-                            )
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_mic),
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(26.dp),
+                                )
+                                Spacer(Modifier.size(10.dp))
+                                Text(
+                                    stringResource(R.string.home_voice_command_button),
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color.White,
+                                )
+                            }
                         }
                     }
 
-                    Spacer(Modifier.height(8.dp))
+                    // 12 dp gap above SOS — same rhythm as the button grid gaps,
+                    // present whether or not the voice button is visible.
+                    Spacer(Modifier.height(12.dp))
 
                     // ── SOS (full width) ─────────────────────────────────────
                     Surface(
@@ -469,6 +480,7 @@ private fun ButtonGrid(
     onLongPress: (label: String) -> Unit,
     flashlightOnText: String,
     flashlightOffText: String,
+    modifier: Modifier = Modifier,
 ) {
     if (enabledButtons.isEmpty()) return
 
@@ -480,10 +492,18 @@ private fun ButtonGrid(
             fontScale = density.fontScale.coerceAtMost(1.3f),
         ),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        // modifier carries weight(1f) from the parent Column so the grid expands
+        // to fill all available vertical space between the weather card and the
+        // voice/SOS buttons. Each row then takes an equal share of that space.
+        Column(
+            modifier = modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             enabledButtons.chunked(BUTTONS_PER_ROW).forEach { rowButtons ->
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     rowButtons.forEach { button ->
@@ -539,6 +559,7 @@ private fun SingleHomeButton(
     flashlightOffText: String,
     modifier: Modifier,
 ) {
+    @Suppress("REDUNDANT_ELSE_IN_WHEN")
     when (button) {
         HomeButton.PHONE -> {
             val label = stringResource(R.string.phone)
@@ -691,6 +712,9 @@ private fun SingleHomeButton(
                 onLongClick = { onLongPress(ttsText) },
             )
         }
+
+        // Defensive coding - shouldn't happen...
+        else -> android.util.Log.e("HomeScreen", "Unhandled HomeButton: $button — add a branch to SingleHomeButton")
     }
 }
 
@@ -705,32 +729,76 @@ private fun HomeActionButton(
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(
+    // BoxWithConstraints exposes maxWidth/maxHeight (after the 8dp padding is
+    // subtracted) so the icon can scale with whatever space the grid gives this
+    // button rather than using a fixed dp value.
+    //
+    // Sizing rule: 66% of the button width, but capped at 55% of the button
+    // height so the label always has room beneath it. No hard upper cap — larger
+    // screens/fewer buttons naturally produce larger icons.
+    BoxWithConstraints(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .height(96.dp)
+            .fillMaxHeight()
             .clip(RoundedCornerShape(16.dp))
             .background(color)
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .padding(8.dp),
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        val iconSize = minOf(maxWidth * 0.66f, maxHeight * 0.55f).coerceAtLeast(24.dp)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             Icon(
                 painter = painterResource(iconRes),
                 contentDescription = null,
                 tint = Color.White,
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier.size(iconSize),
             )
-            Text(
+            AutoSizeLabel(
                 text = label,
-                color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                maxLines = 2,
+                // 80% of the inner button width — leaves a small margin each side
+                // so the text never crowds the rounded corners.
+                modifier = Modifier.fillMaxWidth(0.8f),
             )
         }
     }
+}
+
+// ── Auto-sizing button label ──────────────────────────────────────────────────
+
+/**
+ * Single-line text that shrinks its font size until the string fits, then
+ * stays there. Starts at [maxFontSizeSp] and steps down by 10% each layout
+ * pass until the text no longer overflows or [minFontSizeSp] is reached.
+ *
+ * [remember(text)] resets the size whenever the label changes so the flashlight
+ * button ("Flashlight" ↔ "Light On") never gets stuck at a shrunken size.
+ */
+@Composable
+private fun AutoSizeLabel(
+    text: String,
+    modifier: Modifier = Modifier,
+    maxFontSizeSp: Float = 20f,
+    minFontSizeSp: Float = 10f,
+) {
+    var fontSizeSp by remember(text) { mutableStateOf(maxFontSizeSp) }
+    Text(
+        text = text,
+        color = Color.White,
+        fontSize = fontSizeSp.sp,
+        fontWeight = FontWeight.Bold,
+        textAlign = TextAlign.Center,
+        maxLines = 1,
+        overflow = TextOverflow.Clip,
+        onTextLayout = { result ->
+            if (result.didOverflowWidth && fontSizeSp > minFontSizeSp) {
+                fontSizeSp = (fontSizeSp * 0.9f).coerceAtLeast(minFontSizeSp)
+            }
+        },
+        modifier = modifier,
+    )
 }
 
 // ── Flashlight effect ─────────────────────────────────────────────────────────
@@ -759,7 +827,12 @@ private fun FlashlightEffect(enabled: Boolean) {
         }
 
         onDispose {
-            if (torchCameraId != null) {
+            // Only turn off the torch if this effect instance turned it ON.
+            // If enabled==false here we never set it to true, so there's nothing
+            // to undo. Avoiding the redundant setTorchMode(false) call prevents
+            // a brief torch-off flicker on devices with hardware rate limiting
+            // (e.g. Samsung) when the effect re-runs due to recomposition.
+            if (enabled && torchCameraId != null) {
                 try {
                     cameraManager.setTorchMode(torchCameraId, false)
                 } catch (_: Exception) {

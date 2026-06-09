@@ -34,13 +34,15 @@ class HomeViewModel @Inject constructor(
     val uiState: StateFlow<HomeUiState> = combine(
         isFlashlightOn,
         homePrefs.enabledButtons,
+        homePrefs.voiceButtonEnabled,
         weather,
-    ) { flashlight, buttons, weather ->
+    ) { flashlight, buttons, voiceEnabled, weather ->
         HomeUiState.Success(
             isFlashlightOn = flashlight,
             // Preserve the canonical enum order so the grid is stable
             enabledButtons = HomeButton.entries.filter { it in buttons },
             weather = weather,
+            voiceButtonEnabled = voiceEnabled,
         )
     }.stateIn(
         scope = viewModelScope,

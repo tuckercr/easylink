@@ -25,6 +25,7 @@ data class CustomizeUiState(
     val buttons: List<ButtonToggleItem> = emptyList(),
     val fallDetectionEnabled: Boolean = false,
     val fallSensitivity: FallSensitivity = FallSensitivity.MEDIUM,
+    val voiceButtonEnabled: Boolean = false,
 )
 
 @HiltViewModel
@@ -36,13 +37,15 @@ class CustomizeHomeViewModel @Inject constructor(
 
     val uiState: StateFlow<CustomizeUiState> = combine(
         homePrefs.enabledButtons,
+        homePrefs.voiceButtonEnabled,
         fallPrefs.isEnabled,
         fallPrefs.sensitivity,
-    ) { enabled, fallEnabled, sensitivity ->
+    ) { enabled, voiceEnabled, fallEnabled, sensitivity ->
         CustomizeUiState(
             buttons = HomeButton.entries.map { btn ->
                 ButtonToggleItem(btn, btn.defaultLabel, btn in enabled)
             },
+            voiceButtonEnabled = voiceEnabled,
             fallDetectionEnabled = fallEnabled,
             fallSensitivity = sensitivity,
         )
@@ -59,6 +62,12 @@ class CustomizeHomeViewModel @Inject constructor(
         enabled: Boolean,
     ) {
         viewModelScope.launch { homePrefs.setButtonEnabled(button, enabled) }
+    }
+
+    // ── Voice button ──────────────────────────────────────────────────────────
+
+    fun setVoiceButtonEnabled(enabled: Boolean) {
+        viewModelScope.launch { homePrefs.setVoiceButtonEnabled(enabled) }
     }
 
     // ── Fall detection ────────────────────────────────────────────────────────

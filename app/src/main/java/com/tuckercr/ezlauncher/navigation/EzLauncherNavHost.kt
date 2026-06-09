@@ -205,13 +205,10 @@ fun EzLauncherNavHost(
                                 selected = selected,
                                 onClick = {
                                     navController.navigate(item.route) {
-                                        // Pop the entire back stack so no other tab's screens
-                                        // (including HOME) linger below the new destination.
-                                        // This means back from any tab exits the app rather than
-                                        // cycling through HOME each time.
-                                        popUpTo(navController.graph.id) {
+                                        // Keep HOME as the permanent back stack base so back always returns to the home screen.
+                                        popUpTo(Routes.HOME) {
                                             saveState = true
-                                            inclusive = true
+                                            inclusive = false
                                         }
                                         launchSingleTop = true
                                         restoreState = true

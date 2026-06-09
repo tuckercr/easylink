@@ -13,7 +13,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -27,7 +27,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
 
-    private val testDispatcher = StandardTestDispatcher()
+    private val testDispatcher = UnconfinedTestDispatcher()
 
     private lateinit var launchAppUseCase: LaunchAppUseCase
     private lateinit var homePrefs: HomePreferencesDataSource
@@ -58,47 +58,57 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `uiState reflects preferences and flashlight correctly`() = runTest {
-        viewModel.uiState.test {
-            // Skip the initial Loading if it's there
-            var item = awaitItem()
-            if (item is HomeUiState.Loading) item = awaitItem()
-            
-            val success = item as HomeUiState.Success
-            assertFalse(success.isFlashlightOn)
-            assertEquals(listOf(HomeButton.PHONE), success.enabledButtons)
-            assertFalse(success.voiceButtonEnabled)
+    fun `uiState reflects preferences and flashlight correctly`() =
+        runTest {
+            viewModel.uiState.test {
+                // Skip the initial Loading if it's there
+                var item = awaitItem()
+                while (item !is HomeUiState.Success) {
+                    item = awaitItem()
+                }
 
-            // Toggle flashlight
-            viewModel.toggleFlashlight()
-            val afterFlashlight = awaitItem() as HomeUiState.Success
-            assertTrue(afterFlashlight.isFlashlightOn)
+                assertFalse("Flashlight should be off initially", item.isFlashlightOn)
+                assertEquals(listOf(HomeButton.PHONE), item.enabledButtons)
+                assertFalse(item.voiceButtonEnabled)
 
-            // Update preferences
-            enabledButtonsFlow.value = setOf(HomeButton.PHONE, HomeButton.CAMERA)
-            voiceEnabledFlow.value = true
-            
-            val afterPrefs = awaitItem() as HomeUiState.Success
-            assertEquals(listOf(HomeButton.PHONE, HomeButton.CAMERA), afterPrefs.enabledButtons)
-            assertTrue(afterPrefs.voiceButtonEnabled)
+                // Toggle flashlight
+                viewModel.toggleFlashlight()
+                val afterFlashlight = awaitItem() as HomeUiState.Success
+                assertTrue(afterFlashlight.isFlashlightOn)
+
+                // Update preferences
+                enabledButtonsFlow.value = setOf(HomeButton.PHONE, HomeButton.CAMERA)
+                voiceEnabledFlow.value = true
+
+                // Consume emissions until both updates are present
+                var finalSuccess: HomeUiState.Success? = null
+                while (finalSuccess == null || finalSuccess.enabledButtons.size < 2 || !finalSuccess.voiceButtonEnabled) {
+                    finalSuccess = awaitItem() as HomeUiState.Success
+                }
+
+                assertEquals(listOf(HomeButton.PHONE, HomeButton.CAMERA), finalSuccess.enabledButtons)
+                assertTrue(finalSuccess.voiceButtonEnabled)
+            }
         }
-    }
 
     @Test
-    fun `refreshWeather calls weather service`() = runTest {
-        viewModel.refreshWeather()
-        coVerify { weatherService.fetch() }
-    }
+    fun `refreshWeather calls weather service`() =
+        runTest {
+            viewModel.refreshWeather()
+            coVerify { weatherService.fetch() }
+        }
 
     @Test
-    fun `onAppTapped calls launchAppUseCase`() = runTest {
-        viewModel.onAppTapped("com.test.app")
-        coVerify { launchAppUseCase("com.test.app") }
-    }
+    fun `onAppTapped calls launchAppUseCase`() =
+        runTest {
+            viewModel.onAppTapped("com.test.app")
+            coVerify { launchAppUseCase("com.test.app") }
+        }
 
     @Test
-    fun `setButtonEnabled calls data source`() = runTest {
-        viewModel.setButtonEnabled(HomeButton.CAMERA, true)
-        coVerify { homePrefs.setButtonEnabled(HomeButton.CAMERA, true) }
-    }
+    fun `setButtonEnabled calls data source`() =
+        runTest {
+            viewModel.setButtonEnabled(HomeButton.CAMERA, true)
+            coVerify { homePrefs.setButtonEnabled(HomeButton.CAMERA, true) }
+        }
 }

@@ -96,6 +96,36 @@ fun CustomizeHomeScreen(
                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
             }
 
+            // ── Voice command button toggle ───────────────────────────────────
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.customize_voice_button_label),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = stringResource(R.string.customize_voice_button_description),
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Switch(
+                        checked = state.voiceButtonEnabled,
+                        onCheckedChange = { viewModel.setVoiceButtonEnabled(it) },
+                    )
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+            }
+
             // ── Section: Fall Detection ───────────────────────────────────────
             item {
                 Spacer(Modifier.height(24.dp))

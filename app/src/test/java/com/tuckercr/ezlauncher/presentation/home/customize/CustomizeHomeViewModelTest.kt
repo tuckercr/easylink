@@ -6,14 +6,13 @@ import com.tuckercr.ezlauncher.data.preferences.FallDetectionPreferences
 import com.tuckercr.ezlauncher.data.preferences.HomePreferencesDataSource
 import com.tuckercr.ezlauncher.domain.model.FallSensitivity
 import com.tuckercr.ezlauncher.domain.model.HomeButton
-import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -27,7 +26,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class CustomizeHomeViewModelTest {
 
-    private val testDispatcher = StandardTestDispatcher()
+    private val testDispatcher = UnconfinedTestDispatcher()
 
     private lateinit var homePrefs: HomePreferencesDataSource
     private lateinit var fallPrefs: FallDetectionPreferences
@@ -61,57 +60,81 @@ class CustomizeHomeViewModelTest {
     }
 
     @Test
-    fun `uiState reflects preferences correctly`() = runTest {
-        viewModel.uiState.test {
-            val initial = awaitItem()
-            assertTrue(initial.buttons.any { it.button == HomeButton.PHONE && it.isEnabled })
-            assertFalse(initial.voiceButtonEnabled)
-            assertFalse(initial.fallDetectionEnabled)
-            assertEquals(FallSensitivity.MEDIUM, initial.fallSensitivity)
+    fun `uiState reflects preferences correctly`() =
+        runTest {
+            viewModel.uiState.test {
+                // Skip initial default state if empty
+                var item = awaitItem()
+                while (item.buttons.isEmpty()) {
+                    item = awaitItem()
+                }
 
-            // Update preferences
-            enabledButtonsFlow.value = setOf(HomeButton.PHONE, HomeButton.CAMERA)
-            voiceEnabledFlow.value = true
-            fallEnabledFlow.value = true
-            fallSensitivityFlow.value = FallSensitivity.HIGH
+                assertTrue(
+                    "PHONE should be enabled",
+                    item.buttons.any { it.button == HomeButton.PHONE && it.isEnabled },
+                )
+                assertFalse(item.voiceButtonEnabled)
+                assertFalse(item.fallDetectionEnabled)
+                assertEquals(FallSensitivity.MEDIUM, item.fallSensitivity)
 
-            val updated = awaitItem()
-            assertTrue(updated.buttons.any { it.button == HomeButton.CAMERA && it.isEnabled })
-            assertTrue(updated.voiceButtonEnabled)
-            assertTrue(updated.fallDetectionEnabled)
-            assertEquals(FallSensitivity.HIGH, updated.fallSensitivity)
+                // Update preferences
+                enabledButtonsFlow.value = setOf(HomeButton.PHONE, HomeButton.CAMERA)
+                voiceEnabledFlow.value = true
+                fallEnabledFlow.value = true
+                fallSensitivityFlow.value = FallSensitivity.HIGH
+
+                // Consume emissions until all updates are reflected
+                var finalState: CustomizeUiState? = null
+                while (finalState == null ||
+                    finalState.buttons.count { it.isEnabled } < 2 ||
+                    !finalState.voiceButtonEnabled ||
+                    !finalState.fallDetectionEnabled ||
+                    finalState.fallSensitivity != FallSensitivity.HIGH
+                ) {
+                    finalState = awaitItem()
+                }
+
+                assertTrue(finalState.buttons.any { it.button == HomeButton.CAMERA && it.isEnabled })
+                assertTrue(finalState.voiceButtonEnabled)
+                assertTrue(finalState.fallDetectionEnabled)
+                assertEquals(FallSensitivity.HIGH, finalState.fallSensitivity)
+            }
         }
-    }
 
     @Test
-    fun `toggle button calls data source`() = runTest {
-        viewModel.toggle(HomeButton.CAMERA, true)
-        coVerify { homePrefs.setButtonEnabled(HomeButton.CAMERA, true) }
-    }
+    fun `toggle button calls data source`() =
+        runTest {
+            viewModel.toggle(HomeButton.CAMERA, true)
+            coVerify { homePrefs.setButtonEnabled(HomeButton.CAMERA, true) }
+        }
 
     @Test
-    fun `setVoiceButtonEnabled calls data source`() = runTest {
-        viewModel.setVoiceButtonEnabled(true)
-        coVerify { homePrefs.setVoiceButtonEnabled(true) }
-    }
+    fun `setVoiceButtonEnabled calls data source`() =
+        runTest {
+            viewModel.setVoiceButtonEnabled(true)
+            coVerify { homePrefs.setVoiceButtonEnabled(true) }
+        }
 
     @Test
-    fun `setFallDetectionEnabled true calls prefs and starts manager`() = runTest {
-        viewModel.setFallDetectionEnabled(true)
-        coVerify { fallPrefs.setEnabled(true) }
-        coVerify { fallManager.start() }
-    }
+    fun `setFallDetectionEnabled true calls prefs and starts manager`() =
+        runTest {
+            viewModel.setFallDetectionEnabled(true)
+            coVerify { fallPrefs.setEnabled(true) }
+            coVerify { fallManager.start() }
+        }
 
     @Test
-    fun `setFallDetectionEnabled false calls prefs and stops manager`() = runTest {
-        viewModel.setFallDetectionEnabled(false)
-        coVerify { fallPrefs.setEnabled(false) }
-        coVerify { fallManager.stop() }
-    }
+    fun `setFallDetectionEnabled false calls prefs and stops manager`() =
+        runTest {
+            viewModel.setFallDetectionEnabled(false)
+            coVerify { fallPrefs.setEnabled(false) }
+            coVerify { fallManager.stop() }
+        }
 
     @Test
-    fun `setFallSensitivity calls data source`() = runTest {
-        viewModel.setFallSensitivity(FallSensitivity.LOW)
-        coVerify { fallPrefs.setSensitivity(FallSensitivity.LOW) }
-    }
+    fun `setFallSensitivity calls data source`() =
+        runTest {
+            viewModel.setFallSensitivity(FallSensitivity.LOW)
+            coVerify { fallPrefs.setSensitivity(FallSensitivity.LOW) }
+        }
 }

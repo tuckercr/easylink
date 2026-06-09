@@ -31,8 +31,15 @@ private const val TAG = "AppListCache"
  */
 internal object AppListCache {
 
-    /** Application-lifetime scope for background work. */
-    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    /**
+     * Application-lifetime scope for background work.
+     *
+     * Uses [Dispatchers.IO] because [queryApps] issues Binder IPC calls
+     * (PackageManager) and disk reads (icon/label loading) — both of which
+     * are blocking operations better suited to the IO thread pool than the
+     * CPU-bound Default pool.
+     */
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /** Hot state — emits an empty list immediately, then the real list once loaded. */
     internal val apps: MutableStateFlow<List<AppInfo>> = MutableStateFlow(emptyList())
@@ -115,11 +122,11 @@ internal object AppListCache {
                 // Exclude this app and other launchers
                 if (pkg == context.packageName || pkg in homePackages) return@mapNotNull null
 
-                AppInfo(
-                    packageName = pkg,
-                    label = ri.loadLabel(pm).toString(),
-                    icon = ri.loadIcon(pm),
-                )
+                val label = runCatching { ri.loadLabel(pm).toString() }
+                    .getOrDefault(pkg) // fall back to package name if label fails
+                val icon = runCatching { ri.loadIcon(pm) }.getOrNull()
+
+                AppInfo(packageName = pkg, label = label, icon = icon)
             }.distinctBy { it.packageName }
             .sorted()
     }

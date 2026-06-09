@@ -24,8 +24,14 @@ import kotlin.math.sqrt
  * confirmed; the machine then resets automatically.
  *
  * Not thread-safe — call from a single sensor-callback thread.
+ *
+ * @param clock Supplies the current monotonic timestamp in milliseconds.
+ *   Defaults to [SystemClock.elapsedRealtime]. Override in tests to control
+ *   time without real waiting.
  */
-class FallDetector {
+class FallDetector(
+    private val clock: () -> Long = { SystemClock.elapsedRealtime() },
+) {
 
     companion object {
         /** How long (ms) to wait for an impact after the free-fall phase. */
@@ -51,7 +57,7 @@ class FallDetector {
         z: Float,
     ): Boolean {
         val magnitude = sqrt(x * x + y * y + z * z)
-        val now = SystemClock.elapsedRealtime()
+        val now = clock()
 
         return when (state) {
             State.NORMAL -> {

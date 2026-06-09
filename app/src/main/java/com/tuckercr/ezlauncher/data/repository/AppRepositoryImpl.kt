@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.util.Log
+import androidx.core.content.ContextCompat
 import com.tuckercr.ezlauncher.data.cache.AppListCache
 import com.tuckercr.ezlauncher.domain.model.AppInfo
 import com.tuckercr.ezlauncher.domain.repository.AppRepository
@@ -84,7 +85,12 @@ class AppRepositoryImpl @Inject constructor(
                 addAction(Intent.ACTION_PACKAGE_REPLACED)
                 addDataScheme("package")
             }
-            context.registerReceiver(receiver, filter)
+            ContextCompat.registerReceiver(
+                context,
+                receiver,
+                filter,
+                ContextCompat.RECEIVER_NOT_EXPORTED,
+            )
             awaitClose { context.unregisterReceiver(receiver) }
         }
 }
