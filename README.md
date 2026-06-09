@@ -1,5 +1,7 @@
 # EZ Launcher
 
+![Android CI](https://github.com/tuckercr/ez-launcher/actions/workflows/ci.yml/badge.svg)
+
 A full-featured Android home screen replacement designed for elderly users. Large buttons, high contrast, and safety-first features — no clutter, no confusion.
 
 ---
