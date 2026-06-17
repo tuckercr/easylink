@@ -104,8 +104,8 @@ class ClockViewModelTest {
     fun `setTimer resets a previously running timer`() =
         runTest {
             viewModel.setTimer(10)
-            viewModel.startPause()    // start
-            viewModel.setTimer(60)   // reset to a new duration
+            viewModel.startPause()
+            viewModel.setTimer(60)
             with(viewModel.timerState.value) {
                 assertEquals(60, totalSeconds)
                 assertFalse(isRunning)

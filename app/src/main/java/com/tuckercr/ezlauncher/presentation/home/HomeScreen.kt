@@ -717,7 +717,10 @@ private fun SingleHomeButton(
         }
 
         // Defensive coding - shouldn't happen...
-        else -> android.util.Log.e("HomeScreen", "Unhandled HomeButton: $button — add a branch to SingleHomeButton")
+        else -> android.util.Log.e(
+            "HomeScreen",
+            "Unhandled HomeButton: $button — add a branch to SingleHomeButton",
+        )
     }
 }
 
@@ -746,7 +749,9 @@ private fun HomeActionButton(
             blue = (color.blue * 1.3f).coerceAtMost(1f),
             alpha = color.alpha,
         )
-    } else color
+    } else {
+        color
+    }
     BoxWithConstraints(
         contentAlignment = Alignment.Center,
         modifier = modifier
