@@ -93,7 +93,7 @@ class EmergencySettingsViewModelTest {
                 val state = awaitItem() as EmergencySettingsUiState.Ready
                 assertNotNull(state.editingContact)
                 assertEquals("", state.editingContact!!.name)
-                assertEquals("", state.editingContact!!.phoneNumber)
+                assertEquals("", state.editingContact.phoneNumber)
             }
         }
 

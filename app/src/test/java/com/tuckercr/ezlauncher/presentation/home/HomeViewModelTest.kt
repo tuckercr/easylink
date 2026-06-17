@@ -120,7 +120,7 @@ class HomeViewModelTest {
             viewModel.uiState.test {
                 var item = awaitItem()
                 while (item !is HomeUiState.Success) item = awaitItem()
-                val initial = item as HomeUiState.Success
+                val initial = item
                 assertTrue("SOS should be on by default", initial.sosButtonEnabled)
 
                 sosEnabledFlow.value = false

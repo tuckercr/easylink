@@ -55,7 +55,6 @@ class MainActivity : ComponentActivity() {
 
     /**
      * Called when this Activity is already running and receives a new intent
-     * (e.g. from [FallAlertActivity] with [FLAG_ACTIVITY_SINGLE_TOP]).
      */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)

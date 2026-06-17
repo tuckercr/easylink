@@ -1,3 +1,5 @@
+@file:Suppress("ConvertLongToDuration")
+
 package com.tuckercr.ezlauncher.presentation.clock
 
 import kotlinx.coroutines.Dispatchers
