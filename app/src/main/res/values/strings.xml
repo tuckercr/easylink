@@ -194,6 +194,8 @@
     <string name="customize_home_buttons_description">Choose which quick-action buttons appear on the Home screen.</string>
     <string name="customize_voice_button_label">Voice Command Button</string>
     <string name="customize_voice_button_description">Show the \"Say a Command\" button on the Home screen.</string>
+    <string name="customize_sos_button_label">SOS Button</string>
+    <string name="customize_sos_button_description">Show the emergency SOS button on the Home screen.</string>
     <string name="customize_fall_detection_header">Fall Detection</string>
     <string name="customize_fall_detection_description">Uses the phone\'s accelerometer to detect a fall and automatically call your emergency contact after 30 seconds.</string>
     <string name="customize_emergency_contacts_header">Emergency Contacts</string>

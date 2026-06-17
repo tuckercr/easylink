@@ -286,31 +286,33 @@ fun HomeScreen(
                         }
                     }
 
-                    // 12 dp gap above SOS — same rhythm as the button grid gaps,
-                    // present whether or not the voice button is visible.
-                    Spacer(Modifier.height(12.dp))
+                    // ── SOS (only when enabled in Settings) ──────────────────
+                    if (s.sosButtonEnabled) {
+                        // 12 dp gap above SOS — same rhythm as the button grid gaps,
+                        // present whether or not the voice button is visible.
+                        Spacer(Modifier.height(12.dp))
 
-                    // ── SOS (full width) ─────────────────────────────────────
-                    Surface(
-                        onClick = onNavigateToSos,
-                        color = ColorSos,
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(120.dp),
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                "SOS",
-                                fontSize = 52.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = Color.White,
-                                letterSpacing = 6.sp,
-                            )
+                        Surface(
+                            onClick = onNavigateToSos,
+                            color = ColorSos,
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(120.dp),
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    "SOS",
+                                    fontSize = 52.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color.White,
+                                    letterSpacing = 6.sp,
+                                )
+                            }
                         }
-                    }
 
-                    Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(8.dp))
+                    }
                 }
             }
         }

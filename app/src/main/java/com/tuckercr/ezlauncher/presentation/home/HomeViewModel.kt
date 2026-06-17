@@ -35,14 +35,16 @@ class HomeViewModel @Inject constructor(
         isFlashlightOn,
         homePrefs.enabledButtons,
         homePrefs.voiceButtonEnabled,
+        homePrefs.sosButtonEnabled,
         weather,
-    ) { flashlight, buttons, voiceEnabled, weather ->
+    ) { flashlight, buttons, voiceEnabled, sosEnabled, weather ->
         HomeUiState.Success(
             isFlashlightOn = flashlight,
             // Preserve the canonical enum order so the grid is stable
             enabledButtons = HomeButton.entries.filter { it in buttons },
             weather = weather,
             voiceButtonEnabled = voiceEnabled,
+            sosButtonEnabled = sosEnabled,
         )
     }.stateIn(
         scope = viewModelScope,

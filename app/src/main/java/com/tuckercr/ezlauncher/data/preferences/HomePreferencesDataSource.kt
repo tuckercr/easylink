@@ -34,6 +34,9 @@ class HomePreferencesDataSource @Inject constructor(
         private val ENABLED_OPTIONAL_BUTTONS =
             stringSetPreferencesKey("enabled_optional_home_buttons")
         private val VOICE_BUTTON_ENABLED = booleanPreferencesKey("voice_button_enabled")
+
+        // Default ON — SOS is a core safety feature that should be visible by default.
+        private val SOS_BUTTON_ENABLED = booleanPreferencesKey("sos_button_enabled")
     }
 
     /** Emits the current set of enabled buttons whenever it changes. */
@@ -59,6 +62,15 @@ class HomePreferencesDataSource @Inject constructor(
 
     suspend fun setVoiceButtonEnabled(enabled: Boolean) {
         dataStore.edit { prefs -> prefs[VOICE_BUTTON_ENABLED] = enabled }
+    }
+
+    /** Whether the full-width SOS button is shown on the Home screen. */
+    val sosButtonEnabled: Flow<Boolean> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { prefs -> prefs[SOS_BUTTON_ENABLED] ?: true }
+
+    suspend fun setSosButtonEnabled(enabled: Boolean) {
+        dataStore.edit { prefs -> prefs[SOS_BUTTON_ENABLED] = enabled }
     }
 
     /** Persist the enabled/disabled state for a single button. */

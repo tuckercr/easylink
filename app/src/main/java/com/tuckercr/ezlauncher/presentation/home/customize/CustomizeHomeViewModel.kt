@@ -26,6 +26,7 @@ data class CustomizeUiState(
     val fallDetectionEnabled: Boolean = false,
     val fallSensitivity: FallSensitivity = FallSensitivity.MEDIUM,
     val voiceButtonEnabled: Boolean = false,
+    val sosButtonEnabled: Boolean = true,
 )
 
 @HiltViewModel
@@ -38,14 +39,16 @@ class CustomizeHomeViewModel @Inject constructor(
     val uiState: StateFlow<CustomizeUiState> = combine(
         homePrefs.enabledButtons,
         homePrefs.voiceButtonEnabled,
+        homePrefs.sosButtonEnabled,
         fallPrefs.isEnabled,
         fallPrefs.sensitivity,
-    ) { enabled, voiceEnabled, fallEnabled, sensitivity ->
+    ) { enabled, voiceEnabled, sosEnabled, fallEnabled, sensitivity ->
         CustomizeUiState(
             buttons = HomeButton.entries.map { btn ->
                 ButtonToggleItem(btn, btn.defaultLabel, btn in enabled)
             },
             voiceButtonEnabled = voiceEnabled,
+            sosButtonEnabled = sosEnabled,
             fallDetectionEnabled = fallEnabled,
             fallSensitivity = sensitivity,
         )
@@ -68,6 +71,12 @@ class CustomizeHomeViewModel @Inject constructor(
 
     fun setVoiceButtonEnabled(enabled: Boolean) {
         viewModelScope.launch { homePrefs.setVoiceButtonEnabled(enabled) }
+    }
+
+    // ── SOS button ────────────────────────────────────────────────────────────
+
+    fun setSosButtonEnabled(enabled: Boolean) {
+        viewModelScope.launch { homePrefs.setSosButtonEnabled(enabled) }
     }
 
     // ── Fall detection ────────────────────────────────────────────────────────

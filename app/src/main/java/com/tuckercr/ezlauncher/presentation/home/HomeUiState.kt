@@ -17,6 +17,8 @@ sealed class HomeUiState {
         val weather: WeatherInfo = WeatherInfo.Loading,
         /** Whether the full-width "Say a Command" bar is shown. Default OFF. */
         val voiceButtonEnabled: Boolean = false,
+        /** Whether the full-width SOS button is shown. Default ON. */
+        val sosButtonEnabled: Boolean = true,
     ) : HomeUiState()
 
     data class Error(

@@ -9,7 +9,7 @@ A full-featured Android home screen replacement designed for elderly users. Larg
 ## Features
 
 ### Home Screen
-The home screen shows up to six large, colour-coded quick-action buttons. Each button can be individually shown or hidden from the **Settings** tab.
+The home screen shows up to six large, color-coded quick-action buttons. Each button can be individually shown or hidden from the **Settings** tab.
 
 | Button | What it does |
 |---|---|
