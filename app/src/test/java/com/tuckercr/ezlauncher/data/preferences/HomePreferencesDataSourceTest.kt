@@ -214,4 +214,104 @@ class HomePreferencesDataSourceTest {
                 assertTrue(awaitItem())
             }
         }
+
+    // ── SOS button ────────────────────────────────────────────────────────────
+
+    @Test
+    fun `fresh prefs - SOS button is enabled by default`() =
+        testScope.runTest {
+            dataSource.sosButtonEnabled.test {
+                assertTrue(awaitItem())
+            }
+        }
+
+    @Test
+    fun `disabling SOS button updates the preference`() =
+        testScope.runTest {
+            dataSource.setSosButtonEnabled(false)
+            dataSource.sosButtonEnabled.test {
+                assertFalse(awaitItem())
+            }
+        }
+
+    @Test
+    fun `re-enabling SOS button updates the preference`() =
+        testScope.runTest {
+            dataSource.setSosButtonEnabled(false)
+            dataSource.setSosButtonEnabled(true)
+            dataSource.sosButtonEnabled.test {
+                assertTrue(awaitItem())
+            }
+        }
+
+    @Test
+    fun `sosButtonEnabled emits new values on change`() =
+        testScope.runTest {
+            dataSource.sosButtonEnabled.test {
+                assertTrue(awaitItem())
+                dataSource.setSosButtonEnabled(false)
+                assertFalse(awaitItem())
+                dataSource.setSosButtonEnabled(true)
+                assertTrue(awaitItem())
+            }
+        }
+
+    // ── High contrast ─────────────────────────────────────────────────────────
+
+    @Test
+    fun `fresh prefs - high contrast is disabled by default`() =
+        testScope.runTest {
+            dataSource.highContrastEnabled.test {
+                assertFalse(awaitItem())
+            }
+        }
+
+    @Test
+    fun `enabling high contrast updates the preference`() =
+        testScope.runTest {
+            dataSource.setHighContrastEnabled(true)
+            dataSource.highContrastEnabled.test {
+                assertTrue(awaitItem())
+            }
+        }
+
+    @Test
+    fun `disabling high contrast after enabling updates the preference`() =
+        testScope.runTest {
+            dataSource.setHighContrastEnabled(true)
+            dataSource.setHighContrastEnabled(false)
+            dataSource.highContrastEnabled.test {
+                assertFalse(awaitItem())
+            }
+        }
+
+    // ── resetToDefaults ───────────────────────────────────────────────────────
+
+    @Test
+    fun `resetToDefaults restores all preferences to their defaults`() =
+        testScope.runTest {
+            // Drive everything to non-default values
+            dataSource.setButtonEnabled(HomeButton.PHONE, false)
+            dataSource.setButtonEnabled(HomeButton.CALCULATOR, true) // optional
+            dataSource.setVoiceButtonEnabled(true)
+            dataSource.setSosButtonEnabled(false)
+            dataSource.setHighContrastEnabled(true)
+
+            dataSource.resetToDefaults()
+
+            dataSource.enabledButtons.test {
+                val enabled = awaitItem()
+                assertTrue("PHONE should be restored", HomeButton.PHONE in enabled)
+                assertFalse("CALCULATOR should be hidden again", HomeButton.CALCULATOR in enabled)
+            }
+            dataSource.voiceButtonEnabled.test {
+                assertFalse(awaitItem())
+            }
+            dataSource.sosButtonEnabled.test {
+                assertTrue(awaitItem())
+            }
+            dataSource.highContrastEnabled.test {
+                assertFalse(awaitItem())
+            }
+        }
 }

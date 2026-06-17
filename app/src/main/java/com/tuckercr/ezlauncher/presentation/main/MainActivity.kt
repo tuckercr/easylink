@@ -11,10 +11,12 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tuckercr.ezlauncher.navigation.EzLauncherNavHost
 import com.tuckercr.ezlauncher.ui.theme.EzLauncherTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,6 +27,8 @@ class MainActivity : ComponentActivity() {
     private val requestHomeRole = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) { /* re-checked on next onResume */ }
+
+    private val themeViewModel: ThemeViewModel by viewModels()
 
     /** Route to navigate to on startup, set via [EXTRA_NAVIGATE_TO] intent extra. */
     private var pendingNavTarget by mutableStateOf<String?>(null)
@@ -39,7 +43,8 @@ class MainActivity : ComponentActivity() {
         )
         pendingNavTarget = intent.getStringExtra(EXTRA_NAVIGATE_TO)
         setContent {
-            EzLauncherTheme {
+            val highContrast by themeViewModel.highContrastEnabled.collectAsStateWithLifecycle()
+            EzLauncherTheme(highContrast = highContrast) {
                 EzLauncherNavHost(
                     pendingNavTarget = pendingNavTarget,
                     onNavTargetConsumed = { pendingNavTarget = null },
@@ -82,8 +87,8 @@ class MainActivity : ComponentActivity() {
     private fun promptSetAsHome() {
         val dialog = AlertDialog
             .Builder(this)
-            .setTitle("Set EZ Launcher as Home")
-            .setMessage("Would you like to use EZ Launcher as your home screen?")
+            .setTitle("Set ClearHome as Home")
+            .setMessage("Would you like to use ClearHome as your home screen?")
             .setPositiveButton("Set Now") { _, _ -> requestDefaultHome() }
             .setNegativeButton("Not Now") { d, _ -> d.dismiss() }
             .create()

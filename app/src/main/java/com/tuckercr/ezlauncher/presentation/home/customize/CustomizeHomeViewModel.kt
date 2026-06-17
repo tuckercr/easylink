@@ -79,6 +79,19 @@ class CustomizeHomeViewModel @Inject constructor(
         viewModelScope.launch { homePrefs.setSosButtonEnabled(enabled) }
     }
 
+    // ── High-contrast theme ───────────────────────────────────────────────────
+
+    val highContrastEnabled: StateFlow<Boolean> = homePrefs.highContrastEnabled
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = false,
+        )
+
+    fun setHighContrastEnabled(enabled: Boolean) {
+        viewModelScope.launch { homePrefs.setHighContrastEnabled(enabled) }
+    }
+
     // ── Fall detection ────────────────────────────────────────────────────────
 
     fun setFallDetectionEnabled(enabled: Boolean) {

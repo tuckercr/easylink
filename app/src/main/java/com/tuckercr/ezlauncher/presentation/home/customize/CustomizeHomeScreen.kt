@@ -48,6 +48,7 @@ fun CustomizeHomeScreen(
     viewModel: CustomizeHomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val highContrast by viewModel.highContrastEnabled.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -63,6 +64,37 @@ fun CustomizeHomeScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp),
         ) {
+            // ── Section: Appearance ───────────────────────────────────────────
+            item {
+                SectionHeader(stringResource(R.string.customize_appearance_header))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.customize_high_contrast_label),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = stringResource(R.string.customize_high_contrast_description),
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Switch(
+                        checked = highContrast,
+                        onCheckedChange = { viewModel.setHighContrastEnabled(it) },
+                    )
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+            }
+
             // ── Section: Home buttons ─────────────────────────────────────────
             item {
                 SectionHeader(stringResource(R.string.customize_home_buttons_header))

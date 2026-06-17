@@ -36,6 +36,7 @@ class HomeViewModelTest {
 
     private val enabledButtonsFlow = MutableStateFlow(setOf(HomeButton.PHONE))
     private val voiceEnabledFlow = MutableStateFlow(false)
+    private val sosEnabledFlow = MutableStateFlow(true)
 
     @Before
     fun setup() {
@@ -47,6 +48,7 @@ class HomeViewModelTest {
 
         every { homePrefs.enabledButtons } returns enabledButtonsFlow
         every { homePrefs.voiceButtonEnabled } returns voiceEnabledFlow
+        every { homePrefs.sosButtonEnabled } returns sosEnabledFlow
         coEvery { weatherService.fetch() } returns WeatherInfo.Unavailable("Network error")
 
         viewModel = HomeViewModel(launchAppUseCase, homePrefs, weatherService)
@@ -110,5 +112,20 @@ class HomeViewModelTest {
         runTest {
             viewModel.setButtonEnabled(HomeButton.CAMERA, true)
             coVerify { homePrefs.setButtonEnabled(HomeButton.CAMERA, true) }
+        }
+
+    @Test
+    fun `sosButtonEnabled is reflected in uiState`() =
+        runTest {
+            viewModel.uiState.test {
+                var item = awaitItem()
+                while (item !is HomeUiState.Success) item = awaitItem()
+                val initial = item as HomeUiState.Success
+                assertTrue("SOS should be on by default", initial.sosButtonEnabled)
+
+                sosEnabledFlow.value = false
+                val updated = awaitItem() as HomeUiState.Success
+                assertFalse("SOS should reflect preference change", updated.sosButtonEnabled)
+            }
         }
 }

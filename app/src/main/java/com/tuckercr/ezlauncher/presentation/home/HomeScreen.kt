@@ -80,6 +80,7 @@ import com.tuckercr.ezlauncher.ui.theme.ColorSos
 import com.tuckercr.ezlauncher.ui.theme.ColorText
 import com.tuckercr.ezlauncher.ui.theme.ColorWeb
 import com.tuckercr.ezlauncher.ui.theme.ColorYouTube
+import com.tuckercr.ezlauncher.ui.theme.LocalHighContrast
 
 private const val BUTTONS_PER_ROW = 3
 
@@ -738,12 +739,20 @@ private fun HomeActionButton(
     // Sizing rule: 66% of the button width, but capped at 55% of the button
     // height so the label always has room beneath it. No hard upper cap — larger
     // screens/fewer buttons naturally produce larger icons.
+    val effectiveColor = if (LocalHighContrast.current) {
+        Color(
+            red = (color.red * 1.3f).coerceAtMost(1f),
+            green = (color.green * 1.3f).coerceAtMost(1f),
+            blue = (color.blue * 1.3f).coerceAtMost(1f),
+            alpha = color.alpha,
+        )
+    } else color
     BoxWithConstraints(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .fillMaxHeight()
             .clip(RoundedCornerShape(16.dp))
-            .background(color)
+            .background(effectiveColor)
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .padding(8.dp),
     ) {

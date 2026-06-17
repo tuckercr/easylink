@@ -3,6 +3,8 @@ package com.tuckercr.ezlauncher.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 val ColorPhone = Color(0xFF839B3B)
@@ -37,10 +39,35 @@ private val DarkColors = darkColorScheme(
     onError = Color(0xFF690005),
 )
 
+private val HighContrastColors = darkColorScheme(
+    primary = Color(0xFFB0D9FF),
+    onPrimary = Color(0xFF00315F),
+    primaryContainer = Color(0xFF004788),
+    onPrimaryContainer = Color(0xFFFFFFFF),
+    secondary = Color(0xFFC8F5CA),
+    onSecondary = Color(0xFF003910),
+    background = Color(0xFF000000),
+    onBackground = Color(0xFFFFFFFF),
+    surface = Color(0xFF111111),
+    onSurface = Color(0xFFFFFFFF),
+    surfaceVariant = Color(0xFF222222),
+    onSurfaceVariant = Color(0xFFCCCCCC),
+    error = Color(0xFFFFB4AB),
+    onError = Color(0xFF690005),
+)
+
+/** True when the user has enabled high-contrast mode in Settings. */
+val LocalHighContrast = compositionLocalOf { false }
+
 @Composable
-fun EzLauncherTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = DarkColors,
-        content = content,
-    )
+fun EzLauncherTheme(
+    highContrast: Boolean = false,
+    content: @Composable () -> Unit,
+) {
+    CompositionLocalProvider(LocalHighContrast provides highContrast) {
+        MaterialTheme(
+            colorScheme = if (highContrast) HighContrastColors else DarkColors,
+            content = content,
+        )
+    }
 }

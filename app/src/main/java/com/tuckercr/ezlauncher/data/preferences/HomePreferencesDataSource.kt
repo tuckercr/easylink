@@ -37,6 +37,7 @@ class HomePreferencesDataSource @Inject constructor(
 
         // Default ON — SOS is a core safety feature that should be visible by default.
         private val SOS_BUTTON_ENABLED = booleanPreferencesKey("sos_button_enabled")
+        private val HIGH_CONTRAST_ENABLED = booleanPreferencesKey("high_contrast_enabled")
     }
 
     /** Emits the current set of enabled buttons whenever it changes. */
@@ -73,6 +74,15 @@ class HomePreferencesDataSource @Inject constructor(
         dataStore.edit { prefs -> prefs[SOS_BUTTON_ENABLED] = enabled }
     }
 
+    /** Whether the high-contrast theme is active. */
+    val highContrastEnabled: Flow<Boolean> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { prefs -> prefs[HIGH_CONTRAST_ENABLED] ?: false }
+
+    suspend fun setHighContrastEnabled(enabled: Boolean) {
+        dataStore.edit { prefs -> prefs[HIGH_CONTRAST_ENABLED] = enabled }
+    }
+
     /** Persist the enabled/disabled state for a single button. */
     suspend fun setButtonEnabled(
         button: HomeButton,
@@ -88,6 +98,17 @@ class HomePreferencesDataSource @Inject constructor(
                 if (enabled) current.add(button.name) else current.remove(button.name)
                 prefs[ENABLED_OPTIONAL_BUTTONS] = current
             }
+        }
+    }
+
+    /** Resets all home button preferences to their default values. */
+    suspend fun resetToDefaults() {
+        dataStore.edit { prefs ->
+            prefs.remove(DISABLED_BUTTONS)
+            prefs.remove(ENABLED_OPTIONAL_BUTTONS)
+            prefs.remove(VOICE_BUTTON_ENABLED)
+            prefs.remove(SOS_BUTTON_ENABLED)
+            prefs.remove(HIGH_CONTRAST_ENABLED)
         }
     }
 }

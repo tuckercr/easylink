@@ -35,6 +35,8 @@ class CustomizeHomeViewModelTest {
 
     private val enabledButtonsFlow = MutableStateFlow(setOf(HomeButton.PHONE))
     private val voiceEnabledFlow = MutableStateFlow(false)
+    private val sosEnabledFlow = MutableStateFlow(true)
+    private val highContrastFlow = MutableStateFlow(false)
     private val fallEnabledFlow = MutableStateFlow(false)
     private val fallSensitivityFlow = MutableStateFlow(FallSensitivity.MEDIUM)
 
@@ -48,6 +50,8 @@ class CustomizeHomeViewModelTest {
 
         every { homePrefs.enabledButtons } returns enabledButtonsFlow
         every { homePrefs.voiceButtonEnabled } returns voiceEnabledFlow
+        every { homePrefs.sosButtonEnabled } returns sosEnabledFlow
+        every { homePrefs.highContrastEnabled } returns highContrastFlow
         every { fallPrefs.isEnabled } returns fallEnabledFlow
         every { fallPrefs.sensitivity } returns fallSensitivityFlow
 
@@ -136,5 +140,31 @@ class CustomizeHomeViewModelTest {
         runTest {
             viewModel.setFallSensitivity(FallSensitivity.LOW)
             coVerify { fallPrefs.setSensitivity(FallSensitivity.LOW) }
+        }
+
+    @Test
+    fun `highContrastEnabled reflects homePrefs flow`() =
+        runTest {
+            viewModel.highContrastEnabled.test {
+                assertFalse(awaitItem())
+                highContrastFlow.value = true
+                assertTrue(awaitItem())
+                highContrastFlow.value = false
+                assertFalse(awaitItem())
+            }
+        }
+
+    @Test
+    fun `setHighContrastEnabled calls data source`() =
+        runTest {
+            viewModel.setHighContrastEnabled(true)
+            coVerify { homePrefs.setHighContrastEnabled(true) }
+        }
+
+    @Test
+    fun `setSosButtonEnabled calls data source`() =
+        runTest {
+            viewModel.setSosButtonEnabled(false)
+            coVerify { homePrefs.setSosButtonEnabled(false) }
         }
 }
