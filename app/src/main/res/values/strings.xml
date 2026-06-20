@@ -188,6 +188,7 @@
 
     <!-- Apps screen -->
     <string name="apps_no_apps">No apps found</string>
+    <string name="apps_context_app_info">App Info</string>
 
     <!-- Customize / Settings screen -->
     <string name="customize_appearance_header">Appearance</string>
