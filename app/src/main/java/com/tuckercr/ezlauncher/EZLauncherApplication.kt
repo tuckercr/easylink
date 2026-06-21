@@ -4,6 +4,8 @@ import android.app.Application
 import com.tuckercr.ezlauncher.data.alarm.ReminderNotificationHelper
 import com.tuckercr.ezlauncher.data.fall.FallDetectionManager
 import com.tuckercr.ezlauncher.data.fall.FallDetectionNotificationHelper
+import com.tuckercr.ezlauncher.data.home.HomeScreenCheckScheduler
+import com.tuckercr.ezlauncher.data.home.HomeScreenNotificationHelper
 import com.tuckercr.ezlauncher.data.preferences.FallDetectionPreferences
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
@@ -28,12 +30,20 @@ class EZLauncherApplication : Application() {
     @Inject
     lateinit var fallManager: FallDetectionManager
 
+    @Inject
+    lateinit var homeScreenNotifHelper: HomeScreenNotificationHelper
+
+    @Inject
+    lateinit var homeScreenCheckScheduler: HomeScreenCheckScheduler
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreate() {
         super.onCreate()
         reminderNotifHelper.createChannel()
         fallNotifHelper.createChannels()
+        homeScreenNotifHelper.createChannel()
+        homeScreenCheckScheduler.schedule()
         restoreFallDetectionIfEnabled()
     }
 

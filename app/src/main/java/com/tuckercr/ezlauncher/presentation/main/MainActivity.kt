@@ -2,7 +2,6 @@ package com.tuckercr.ezlauncher.presentation.main
 
 import android.app.role.RoleManager
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -17,12 +16,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tuckercr.ezlauncher.data.home.DefaultHomeChecker
+import com.tuckercr.ezlauncher.data.home.HomeScreenNotificationHelper
 import com.tuckercr.ezlauncher.navigation.EzLauncherNavHost
 import com.tuckercr.ezlauncher.ui.theme.EzLauncherTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var homeScreenNotifHelper: HomeScreenNotificationHelper
+
+    @Inject
+    lateinit var defaultHomeChecker: DefaultHomeChecker
 
     private val requestHomeRole = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
@@ -67,21 +75,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (!isDefaultHome()) {
+        if (defaultHomeChecker.isDefault()) {
+            // Dismiss any pending reminder notification — the user already set us as home
+            homeScreenNotifHelper.cancel()
+        } else {
             promptSetAsHome()
         }
     }
-
-    private fun isDefaultHome(): Boolean =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            getSystemService(RoleManager::class.java).isRoleHeld(RoleManager.ROLE_HOME)
-        } else {
-            val intent = Intent(Intent.ACTION_MAIN).apply { addCategory(Intent.CATEGORY_HOME) }
-            packageManager
-                .resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
-                ?.activityInfo
-                ?.packageName == packageName
-        }
 
     private fun promptSetAsHome() {
         val dialog = AlertDialog

@@ -9,16 +9,22 @@ A full-featured Android home screen replacement designed for elderly users. Larg
 ## Features
 
 ### Home Screen
-The home screen shows up to six large, color-coded quick-action buttons. Each button can be individually shown or hidden from the **Settings** tab.
+The home screen shows up to 12 large, color-coded quick-action buttons in a dynamic grid that scales to fill the screen. Each button can be individually shown or hidden from the **Settings** tab.
 
-| Button | What it does |
-|---|---|
-| **Phone** | Opens the system dialler |
-| **Text** | Opens the default messaging app |
-| **Camera** | Launches the system camera |
-| **Magnifier** | Opens the built-in magnifier (camera zoom) |
-| **All Apps** | Shows every installed app |
-| **Flashlight** | Toggles the rear torch on/off |
+| Button | What it does | Default |
+|---|---|---|
+| **Phone** | Opens the system dialer | Enabled |
+| **Text** | Opens the default messaging app | Enabled |
+| **Camera** | Launches the system camera | Enabled |
+| **Magnifier** | Opens the built-in magnifier (camera zoom) | Enabled |
+| **All Apps** | Shows every installed app | Enabled |
+| **Flashlight** | Toggles the rear torch on/off | Enabled |
+| **Web** | Launches the web browser | Optional |
+| **Maps** | Opens maps for navigation | Optional |
+| **Email** | Opens the default email app | Optional |
+| **Photos** | Opens the photo gallery | Optional |
+| **YouTube** | Launches the YouTube app | Optional |
+| **Calculator** | Opens the system calculator | Optional |
 
 Long-pressing any button reads its label aloud via text-to-speech.
 
@@ -29,14 +35,17 @@ Long-pressing any button reads its label aloud via text-to-speech.
 ---
 
 ### Weather
-A **weather card** at the top of the home screen shows the current temperature, conditions, and city name using the [Open-Meteo](https://open-meteo.com/) API (no account or API key required). Tapping the card opens a **7-day forecast screen** showing high/low temperatures, weather conditions, and precipitation chance for each day. Location permission is requested on first use; if denied, the card shows a tap-to-enable prompt.
+A **weather card** at the top of the home screen shows the current temperature, conditions, and city name using the [Open-Meteo](https://open-meteo.com/) API. 
+- **Offline Reliability:** Weather data and location are cached locally. If the network or GPS is unavailable, the app displays the "Saved location" and the time of the last update.
+- **Forecast:** Tapping the card opens a **7-day forecast screen**.
+- **Location Privacy:** Location permission is requested on first use; location is resolved on-device and never shared with third parties.
 
 ![Weather forecast](screenshots/weather_forecast.png)
 
 ---
 
 ### Voice Commands
-Tap **"Say a Command"** (the indigo microphone button above SOS) and speak naturally. Microphone permission is requested on first use.
+Enable the optional **"Say a Command"** button in Settings to speak naturally. The microphone is only active while the command overlay is visible.
 
 | Say | Result |
 |---|---|
@@ -49,23 +58,17 @@ Tap **"Say a Command"** (the indigo microphone button above SOS) and speak natur
 | "Flashlight" | Toggles the torch |
 | "Go home" | Returns to the home screen |
 
-Unrecognised phrases show a "not understood" card with example commands and a Retry button.
-
 ![Voice commands](screenshots/voice_commands.png)
-
-![Voice commands hint](screenshots/voice_commands-hint.png)
 
 ---
 
 ### SOS
-The large red SOS button at the bottom of the home screen starts a **10-second countdown** before sending an emergency alert. During the countdown the user can tap **CANCEL** to abort.
+The red SOS button starts a **10-second countdown**. If not cancelled:
+- Automatically calls the primary emergency contact.
+- Sends an SMS alert to all configured emergency contacts.
+- Includes current GPS coordinates in the SMS (if permission is granted).
 
-When the countdown completes:
-- Places a phone call to the primary emergency contact
-- Sends an SMS to all configured emergency contacts
-- Shares the device's current GPS location in the SMS (if granted)
-
-Emergency contacts are configured in **Settings → Emergency Contacts**.
+Emergency contacts are managed directly in **Settings → Emergency Contacts**.
 
 ![SOS initiated](screenshots/sos_initiated.png)
 
@@ -74,74 +77,61 @@ Emergency contacts are configured in **Settings → Emergency Contacts**.
 ---
 
 ### Fall Detection
-When enabled (Settings → Fall Detection), a foreground service monitors the accelerometer continuously in the background and survives device reboots.
-
-When a fall is detected:
-1. A full-screen alert appears (even on the lock screen)
-2. A **30-second countdown** begins
-3. Tapping **"I'm OK"** dismisses the alert
-4. If the countdown reaches zero, the app automatically calls the primary emergency contact
+When enabled in Settings, a foreground service monitors the accelerometer for sudden impacts followed by a period of inactivity.
+1. A full-screen alert appears with a **30-second countdown**.
+2. Tapping **"I'm OK"** dismisses the alert.
+3. If the countdown reaches zero, the app automatically calls the primary emergency contact.
 
 Sensitivity is adjustable: **Low** (fewer false alerts), **Medium** (recommended), or **High** (most sensitive).
 
 ---
 
 ### Speed Dial
-A dedicated tab shows saved contacts as large tap-to-call cards. Contacts are added from the device's address book and stored locally.
+The **Call** tab shows saved favorites as large tap-to-call cards. Contacts are added from the device address book.
 
 ![Speed dial](screenshots/speed_dial.png)
 
 ---
 
 ### Medication Reminders
-Add medications with one or more daily reminder times. At each scheduled time a notification appears with **Take** and **Snooze** actions. Alarms are rescheduled automatically after a reboot.
+Add medications with one or more daily reminder times. Notifications include **Take** and **Snooze** actions. Alarms are persistent across device reboots.
 
 ![Medications](screenshots/medications.png)
 
 ---
 
-### Magnifier
-A full-screen camera preview with pinch-to-zoom. Useful for reading small print, labels, or menus.
+### Magnifier & Clock
+- **Magnifier:** Full-screen camera preview with pinch-to-zoom for reading small print.
+- **Clock:** A large, high-contrast clock and timer display.
 
 ![Magnifier](screenshots/magnifier.png)
-
----
-
-### Clock
-A large full-screen clock display, accessible from the bottom navigation bar.
 
 ![Clock and timer](screenshots/clock_and_timer.png)
 
 ---
 
 ### Settings
-Accessible at any time from the **Settings** tab in the bottom navigation bar. Lets the user:
-- Show or hide any of the six home screen quick-action buttons
-- Enable / disable fall detection and adjust its sensitivity
+The dedicated **Settings** tab allows users or caregivers to:
+- Show/hide any of the 12 home screen quick-action buttons.
+- Toggle the Voice Command button.
+- Manage **Emergency Contacts** (Add/Edit/Delete).
+- Enable Fall Detection and adjust sensitivity.
 
 ![Settings](screenshots/settings_1.png)
-
-![Settings](screenshots/settings_2.png)
-
----
-
-### Data Backup & Restore
-
-All user data — medications, emergency contacts, speed dial, and app preferences — is automatically backed up to Google Drive via Android Auto Backup. Data is restored silently when the app is reinstalled or transferred to a new phone, with no action required from the user.
 
 ---
 
 ## Navigation
 
-The bottom navigation bar provides access to five top-level destinations:
+The bottom navigation bar provides instant access to five areas:
 
 | Tab | Description |
 |---|---|
-| **Home** | Quick-action buttons, weather, SOS, and voice commands |
-| **Speed Dial** | One-tap calling for saved contacts |
+| **Home** | Primary actions, weather, and SOS |
+| **Call** | One-tap speed dial for favorites |
 | **Meds** | Medication reminder schedule |
-| **Clock** | Full-screen clock |
-| **Settings** | Home button customisation and fall detection |
+| **Clock** | Large clock and timer |
+| **Settings** | Configuration and emergency contacts |
 
 ---
 
@@ -153,27 +143,23 @@ The bottom navigation bar provides access to five top-level destinations:
 | `RECORD_AUDIO` | Voice commands |
 | `ACCESS_FINE_LOCATION` | GPS coordinates in SOS SMS |
 | `ACCESS_COARSE_LOCATION` | Weather widget |
-| `CALL_PHONE` | SOS and voice "Call" command |
+| `CALL_PHONE` | SOS and "Call" commands |
 | `SEND_SMS` | SOS alert messages |
-| `READ_CONTACTS` | Speed Dial contact picker and voice "Call/Text" lookup |
-| `POST_NOTIFICATIONS` | Medication reminders and fall detection alerts |
+| `READ_CONTACTS` | Speed Dial and Voice command lookups |
+| `POST_NOTIFICATIONS` | Medication reminders and fall alerts |
 | `FOREGROUND_SERVICE_HEALTH` | Fall detection background service |
 | `HIGH_SAMPLING_RATE_SENSORS` | Accelerometer access for fall detection |
-| `RECEIVE_BOOT_COMPLETED` | Restore alarms and fall detection after reboot |
-
-All dangerous permissions are requested at first launch with a plain-language explanation before the system dialog appears.
+| `RECEIVE_BOOT_COMPLETED` | Restore alarms and service after reboot |
+| `USE_FULL_SCREEN_INTENT` | Show Fall Alert on top of lock screen (Android 14+) |
 
 ---
 
 ## Tech Stack
 
-- **Language:** Kotlin
 - **UI:** Jetpack Compose + Material 3
-- **Architecture:** MVVM + Clean Architecture (domain / data / presentation layers)
-- **DI:** Hilt
-- **Persistence:** Room (medications, speed dial, emergency contacts) + DataStore (preferences)
-- **Background work:** Android `AlarmManager` (medication reminders), foreground `Service` (fall detection)
-- **Speech:** Android `SpeechRecognizer` (on-device, no third-party SDK)
-- **Weather:** [Open-Meteo](https://open-meteo.com/) REST API — free, no API key
-- **Location:** `FusedLocationProviderClient`
-- **Torch:** Android `CameraManager.setTorchMode()` — direct system API, no camera binding required
+- **Architecture:** MVVM + Clean Architecture
+- **Concurrency:** Kotlin Coroutines & Flow
+- **Persistence:** Room (DB) + DataStore (Preferences)
+- **Background:** `AlarmManager` (Reminders), Foreground `Service` (Fall Detection)
+- **Caching:** Jetpack Startup (App list pre-warming), Weather/Location persistence
+- **Hardware:** `CameraManager` (Torch), `FusedLocationProviderClient` (GPS)

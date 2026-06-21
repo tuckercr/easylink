@@ -90,6 +90,11 @@
             </intent-filter>
         </activity>
 
+        <!-- ── Home screen reminder ───────────────────────────────────────── -->
+        <receiver
+            android:name=".data.home.HomeScreenCheckReceiver"
+            android:exported="false" />
+
         <!-- ── Medication reminder receivers ──────────────────────────────── -->
         <receiver
             android:name=".data.alarm.ReminderAlarmReceiver"

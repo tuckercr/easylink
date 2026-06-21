@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.tuckercr.ezlauncher.data.fall.FallDetectionManager
+import com.tuckercr.ezlauncher.data.home.HomeScreenCheckScheduler
 import com.tuckercr.ezlauncher.data.preferences.FallDetectionPreferences
 import com.tuckercr.ezlauncher.domain.repository.MedicationRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -34,6 +35,9 @@ class BootCompletedReceiver : BroadcastReceiver() {
     @Inject
     lateinit var fallManager: FallDetectionManager
 
+    @Inject
+    lateinit var homeScreenCheckScheduler: HomeScreenCheckScheduler
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onReceive(
@@ -56,6 +60,10 @@ class BootCompletedReceiver : BroadcastReceiver() {
                     fallManager.start()
                     Log.i(TAG, "Fall detection restarted")
                 }
+
+                // 3. Home screen reminder (AlarmManager alarms don't survive reboots)
+                homeScreenCheckScheduler.schedule()
+                Log.i(TAG, "Home screen reminder rescheduled")
             } catch (e: Exception) {
                 Log.e(TAG, "Error restoring services after boot", e)
             } finally {

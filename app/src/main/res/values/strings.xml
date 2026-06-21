@@ -186,6 +186,12 @@
     <string name="emergency_contacts_primary_label">Primary contact</string>
     <string name="emergency_contacts_primary_body">Will be called first during SOS</string>
 
+    <!-- Home screen reminder notification -->
+    <string name="notif_channel_home_reminder_name">Home Screen Reminder</string>
+    <string name="notif_channel_home_reminder_desc">Daily reminder to set ClearHome as your default home screen</string>
+    <string name="notif_home_reminder_title">ClearHome isn\'t your home screen</string>
+    <string name="notif_home_reminder_body">Tap to set ClearHome as your default home screen.</string>
+
     <!-- Apps screen -->
     <string name="apps_no_apps">No apps found</string>
     <string name="apps_context_app_info">App Info</string>
