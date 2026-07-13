@@ -1,7 +1,9 @@
 package com.tuckercr.ezlauncher.presentation.main
 
+import android.Manifest
 import android.app.role.RoleManager
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -16,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tuckercr.ezlauncher.R
 import com.tuckercr.ezlauncher.data.home.DefaultHomeChecker
 import com.tuckercr.ezlauncher.data.home.HomeScreenNotificationHelper
 import com.tuckercr.ezlauncher.navigation.EzLauncherNavHost
@@ -36,10 +39,17 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.StartActivityForResult(),
     ) { /* re-checked on next onResume */ }
 
+    private val requestNotificationPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { /* showNotification() re-checks permission before posting */ }
+
     private val themeViewModel: ThemeViewModel by viewModels()
 
     /** Route to navigate to on startup, set via [EXTRA_NAVIGATE_TO] intent extra. */
     private var pendingNavTarget by mutableStateOf<String?>(null)
+
+    /** Currently-visible "set as home" prompt, if any — prevents stacking a new one on every resume. */
+    private var homeDialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +60,7 @@ class MainActivity : ComponentActivity() {
             statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
         )
         pendingNavTarget = intent.getStringExtra(EXTRA_NAVIGATE_TO)
+        requestNotificationPermissionIfNeeded()
         setContent {
             val highContrast by themeViewModel.highContrastEnabled.collectAsStateWithLifecycle()
             EzLauncherTheme(highContrast = highContrast) {
@@ -66,7 +77,10 @@ class MainActivity : ComponentActivity() {
      */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        pendingNavTarget = intent.getStringExtra(EXTRA_NAVIGATE_TO)
+        // Only overwrite when the new intent actually carries a target — otherwise an
+        // unrelated intent (e.g. the home-reminder notification tap) would silently
+        // clobber a navigation target set by another in-flight intent (e.g. a fall alert).
+        intent.getStringExtra(EXTRA_NAVIGATE_TO)?.let { pendingNavTarget = it }
     }
 
     companion object {
@@ -83,14 +97,30 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        homeDialog?.dismiss()
+        homeDialog = null
+    }
+
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
     private fun promptSetAsHome() {
+        if (homeDialog?.isShowing == true) return
         val dialog = AlertDialog
             .Builder(this)
-            .setTitle("Set ClearHome as Home")
-            .setMessage("Would you like to use ClearHome as your home screen?")
-            .setPositiveButton("Set Now") { _, _ -> requestDefaultHome() }
-            .setNegativeButton("Not Now") { d, _ -> d.dismiss() }
+            .setTitle(getString(R.string.home_dialog_title))
+            .setMessage(getString(R.string.home_dialog_message))
+            .setPositiveButton(getString(R.string.home_dialog_positive)) { _, _ -> requestDefaultHome() }
+            .setNegativeButton(getString(R.string.home_dialog_negative)) { d, _ -> d.dismiss() }
             .create()
+        homeDialog = dialog
         dialog.show()
         // Override the theme's accent colour so the buttons are readable on a dark background
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(android.graphics.Color.WHITE)

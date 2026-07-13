@@ -113,7 +113,7 @@ class ClockViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    override fun onCleared() {
+    public override fun onCleared() {
         clockJob?.cancel()
         timerJob?.cancel()
     }

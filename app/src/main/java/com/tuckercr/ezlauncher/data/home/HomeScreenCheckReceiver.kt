@@ -3,6 +3,7 @@ package com.tuckercr.ezlauncher.data.home
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import androidx.annotation.VisibleForTesting
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -27,7 +28,9 @@ class HomeScreenCheckReceiver : BroadcastReceiver() {
         intent: Intent,
     ) = handleAlarm()
 
-    // Extracted so unit tests can call this directly, bypassing Hilt's onReceive wrapper.
+    // internal (not private) only so unit tests can call this directly, bypassing the
+    // Hilt-generated onReceive wrapper. Not intended to be called from production code.
+    @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
     internal fun handleAlarm() {
         if (defaultHomeChecker.isDefault()) {
             notificationHelper.cancel()

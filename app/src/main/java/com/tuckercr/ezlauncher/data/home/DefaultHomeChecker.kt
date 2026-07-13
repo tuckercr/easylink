@@ -15,9 +15,11 @@ class DefaultHomeChecker @Inject constructor(
 ) {
     fun isDefault(): Boolean =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Some OEM ROMs return a null RoleManager before the role subsystem finishes
+            // initializing post-OTA — fall back to "not default" rather than crashing.
             context
                 .getSystemService(RoleManager::class.java)
-                .isRoleHeld(RoleManager.ROLE_HOME)
+                ?.isRoleHeld(RoleManager.ROLE_HOME) ?: false
         } else {
             val homeIntent = Intent(Intent.ACTION_MAIN).apply {
                 addCategory(Intent.CATEGORY_HOME)

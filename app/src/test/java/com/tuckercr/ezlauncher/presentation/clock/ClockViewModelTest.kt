@@ -7,6 +7,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -34,6 +35,12 @@ class ClockViewModelTest {
     fun teardown() {
         Dispatchers.resetMain()
     }
+
+    private fun runClockTest(testBody: suspend TestScope.() -> Unit) =
+        runTest {
+            testBody()
+            viewModel.onCleared()
+        }
 
     // ── TimerState computed properties ────────────────────────────────────────
 
@@ -102,7 +109,7 @@ class ClockViewModelTest {
 
     @Test
     fun `setTimer resets a previously running timer`() =
-        runTest {
+        runClockTest {
             viewModel.setTimer(10)
             viewModel.startPause()
             viewModel.setTimer(60)
@@ -122,7 +129,7 @@ class ClockViewModelTest {
 
     @Test
     fun `startPause marks the timer as running`() =
-        runTest {
+        runClockTest {
             viewModel.setTimer(60)
             viewModel.startPause()
             assertTrue(viewModel.timerState.value.isRunning)
@@ -130,7 +137,7 @@ class ClockViewModelTest {
 
     @Test
     fun `startPause pauses a running timer`() =
-        runTest {
+        runClockTest {
             viewModel.setTimer(60)
             viewModel.startPause() // start
             viewModel.startPause() // pause
@@ -139,7 +146,7 @@ class ClockViewModelTest {
 
     @Test
     fun `startPause does nothing when timer is finished`() =
-        runTest {
+        runClockTest {
             viewModel.setTimer(1)
             viewModel.startPause()
             advanceTimeBy(2_000)
@@ -153,7 +160,7 @@ class ClockViewModelTest {
 
     @Test
     fun `resetTimer restores remaining to total and stops the timer`() =
-        runTest {
+        runClockTest {
             viewModel.setTimer(60)
             viewModel.startPause()
             advanceTimeBy(3_000)
@@ -167,7 +174,7 @@ class ClockViewModelTest {
 
     @Test
     fun `resetTimer clears isFinished`() =
-        runTest {
+        runClockTest {
             viewModel.setTimer(1)
             viewModel.startPause()
             advanceTimeBy(2_000)
@@ -180,7 +187,7 @@ class ClockViewModelTest {
 
     @Test
     fun `timer decrements remaining each second`() =
-        runTest {
+        runClockTest {
             viewModel.setTimer(10)
             viewModel.startPause()
             advanceTimeBy(3_100)
@@ -190,7 +197,7 @@ class ClockViewModelTest {
 
     @Test
     fun `timer sets isFinished and clears isRunning when it reaches zero`() =
-        runTest {
+        runClockTest {
             viewModel.setTimer(3)
             viewModel.startPause()
             advanceTimeBy(4_000)
@@ -203,7 +210,7 @@ class ClockViewModelTest {
 
     @Test
     fun `timer emits decreasing remainingSeconds while running`() =
-        runTest {
+        runClockTest {
             viewModel.setTimer(5)
             viewModel.startPause()
 

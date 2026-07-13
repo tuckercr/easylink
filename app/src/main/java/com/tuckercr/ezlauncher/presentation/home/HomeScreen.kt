@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
@@ -378,13 +379,8 @@ private fun WeatherCard(
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
                         )
-                        val subtitle = if (weather.usingCachedLocation) {
-                            weather.city?.let { "$it · ${weather.description}" }
-                                ?: weather.description
-                        } else {
-                            weather.city?.let { "$it · ${weather.description}" }
-                                ?: weather.description
-                        }
+                        val subtitle = weather.city?.let { "$it · ${weather.description}" }
+                            ?: weather.description
                         Text(
                             text = subtitle,
                             color = Color.White.copy(alpha = 0.8f),
@@ -726,6 +722,15 @@ private fun SingleHomeButton(
 
 // ── Button composable ─────────────────────────────────────────────────────────
 
+// Boosts brightness (HSV value) only, leaving hue/saturation untouched — boosting
+// R/G/B channels independently shifts hue for saturated colors once one channel clamps.
+private fun boostBrightness(color: Color): Color {
+    val hsv = FloatArray(3)
+    android.graphics.Color.colorToHSV(color.toArgb(), hsv)
+    hsv[2] = (hsv[2] * 1.3f).coerceAtMost(1f)
+    return Color(android.graphics.Color.HSVToColor((color.alpha * 255).toInt(), hsv))
+}
+
 @Composable
 private fun HomeActionButton(
     label: String,
@@ -743,12 +748,7 @@ private fun HomeActionButton(
     // height so the label always has room beneath it. No hard upper cap — larger
     // screens/fewer buttons naturally produce larger icons.
     val effectiveColor = if (LocalHighContrast.current) {
-        Color(
-            red = (color.red * 1.3f).coerceAtMost(1f),
-            green = (color.green * 1.3f).coerceAtMost(1f),
-            blue = (color.blue * 1.3f).coerceAtMost(1f),
-            alpha = color.alpha,
-        )
+        boostBrightness(color)
     } else {
         color
     }

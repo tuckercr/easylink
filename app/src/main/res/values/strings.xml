@@ -191,6 +191,10 @@
     <string name="notif_channel_home_reminder_desc">Daily reminder to set ClearHome as your default home screen</string>
     <string name="notif_home_reminder_title">ClearHome isn\'t your home screen</string>
     <string name="notif_home_reminder_body">Tap to set ClearHome as your default home screen.</string>
+    <string name="home_dialog_title">Set ClearHome as Home</string>
+    <string name="home_dialog_message">Would you like to use ClearHome as your home screen?</string>
+    <string name="home_dialog_positive">Set Now</string>
+    <string name="home_dialog_negative">Not Now</string>
 
     <!-- Apps screen -->
     <string name="apps_no_apps">No apps found</string>
