@@ -18,11 +18,11 @@ val localProps = Properties().also { props ->
 }
 
 android {
-    namespace = "com.tuckercr.ezlauncher"
+    namespace = "com.fangjet.launcher"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.tuckercr.ezlauncher"
+        applicationId = "com.fangjet.launcher"
         minSdk = 26
         targetSdk = 36
         versionCode = 2

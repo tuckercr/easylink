@@ -63,7 +63,7 @@
         android:required="false" />
 
     <application
-        android:name=".EZLauncherApplication"
+        android:name=".EasyViewApplication"
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_descriptor"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -102,7 +102,12 @@
 
         <receiver
             android:name=".data.alarm.ReminderActionReceiver"
-            android:exported="false" />
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.fangjet.launcher.ACTION_TAKEN" />
+                <action android:name="com.fangjet.launcher.ACTION_SNOOZE" />
+            </intent-filter>
+        </receiver>
 
         <!-- ── Fall detection ─────────────────────────────────────────────── -->
         <service
@@ -135,7 +140,7 @@
             android:exported="false"
             tools:node="merge">
             <meta-data
-                android:name="com.tuckercr.ezlauncher.data.cache.AppListInitializer"
+                android:name="com.fangjet.launcher.data.cache.AppListInitializer"
                 android:value="androidx.startup" />
         </provider>
 
