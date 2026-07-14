@@ -10,7 +10,7 @@ import javax.inject.Inject
 /**
  * Fires once daily via [HomeScreenCheckScheduler].
  *
- * If ClearHome is already the default home screen the pending notification
+ * If EasyView Launcher is already the default home screen the pending notification
  * is cancelled (cleans up any previously shown reminder). Otherwise a
  * notification is posted directing the user to open the app and set it.
  */

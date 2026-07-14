@@ -21,8 +21,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fangjet.launcher.R
 import com.fangjet.launcher.data.home.DefaultHomeChecker
 import com.fangjet.launcher.data.home.HomeScreenNotificationHelper
-import com.fangjet.launcher.navigation.EzLauncherNavHost
-import com.fangjet.launcher.ui.theme.EzLauncherTheme
+import com.fangjet.launcher.navigation.EasyViewNavHost
+import com.fangjet.launcher.ui.theme.EasyViewTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -63,8 +63,8 @@ class MainActivity : ComponentActivity() {
         requestNotificationPermissionIfNeeded()
         setContent {
             val highContrast by themeViewModel.highContrastEnabled.collectAsStateWithLifecycle()
-            EzLauncherTheme(highContrast = highContrast) {
-                EzLauncherNavHost(
+            EasyViewTheme(highContrast = highContrast) {
+                EasyViewNavHost(
                     pendingNavTarget = pendingNavTarget,
                     onNavTargetConsumed = { pendingNavTarget = null },
                 )

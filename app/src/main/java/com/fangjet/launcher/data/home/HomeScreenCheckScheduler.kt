@@ -18,8 +18,8 @@ class HomeScreenCheckScheduler @Inject constructor(
     private val alarmManager = context.getSystemService(AlarmManager::class.java)
 
     /**
-     * Schedules a daily inexact alarm at 10 AM to check whether ClearHome is
-     * the default home screen. Safe to call multiple times — AlarmManager
+     * Schedules a daily inexact alarm at 10 AM to check whether EasyView Launcher
+     * is the default home screen. Safe to call multiple times — AlarmManager
      * replaces any existing alarm with the same PendingIntent.
      */
     fun schedule() {

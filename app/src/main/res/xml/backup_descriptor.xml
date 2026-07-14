@@ -8,13 +8,13 @@
       file      →  /data/data/<pkg>/files/
 
     DataStore files live under files/datastore/.
-    Room (TRUNCATE mode) writes a single ezlauncher.db with no WAL side-cars.
+    Room (TRUNCATE mode) writes a single easyview.db with no WAL side-cars.
 -->
 <full-backup-content>
     <!-- Room database -->
     <include
         domain="database"
-        path="ezlauncher.db" />
+        path="easyview.db" />
 
     <!-- DataStore preference stores -->
     <include

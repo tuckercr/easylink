@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -37,9 +38,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -774,9 +772,9 @@ private fun HomeActionButton(
             )
             AutoSizeLabel(
                 text = label,
-                // 80% of the inner button width — leaves a small margin each side
-                // so the text never crowds the rounded corners.
-                modifier = Modifier.fillMaxWidth(0.8f),
+                // Full inner width — the 8dp padding on the button already keeps
+                // text off the rounded corners, so long labels get every pixel.
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     }
@@ -785,12 +783,11 @@ private fun HomeActionButton(
 // ── Auto-sizing button label ──────────────────────────────────────────────────
 
 /**
- * Single-line text that shrinks its font size until the string fits, then
- * stays there. Starts at [maxFontSizeSp] and steps down by 10% each layout
- * pass until the text no longer overflows or [minFontSizeSp] is reached.
- *
- * [remember(text)] resets the size whenever the label changes so the flashlight
- * button ("Flashlight" ↔ "Light On") never gets stuck at a shrunken size.
+ * Single-line label that renders at the largest size in
+ * [[minFontSizeSp], [maxFontSizeSp]] that fits the available width, so long
+ * words like "Flashlight" and "Magnifier" stay as large as possible without
+ * being clipped. Compose measures the fit directly, so there is no per-frame
+ * shrink loop to converge or reset between label changes.
  */
 @Composable
 private fun AutoSizeLabel(
@@ -799,20 +796,19 @@ private fun AutoSizeLabel(
     maxFontSizeSp: Float = 20f,
     minFontSizeSp: Float = 10f,
 ) {
-    var fontSizeSp by remember(text) { mutableStateOf(maxFontSizeSp) }
     Text(
         text = text,
         color = Color.White,
-        fontSize = fontSizeSp.sp,
         fontWeight = FontWeight.Bold,
         textAlign = TextAlign.Center,
         maxLines = 1,
+        softWrap = false,
         overflow = TextOverflow.Clip,
-        onTextLayout = { result ->
-            if (result.didOverflowWidth && fontSizeSp > minFontSizeSp) {
-                fontSizeSp = (fontSizeSp * 0.9f).coerceAtLeast(minFontSizeSp)
-            }
-        },
+        autoSize = TextAutoSize.StepBased(
+            minFontSize = minFontSizeSp.sp,
+            maxFontSize = maxFontSizeSp.sp,
+            stepSize = 1.sp,
+        ),
         modifier = modifier,
     )
 }

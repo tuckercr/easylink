@@ -1,8 +1,8 @@
-# EZ Launcher
+# EasyView Launcher
 
 ![Android CI](https://github.com/tuckercr/ez-launcher/actions/workflows/ci.yml/badge.svg)
 
-A full-featured Android home screen replacement designed for elderly users. Large buttons, high contrast, and safety-first features — no clutter, no confusion.
+    A full-featured Android home screen replacement designed for elderly users. Large buttons, high contrast, and safety-first features.
 
 ---
 
@@ -113,7 +113,8 @@ Add medications with one or more daily reminder times. Notifications include **T
 ### Settings
 The dedicated **Settings** tab allows users or caregivers to:
 - Show/hide any of the 12 home screen quick-action buttons.
-- Toggle the Voice Command button.
+- Toggle the **Voice Command** and **SOS** buttons.
+- Turn on **High-Contrast Mode** (brighter button colors and a pure-black background for easier reading).
 - Manage **Emergency Contacts** (Add/Edit/Delete).
 - Enable Fall Detection and adjust sensitivity.
 
@@ -146,7 +147,7 @@ The bottom navigation bar provides instant access to five areas:
 | `CALL_PHONE` | SOS and "Call" commands |
 | `SEND_SMS` | SOS alert messages |
 | `READ_CONTACTS` | Speed Dial and Voice command lookups |
-| `POST_NOTIFICATIONS` | Medication reminders and fall alerts |
+| `POST_NOTIFICATIONS` | Medication reminders, fall alerts, and the daily set-as-home reminder |
 | `FOREGROUND_SERVICE_HEALTH` | Fall detection background service |
 | `HIGH_SAMPLING_RATE_SENSORS` | Accelerometer access for fall detection |
 | `RECEIVE_BOOT_COMPLETED` | Restore alarms and service after reboot |

@@ -60,7 +60,7 @@ private val HighContrastColors = darkColorScheme(
 val LocalHighContrast = compositionLocalOf { false }
 
 @Composable
-fun EzLauncherTheme(
+fun EasyViewTheme(
     highContrast: Boolean = false,
     content: @Composable () -> Unit,
 ) {

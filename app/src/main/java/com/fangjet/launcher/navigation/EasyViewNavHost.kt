@@ -124,7 +124,7 @@ private val bottomNavRoutes = bottomNavItems.map { it.route }.toSet()
 // ── Nav host ──────────────────────────────────────────────────────────────────
 
 @Composable
-fun EzLauncherNavHost(
+fun EasyViewNavHost(
     startupViewModel: StartupViewModel = hiltViewModel(),
     pendingNavTarget: String? = null,
     onNavTargetConsumed: () -> Unit = {},

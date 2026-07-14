@@ -7,7 +7,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 /**
- * The single Room database for EZ Launcher.
+ * The single Room database for EasyView Launcher.
  *
  * ## Version history
  *  - v1: emergency_contacts
@@ -31,7 +31,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
     exportSchema = false,
 )
 @TypeConverters(MedicationConverters::class)
-abstract class EZLauncherDatabase : RoomDatabase() {
+abstract class EasyViewDatabase : RoomDatabase() {
     abstract fun emergencyContactDao(): EmergencyContactDao
 
     abstract fun medicationDao(): MedicationDao
