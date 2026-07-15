@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -41,6 +42,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fangjet.launcher.R
 import com.fangjet.launcher.domain.model.FallSensitivity
 import com.fangjet.launcher.presentation.common.BigBackButton
+
+// Larger type scale tuned for elderly readability.
+private val LABEL_SIZE = 26.sp
+private val DESC_SIZE = 18.sp
+private val ROW_PADDING = 16.dp
+
+// Bigger, easier-to-hit toggles.
+private val SwitchModifier = Modifier.scale(1.3f)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,7 +64,13 @@ fun CustomizeHomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.settings), fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        stringResource(R.string.settings),
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
                 windowInsets = WindowInsets(0),
             )
         },
@@ -70,31 +85,12 @@ fun CustomizeHomeScreen(
             // ── Section: Appearance ───────────────────────────────────────────
             item {
                 SectionHeader(stringResource(R.string.customize_appearance_header))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.customize_high_contrast_label),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Text(
-                            text = stringResource(R.string.customize_high_contrast_description),
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    Switch(
-                        checked = highContrast,
-                        onCheckedChange = { viewModel.setHighContrastEnabled(it) },
-                    )
-                }
+                ToggleRow(
+                    label = stringResource(R.string.customize_high_contrast_label),
+                    description = stringResource(R.string.customize_high_contrast_description),
+                    checked = highContrast,
+                    onCheckedChange = { viewModel.setHighContrastEnabled(it) },
+                )
                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
             }
 
@@ -103,101 +99,50 @@ fun CustomizeHomeScreen(
                 SectionHeader(stringResource(R.string.customize_home_buttons_header))
                 Text(
                     stringResource(R.string.customize_home_buttons_description),
-                    fontSize = 14.sp,
+                    fontSize = DESC_SIZE,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 8.dp),
                 )
             }
 
             items(state.buttons, key = { it.button.name }) { item ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = item.label,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Switch(
-                        checked = item.isEnabled,
-                        onCheckedChange = { viewModel.toggle(item.button, it) },
-                    )
-                }
+                ToggleRow(
+                    label = item.label,
+                    checked = item.isEnabled,
+                    onCheckedChange = { viewModel.toggle(item.button, it) },
+                )
                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
             }
 
             // ── Voice command button toggle ───────────────────────────────────
             item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.customize_voice_button_label),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Text(
-                            text = stringResource(R.string.customize_voice_button_description),
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    Switch(
-                        checked = state.voiceButtonEnabled,
-                        onCheckedChange = { viewModel.setVoiceButtonEnabled(it) },
-                    )
-                }
+                ToggleRow(
+                    label = stringResource(R.string.customize_voice_button_label),
+                    description = stringResource(R.string.customize_voice_button_description),
+                    checked = state.voiceButtonEnabled,
+                    onCheckedChange = { viewModel.setVoiceButtonEnabled(it) },
+                )
                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
             }
 
             // ── SOS button toggle ─────────────────────────────────────────────
             item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.customize_sos_button_label),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Text(
-                            text = stringResource(R.string.customize_sos_button_description),
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    Switch(
-                        checked = state.sosButtonEnabled,
-                        onCheckedChange = { viewModel.setSosButtonEnabled(it) },
-                    )
-                }
+                ToggleRow(
+                    label = stringResource(R.string.customize_sos_button_label),
+                    description = stringResource(R.string.customize_sos_button_description),
+                    checked = state.sosButtonEnabled,
+                    onCheckedChange = { viewModel.setSosButtonEnabled(it) },
+                )
                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
             }
 
             // ── Section: Fall Detection ───────────────────────────────────────
             item {
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(28.dp))
                 SectionHeader(stringResource(R.string.customize_fall_detection_header))
                 Text(
                     stringResource(R.string.customize_fall_detection_description),
-                    fontSize = 14.sp,
+                    fontSize = DESC_SIZE,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 12.dp),
                 )
@@ -209,7 +154,7 @@ fun CustomizeHomeScreen(
                     onSensitivity = { viewModel.setFallSensitivity(it) },
                 )
 
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(28.dp))
             }
 
             // ── Section: Emergency Contacts ───────────────────────────────────
@@ -217,7 +162,7 @@ fun CustomizeHomeScreen(
                 SectionHeader(stringResource(R.string.customize_emergency_contacts_header))
                 Text(
                     stringResource(R.string.customize_emergency_contacts_description),
-                    fontSize = 14.sp,
+                    fontSize = DESC_SIZE,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 12.dp),
                 )
@@ -228,26 +173,67 @@ fun CustomizeHomeScreen(
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .height(72.dp),
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_call),
                         contentDescription = null,
                         modifier = Modifier
-                            .size(20.dp)
-                            .padding(end = 0.dp),
+                            .size(28.dp)
+                            .padding(end = 8.dp),
                         tint = Color.White,
                     )
                     Text(
                         stringResource(R.string.customize_manage_emergency_contacts),
-                        fontSize = 16.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
                     )
                 }
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(28.dp))
             }
         }
+    }
+}
+
+// ── Toggle row ────────────────────────────────────────────────────────────────
+
+@Composable
+private fun ToggleRow(
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    description: String? = null,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = ROW_PADDING),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                fontSize = LABEL_SIZE,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            if (description != null) {
+                Text(
+                    text = description,
+                    fontSize = DESC_SIZE,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+            }
+        }
+        Spacer(Modifier.size(16.dp))
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            modifier = SwitchModifier,
+        )
     }
 }
 
@@ -265,7 +251,7 @@ private fun FallDetectionCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(16.dp),
+            .padding(20.dp),
     ) {
         // Enable / disable row
         Row(
@@ -276,25 +262,29 @@ private fun FallDetectionCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     stringResource(R.string.customize_fall_enable),
-                    fontSize = 18.sp,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 if (enabled) {
                     Text(
                         stringResource(R.string.customize_fall_active),
-                        fontSize = 13.sp,
+                        fontSize = 17.sp,
                         color = Color(0xFF81C784),
                     )
                 } else {
                     Text(
                         stringResource(R.string.customize_fall_tap_to_enable),
-                        fontSize = 13.sp,
+                        fontSize = 17.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
-            Switch(checked = enabled, onCheckedChange = onToggle)
+            Switch(
+                checked = enabled,
+                onCheckedChange = onToggle,
+                modifier = SwitchModifier,
+            )
         }
 
         // Sensitivity — only visible when enabled
@@ -305,11 +295,11 @@ private fun FallDetectionCard(
 
             Text(
                 stringResource(R.string.customize_fall_sensitivity),
-                fontSize = 15.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(10.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FallSensitivity.entries.forEach { level ->
@@ -323,11 +313,13 @@ private fun FallDetectionCard(
                                 Color.Transparent
                             },
                         ),
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(52.dp),
                     ) {
                         Text(
                             level.name.lowercase().replaceFirstChar { it.uppercase() },
-                            fontSize = 13.sp,
+                            fontSize = 17.sp,
                             color = if (selected) {
                                 MaterialTheme.colorScheme.onPrimary
                             } else {
@@ -338,10 +330,10 @@ private fun FallDetectionCard(
                 }
             }
 
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(6.dp))
             Text(
                 sensitivity.label,
-                fontSize = 12.sp,
+                fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
@@ -354,10 +346,10 @@ private fun FallDetectionCard(
 private fun SectionHeader(title: String) {
     Text(
         text = title,
-        fontSize = 13.sp,
+        fontSize = 16.sp,
         fontWeight = FontWeight.Bold,
         letterSpacing = 1.5.sp,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
+        modifier = Modifier.padding(top = 20.dp, bottom = 6.dp),
     )
 }

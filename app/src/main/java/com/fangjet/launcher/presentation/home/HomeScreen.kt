@@ -14,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -43,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
@@ -86,6 +88,25 @@ import com.fangjet.launcher.ui.theme.LocalHighContrast
 private const val BUTTONS_PER_ROW = 3
 
 private val ColorVoice = Color(0xFF5C6BC0) // indigo
+
+/**
+ * Swipe up anywhere on the home screen to open All Apps (Pixel-launcher style).
+ * Taps still reach the buttons — a drag only fires after the touch slop, and the
+ * home screen isn't vertically scrollable, so nothing competes with the gesture.
+ */
+private fun Modifier.swipeUpToOpen(onSwipeUp: () -> Unit): Modifier =
+    pointerInput(Unit) {
+        var dragTotal = 0f
+        val thresholdPx = 90.dp.toPx()
+        detectVerticalDragGestures(
+            onDragStart = { dragTotal = 0f },
+            onDragCancel = { dragTotal = 0f },
+            onDragEnd = { if (dragTotal <= -thresholdPx) onSwipeUp() },
+        ) { change, dragAmount ->
+            dragTotal += dragAmount
+            change.consume()
+        }
+    }
 
 @Composable
 fun HomeScreen(
@@ -151,6 +172,7 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
+                .swipeUpToOpen(onSwipeUp = onNavigateToApps)
                 .padding(16.dp),
         ) {
             when (val s = state) {
