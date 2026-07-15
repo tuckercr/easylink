@@ -1,8 +1,10 @@
 package com.fangjet.launcher.presentation.medications.add
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fangjet.launcher.R
 import com.fangjet.launcher.domain.model.Medication
 import com.fangjet.launcher.domain.model.MedicationColor
 import com.fangjet.launcher.domain.repository.MedicationRepository
@@ -16,6 +18,7 @@ import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalTime
 import javax.inject.Inject
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 /**
  * ViewModel for the Add/Edit Medication screen.
@@ -27,6 +30,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class AddMedicationViewModel @Inject constructor(
+    @param:ApplicationContext private val context: Context,
     private val addMedication: AddMedicationUseCase,
     private val repository: MedicationRepository,
     savedStateHandle: SavedStateHandle,
@@ -122,13 +126,13 @@ class AddMedicationViewModel @Inject constructor(
                     _uiState.update { it.copy(isSaving = false, saveSuccess = true) }
 
                 is AddMedicationUseCase.Result.InvalidName ->
-                    _uiState.update { it.copy(isSaving = false, nameError = "Name is required") }
+                    _uiState.update { it.copy(isSaving = false, nameError = context.getString(R.string.error_name_required)) }
 
                 is AddMedicationUseCase.Result.NoReminderTimes ->
                     _uiState.update {
                         it.copy(
                             isSaving = false,
-                            reminderTimesError = "Add at least one reminder time",
+                            reminderTimesError = context.getString(R.string.error_reminder_time_required),
                         )
                     }
 
@@ -136,7 +140,7 @@ class AddMedicationViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isSaving = false,
-                            activeDaysError = "Select at least one day",
+                            activeDaysError = context.getString(R.string.error_active_day_required),
                         )
                     }
             }

@@ -1,7 +1,9 @@
 package com.fangjet.launcher.presentation.settings
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fangjet.launcher.R
 import com.fangjet.launcher.domain.model.EmergencyContact
 import com.fangjet.launcher.domain.repository.SosRepository
 import com.fangjet.launcher.domain.usecase.GetEmergencyContactsUseCase
@@ -15,9 +17,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 @HiltViewModel
 class EmergencySettingsViewModel @Inject constructor(
+    @param:ApplicationContext private val context: Context,
     getContacts: GetEmergencyContactsUseCase,
     private val saveContact: SaveEmergencyContactUseCase,
     private val repository: SosRepository,
@@ -102,7 +106,7 @@ class EmergencySettingsViewModel @Inject constructor(
                         it.copy(
                             editingContact = null,
                             validationError = null,
-                            snackbarMessage = "Contact saved",
+                            snackbarMessage = context.getString(R.string.contact_saved),
                         )
                     }
                 }
@@ -119,7 +123,7 @@ class EmergencySettingsViewModel @Inject constructor(
     fun onDeleteContact(contact: EmergencyContact) {
         viewModelScope.launch {
             repository.deleteEmergencyContact(contact)
-            localState.update { it.copy(snackbarMessage = "${contact.name} removed") }
+            localState.update { it.copy(snackbarMessage = context.getString(R.string.contact_removed, contact.name)) }
         }
     }
 

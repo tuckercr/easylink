@@ -30,7 +30,7 @@ const val NOTIFICATION_ID_OFFSET = 50_000 // keeps reminder IDs clear of other n
  */
 @Singleton
 class ReminderNotificationHelper @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) {
     private val notificationManager =
         context.getSystemService(NotificationManager::class.java)
@@ -42,10 +42,10 @@ class ReminderNotificationHelper @Inject constructor(
     fun createChannel() {
         val channel = NotificationChannel(
             CHANNEL_ID_REMINDERS,
-            "Medication Reminders",
+            context.getString(R.string.notif_channel_meds_name),
             NotificationManager.IMPORTANCE_HIGH,
         ).apply {
-            description = "Alerts when it's time to take a medication"
+            description = context.getString(R.string.notif_channel_meds_desc)
             enableVibration(true)
             vibrationPattern = longArrayOf(0, 500, 200, 500, 200, 500)
             enableLights(true)
@@ -93,24 +93,24 @@ class ReminderNotificationHelper @Inject constructor(
         val notification = NotificationCompat
             .Builder(context, CHANNEL_ID_REMINDERS)
             .setSmallIcon(R.drawable.ic_pill)
-            .setContentTitle("Time to take $name")
+            .setContentTitle(context.getString(R.string.notif_meds_title, name))
             .setContentText(bodyText)
             .setStyle(
                 NotificationCompat
                     .BigTextStyle()
                     .bigText(bodyText)
-                    .setBigContentTitle("Time to take $name"),
+                    .setBigContentTitle(context.getString(R.string.notif_meds_title, name)),
             ).setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setAutoCancel(false) // stays until user acts
             .setOngoing(true) // can't swipe away
             .addAction(
                 R.drawable.ic_check,
-                "TAKEN",
+                context.getString(R.string.notif_meds_action_taken),
                 takenIntent,
             ).addAction(
                 R.drawable.ic_snooze,
-                "SNOOZE 15 MIN",
+                context.getString(R.string.notif_meds_action_snooze),
                 snoozeIntent,
             ).setVisibility(NotificationCompat.VISIBILITY_PUBLIC) // show on lock screen
             .build()

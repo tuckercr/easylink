@@ -1,7 +1,9 @@
 package com.fangjet.launcher.presentation.tts
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fangjet.launcher.R
 import com.fangjet.launcher.domain.model.TtsPreferences
 import com.fangjet.launcher.domain.usecase.GetTtsPreferencesUseCase
 import com.fangjet.launcher.domain.usecase.SpeakLabelUseCase
@@ -12,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 /**
  * ViewModel for the TTS Settings screen.
@@ -27,6 +30,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class TtsSettingsViewModel @Inject constructor(
+    @param:ApplicationContext private val context: Context,
     getPreferences: GetTtsPreferencesUseCase,
     private val updatePreferences: UpdateTtsPreferencesUseCase,
     private val speakLabel: SpeakLabelUseCase,
@@ -60,7 +64,7 @@ class TtsSettingsViewModel @Inject constructor(
      * without navigating away from the settings screen.
      */
     fun onTestVoiceTapped() {
-        speakLabel("Hello! Your phone is ready to help you.")
+        speakLabel(context.getString(R.string.tts_test_message))
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

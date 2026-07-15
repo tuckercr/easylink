@@ -3,6 +3,7 @@ package com.fangjet.launcher.util
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.TextView
+import com.fangjet.launcher.R
 import com.fangjet.launcher.presentation.tts.TtsViewModel
 
 /**
@@ -53,7 +54,7 @@ fun View.speakOnLongPress(
 
     // Make long-press discoverable — announce it in the accessibility tree
     isLongClickable = true
-    tooltipText = "Long press to hear label"
+    tooltipText = context.getString(R.string.tts_tooltip)
 }
 
 /**

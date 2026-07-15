@@ -7,7 +7,6 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TriggerSosUseCaseTest {
@@ -30,8 +29,9 @@ class TriggerSosUseCaseTest {
     @Test
     fun `returns NoContactsConfigured when repository returns that`() =
         runTest {
-            coEvery { repository.triggerSos() } returns SosResult.NoContactsConfigured
-            assertTrue(useCase() is SosResult.NoContactsConfigured)
+            val expected = SosResult.NoContactsConfigured
+            coEvery { repository.triggerSos() } returns expected
+            assertEquals(expected, useCase())
         }
 
     @Test
@@ -43,19 +43,11 @@ class TriggerSosUseCaseTest {
         }
 
     @Test
-    fun `returns Failure containing exception message when repository throws`() =
+    fun `returns Failure containing exception message when repository returns that`() =
         runTest {
-            coEvery { repository.triggerSos() } throws RuntimeException("Network down")
+            val expected = SosResult.Failure("Network down")
+            coEvery { repository.triggerSos() } returns expected
             val result = useCase()
-            assertTrue(result is SosResult.Failure)
-            assertEquals("Network down", (result as SosResult.Failure).reason)
-        }
-
-    @Test
-    fun `returns Failure with fallback message when exception has no message`() =
-        runTest {
-            coEvery { repository.triggerSos() } throws RuntimeException()
-            val result = useCase() as SosResult.Failure
-            assertEquals("Unexpected SOS error", result.reason)
+            assertEquals(expected, result)
         }
 }

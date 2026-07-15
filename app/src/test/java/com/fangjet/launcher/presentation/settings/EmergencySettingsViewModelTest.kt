@@ -1,6 +1,8 @@
 package com.fangjet.launcher.presentation.settings
 
+import android.content.Context
 import app.cash.turbine.test
+import com.fangjet.launcher.R
 import com.fangjet.launcher.domain.model.EmergencyContact
 import com.fangjet.launcher.domain.repository.SosRepository
 import com.fangjet.launcher.domain.usecase.GetEmergencyContactsUseCase
@@ -30,6 +32,7 @@ class EmergencySettingsViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
 
     private val contactsFlow = MutableStateFlow(emptyList<EmergencyContact>())
+    private lateinit var context: Context
     private lateinit var getContacts: GetEmergencyContactsUseCase
     private lateinit var saveContact: SaveEmergencyContactUseCase
     private lateinit var repository: SosRepository
@@ -43,14 +46,21 @@ class EmergencySettingsViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
+        context = mockk()
         getContacts = mockk()
         saveContact = mockk()
         repository = mockk(relaxed = true)
 
+        every { context.getString(R.string.contact_saved) } returns "Contact saved"
+        every { context.getString(R.string.contact_removed, any()) } answers {
+            val name = (it.invocation.args[1] as Array<*>)[0]
+            "$name removed"
+        }
+
         every { getContacts() } returns contactsFlow
         coEvery { saveContact(any()) } returns SaveEmergencyContactUseCase.Result.Success(alice)
 
-        viewModel = EmergencySettingsViewModel(getContacts, saveContact, repository)
+        viewModel = EmergencySettingsViewModel(context, getContacts, saveContact, repository)
     }
 
     @After

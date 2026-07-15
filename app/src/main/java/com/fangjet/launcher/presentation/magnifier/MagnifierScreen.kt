@@ -199,14 +199,14 @@ private fun ControlPanel(
                 enabled = state.zoomLevel > MagnifierUiState.MIN_ZOOM,
                 modifier = Modifier.weight(1f),
             ) {
-                Text("− Zoom Out", fontSize = 16.sp)
+                Text(stringResource(R.string.magnifier_zoom_out), fontSize = 16.sp)
             }
             Button(
                 onClick = onZoomIn,
                 enabled = state.zoomLevel < MagnifierUiState.MAX_ZOOM,
                 modifier = Modifier.weight(1f),
             ) {
-                Text("+ Zoom In", fontSize = 16.sp)
+                Text(stringResource(R.string.magnifier_zoom_in), fontSize = 16.sp)
             }
         }
 
@@ -229,7 +229,11 @@ private fun ControlPanel(
                 modifier = Modifier.weight(1f),
             ) {
                 Text(
-                    text = if (state.isFlashlightOn) "Light: On" else "Light: Off",
+                    text = if (state.isFlashlightOn) {
+                        stringResource(R.string.magnifier_light_on)
+                    } else {
+                        stringResource(R.string.magnifier_light_off)
+                    },
                     fontSize = 16.sp,
                 )
             }
@@ -247,7 +251,11 @@ private fun ControlPanel(
                 modifier = Modifier.weight(1f),
             ) {
                 Text(
-                    text = if (state.isHighContrast) "Hi-Con: On" else "Hi-Con: Off",
+                    text = if (state.isHighContrast) {
+                        stringResource(R.string.magnifier_hi_con_on)
+                    } else {
+                        stringResource(R.string.magnifier_hi_con_off)
+                    },
                     fontSize = 16.sp,
                 )
             }

@@ -211,6 +211,55 @@
     <string name="sos_perm_banner_body">Allow EasyView to send texts and make calls so an SOS can alert your emergency contacts.</string>
     <string name="sos_perm_grant">Grant permissions</string>
     <string name="home_tts_meds">Medications</string>
+    <string name="tts_tooltip">Long press to hear label</string>
+
+    <!-- Notifications -->
+    <string name="notif_channel_meds_name">Medication Reminders</string>
+    <string name="notif_channel_meds_desc">Alerts when it\'s time to take a medication</string>
+    <string name="notif_meds_title">Time to take %1$s</string>
+    <string name="notif_meds_action_taken">TAKEN</string>
+    <string name="notif_meds_action_snooze">SNOOZE 15 MIN</string>
+
+    <string name="notif_channel_fall_service_name">Fall Detection</string>
+    <string name="notif_channel_fall_service_desc">Shown while fall detection is running</string>
+    <string name="notif_channel_fall_alert_name">Fall Alert</string>
+    <string name="notif_channel_fall_alert_desc">Fires when a fall is detected</string>
+    <string name="notif_fall_service_title">Fall detection is active</string>
+    <string name="notif_fall_service_text">Monitoring for falls in the background</string>
+    <string name="notif_fall_alert_title">⚠️ Fall Detected!</string>
+    <string name="notif_fall_alert_text">Are you OK? Tap to respond.</string>
+
+    <!-- SOS Messaging -->
+    <string name="sos_sms_message_base">EMERGENCY ALERT: This person needs immediate help!</string>
+    <string name="sos_sms_location_label">Current location:</string>
+    <string name="sos_sms_location_unavailable">(Location unavailable — please call them directly)</string>
+    <string name="sos_error_no_permissions">Turn on text and phone permissions so SOS can reach your contacts.</string>
+    <string name="sos_error_generic">SOS couldn\'t send a text or start a call. Please call for help directly.</string>
+    <string name="sos_error_partial_no_sms">Couldn\'t text your contacts (SMS permission is off). A call was started.</string>
+    <string name="sos_error_unexpected">Unexpected SOS error</string>
+    <string name="unknown">Unknown</string>
+    <string name="unknown_error">Unknown error</string>
+
+    <!-- Settings Feedback -->
+    <string name="contact_saved">Contact saved</string>
+    <string name="contact_removed">%1$s removed</string>
+
+    <!-- Validation Errors -->
+    <string name="error_name_required">Name is required</string>
+    <string name="error_reminder_time_required">Add at least one reminder time</string>
+    <string name="error_active_day_required">Select at least one day</string>
+    <string name="error_phone_required">Enter a valid phone number</string>
+
+    <!-- Magnifier Overlay -->
+    <string name="magnifier_zoom_in">+ Zoom In</string>
+    <string name="magnifier_zoom_out">− Zoom Out</string>
+    <string name="magnifier_light_on">Light: On</string>
+    <string name="magnifier_light_off">Light: Off</string>
+    <string name="magnifier_hi_con_on">Hi-Con: On</string>
+    <string name="magnifier_hi_con_off">Hi-Con: Off</string>
+
+    <!-- TTS Testing -->
+    <string name="tts_test_message">Hello! Your phone is ready to help you.</string>
 
     <!-- Customize / Settings screen -->
     <string name="customize_appearance_header">Appearance</string>
@@ -250,6 +299,23 @@
     <string name="voice_not_understood">I didn\'t understand that</string>
     <string name="voice_try_saying">Try saying:</string>
     <string name="voice_try_again">Try again</string>
+    <string name="voice_error_not_available">Speech recognition not available on this device</string>
+    <string name="voice_error_no_match">Didn\'t catch that — try again</string>
+    <string name="voice_error_network">No internet connection</string>
+    <string name="voice_error_busy">Recognizer busy — try again</string>
+    <string name="voice_error_audio">Audio error — try again</string>
+    <string name="voice_error_client">Recognition failed — try again</string>
+    <string name="voice_error_generic">Voice error (code %1$d)</string>
+    <string name="voice_command_camera">Opening camera</string>
+    <string name="voice_command_apps">Showing all apps</string>
+    <string name="voice_command_flashlight_toggle">Toggling flashlight</string>
+    <string name="voice_command_home">Going home</string>
+    <string name="voice_error_contacts_permission">Contacts permission required for voice commands</string>
+    <string name="voice_error_contact_not_found">Can\'t find contact \"%1$s\"</string>
+    <string name="voice_command_calling">Calling %1$s…</string>
+    <string name="voice_command_texting">Texting %1$s…</string>
+    <string name="voice_error_app_not_found">Can\'t find app \"%1$s\"</string>
+    <string name="voice_command_opening">Opening %1$s…</string>
 
     <!-- Onboarding -->
     <string name="onboarding_phone_title">Phone &amp; Contacts</string>

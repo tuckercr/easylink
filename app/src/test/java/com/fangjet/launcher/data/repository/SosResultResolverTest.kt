@@ -1,13 +1,27 @@
 package com.fangjet.launcher.data.repository
 
+import android.content.Context
+import com.fangjet.launcher.R
 import com.fangjet.launcher.domain.model.EmergencyContact
 import com.fangjet.launcher.domain.model.SosResult
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 
 class SosResultResolverTest {
+
+    private val context: Context = mockk()
+
+    @Before
+    fun setup() {
+        every { context.getString(R.string.sos_error_no_permissions) } returns "Turn on permissions"
+        every { context.getString(R.string.sos_error_generic) } returns "Please call for help"
+        every { context.getString(R.string.sos_error_partial_no_sms) } returns "SMS permission off"
+    }
 
     private val alice =
         EmergencyContact(id = 1, name = "Alice", phoneNumber = "5551234", isPrimary = true)
@@ -15,6 +29,7 @@ class SosResultResolverTest {
     @Test
     fun `failure with permission hint when SMS blocked and no call placed`() {
         val result = resolveSosResult(
+            context = context,
             smsPermitted = false,
             smsSent = 0,
             callPlaced = false,
@@ -28,6 +43,7 @@ class SosResultResolverTest {
     @Test
     fun `failure with generic hint when permitted but nothing got through`() {
         val result = resolveSosResult(
+            context = context,
             smsPermitted = true,
             smsSent = 0,
             callPlaced = false,
@@ -41,6 +57,7 @@ class SosResultResolverTest {
     @Test
     fun `partial success when SMS blocked but call was placed`() {
         val result = resolveSosResult(
+            context = context,
             smsPermitted = false,
             smsSent = 0,
             callPlaced = true,
@@ -56,6 +73,7 @@ class SosResultResolverTest {
     @Test
     fun `full success reports called contact, count, and location`() {
         val result = resolveSosResult(
+            context = context,
             smsPermitted = true,
             smsSent = 3,
             callPlaced = true,
@@ -72,6 +90,7 @@ class SosResultResolverTest {
     @Test
     fun `success with no called contact when call failed but texts sent`() {
         val result = resolveSosResult(
+            context = context,
             smsPermitted = true,
             smsSent = 2,
             callPlaced = false,

@@ -37,7 +37,7 @@ import kotlin.time.Duration.Companion.milliseconds
  */
 @HiltViewModel
 class SpeedDialViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val getContacts: GetSpeedDialContactsUseCase,
     private val removeContact: RemoveSpeedDialContactUseCase,
     private val repository: SpeedDialRepository,

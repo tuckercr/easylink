@@ -316,7 +316,7 @@ fun HomeScreen(
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Text(
-                                    "SOS",
+                                    stringResource(R.string.sos),
                                     fontSize = 52.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = Color.White,

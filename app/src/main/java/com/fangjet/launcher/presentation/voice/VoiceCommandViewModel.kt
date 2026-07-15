@@ -14,6 +14,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fangjet.launcher.R
 import com.fangjet.launcher.data.contacts.ContactsHelper
 import com.fangjet.launcher.data.permissions.PermissionChecker
 import com.fangjet.launcher.data.permissions.placePhoneCall
@@ -54,7 +55,7 @@ private const val AUTO_DISMISS_MS = 1_500L
  */
 @HiltViewModel
 class VoiceCommandViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val parser: VoiceCommandParser,
     private val contactsHelper: ContactsHelper,
     private val appRepository: AppRepository,
@@ -81,7 +82,7 @@ class VoiceCommandViewModel @Inject constructor(
         if (_uiState.value is VoiceUiState.Listening) return
 
         if (!SpeechRecognizer.isRecognitionAvailable(context)) {
-            _uiState.value = VoiceUiState.Error("Speech recognition not available on this device")
+            _uiState.value = VoiceUiState.Error(context.getString(R.string.voice_error_not_available))
             return
         }
 
@@ -146,7 +147,7 @@ class VoiceCommandViewModel @Inject constructor(
             Log.d(TAG, "onResults: \"$text\"")
 
             if (text.isBlank()) {
-                _uiState.value = VoiceUiState.Error("Didn't catch that — try again")
+                _uiState.value = VoiceUiState.Error(context.getString(R.string.voice_error_no_match))
             } else {
                 handleText(text)
             }
@@ -165,16 +166,16 @@ class VoiceCommandViewModel @Inject constructor(
                 when (error) {
                     SpeechRecognizer.ERROR_NO_MATCH,
                     SpeechRecognizer.ERROR_SPEECH_TIMEOUT,
-                    -> "Didn't catch that — try again"
+                        -> context.getString(R.string.voice_error_no_match)
 
                     SpeechRecognizer.ERROR_NETWORK,
                     SpeechRecognizer.ERROR_NETWORK_TIMEOUT,
-                    -> "No internet connection"
+                        -> context.getString(R.string.voice_error_network)
 
-                    SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Recognizer busy — try again"
-                    SpeechRecognizer.ERROR_AUDIO -> "Audio error — try again"
-                    SpeechRecognizer.ERROR_CLIENT -> "Recognition failed — try again"
-                    else -> "Voice error (code $error)"
+                    SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> context.getString(R.string.voice_error_busy)
+                    SpeechRecognizer.ERROR_AUDIO -> context.getString(R.string.voice_error_audio)
+                    SpeechRecognizer.ERROR_CLIENT -> context.getString(R.string.voice_error_client)
+                    else -> context.getString(R.string.voice_error_generic, error)
                 },
             )
         }
@@ -212,7 +213,7 @@ class VoiceCommandViewModel @Inject constructor(
                 is VoiceCommand.Text -> executeText(raw, command.name)
                 is VoiceCommand.OpenApp -> executeOpenApp(raw, command.appName)
                 is VoiceCommand.OpenCamera -> {
-                    success(raw, "Opening camera")
+                    success(raw, context.getString(R.string.voice_command_camera))
                     context.startActivity(
                         Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)
                             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
@@ -221,31 +222,31 @@ class VoiceCommandViewModel @Inject constructor(
                 }
 
                 is VoiceCommand.OpenAllApps -> {
-                    success(raw, "Showing all apps")
+                    success(raw, context.getString(R.string.voice_command_apps))
                     _effects.emit(VoiceEffect.NavigateToApps)
                     autoDismiss()
                 }
 
                 is VoiceCommand.FlashlightOn -> {
-                    success(raw, "Flashlight on")
+                    success(raw, context.getString(R.string.flashlight_on))
                     _effects.emit(VoiceEffect.FlashlightOn)
                     autoDismiss()
                 }
 
                 is VoiceCommand.FlashlightOff -> {
-                    success(raw, "Flashlight off")
+                    success(raw, context.getString(R.string.flashlight_off))
                     _effects.emit(VoiceEffect.FlashlightOff)
                     autoDismiss()
                 }
 
                 is VoiceCommand.ToggleFlashlight -> {
-                    success(raw, "Toggling flashlight")
+                    success(raw, context.getString(R.string.voice_command_flashlight_toggle))
                     _effects.emit(VoiceEffect.ToggleFlashlight)
                     autoDismiss()
                 }
 
                 is VoiceCommand.GoHome -> {
-                    success(raw, "Going home")
+                    success(raw, context.getString(R.string.voice_command_home))
                     _effects.emit(VoiceEffect.NavigateHome)
                     autoDismiss()
                 }
@@ -262,15 +263,15 @@ class VoiceCommandViewModel @Inject constructor(
     ) {
         if (!hasContactsPermission()) {
             _uiState.value =
-                VoiceUiState.Error("Contacts permission required for \"Call\" commands")
+                VoiceUiState.Error(context.getString(R.string.voice_error_contacts_permission))
             return
         }
         val contact = contactsHelper.searchContacts(name).firstOrNull()
         if (contact == null) {
-            _uiState.value = VoiceUiState.Error("Can't find contact \"$name\"")
+            _uiState.value = VoiceUiState.Error(context.getString(R.string.voice_error_contact_not_found, name))
             return
         }
-        success(raw, "Calling ${contact.name}…")
+        success(raw, context.getString(R.string.voice_command_calling, contact.name))
         placePhoneCall(context, contact.phoneNumber, permissions)
         autoDismiss()
     }
@@ -281,15 +282,15 @@ class VoiceCommandViewModel @Inject constructor(
     ) {
         if (!hasContactsPermission()) {
             _uiState.value =
-                VoiceUiState.Error("Contacts permission required for \"Text\" commands")
+                VoiceUiState.Error(context.getString(R.string.voice_error_contacts_permission))
             return
         }
         val contact = contactsHelper.searchContacts(name).firstOrNull()
         if (contact == null) {
-            _uiState.value = VoiceUiState.Error("Can't find contact \"$name\"")
+            _uiState.value = VoiceUiState.Error(context.getString(R.string.voice_error_contact_not_found, name))
             return
         }
-        success(raw, "Texting ${contact.name}…")
+        success(raw, context.getString(R.string.voice_command_texting, contact.name))
         context.startActivity(
             Intent(Intent.ACTION_VIEW, "sms:${contact.phoneNumber}".toUri())
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
@@ -311,10 +312,10 @@ class VoiceCommandViewModel @Inject constructor(
         val app = apps.firstOrNull { it.label.lowercase().contains(appName.lowercase()) }
 
         if (app == null) {
-            _uiState.value = VoiceUiState.Error("Can't find app \"$appName\"")
+            _uiState.value = VoiceUiState.Error(context.getString(R.string.voice_error_app_not_found, appName))
             return
         }
-        success(raw, "Opening ${app.label}…")
+        success(raw, context.getString(R.string.voice_command_opening, app.label))
         launchAppUseCase(app.packageName)
         autoDismiss()
     }

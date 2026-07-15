@@ -31,20 +31,20 @@ class FallDetectionNotificationHelper @Inject constructor(
         // Persistent service notification — silent, low visibility
         val serviceChannel = NotificationChannel(
             CHANNEL_ID_FALL_DETECTION,
-            "Fall Detection",
+            context.getString(R.string.notif_channel_fall_service_name),
             NotificationManager.IMPORTANCE_LOW,
         ).apply {
-            description = "Shown while fall detection is running"
+            description = context.getString(R.string.notif_channel_fall_service_desc)
             setShowBadge(false)
         }
 
         // Full-screen fall alert — max priority, wakes screen
         val alertChannel = NotificationChannel(
             CHANNEL_ID_FALL_ALERT,
-            "Fall Alert",
+            context.getString(R.string.notif_channel_fall_alert_name),
             NotificationManager.IMPORTANCE_HIGH,
         ).apply {
-            description = "Fires when a fall is detected"
+            description = context.getString(R.string.notif_channel_fall_alert_desc)
             enableVibration(true)
             vibrationPattern = longArrayOf(0, 300, 100, 300, 100, 600)
             enableLights(true)
@@ -59,8 +59,8 @@ class FallDetectionNotificationHelper @Inject constructor(
         NotificationCompat
             .Builder(context, CHANNEL_ID_FALL_DETECTION)
             .setSmallIcon(R.drawable.ic_home)
-            .setContentTitle("Fall detection is active")
-            .setContentText("Monitoring for falls in the background")
+            .setContentTitle(context.getString(R.string.notif_fall_service_title))
+            .setContentText(context.getString(R.string.notif_fall_service_text))
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .setShowWhen(false)
@@ -81,8 +81,8 @@ class FallDetectionNotificationHelper @Inject constructor(
         val notification = NotificationCompat
             .Builder(context, CHANNEL_ID_FALL_ALERT)
             .setSmallIcon(R.drawable.ic_home)
-            .setContentTitle("⚠️ Fall Detected!")
-            .setContentText("Are you OK? Tap to respond.")
+            .setContentTitle(context.getString(R.string.notif_fall_alert_title))
+            .setContentText(context.getString(R.string.notif_fall_alert_text))
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setFullScreenIntent(pendingIntent, true)

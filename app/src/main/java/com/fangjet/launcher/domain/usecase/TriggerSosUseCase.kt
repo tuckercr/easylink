@@ -23,10 +23,5 @@ import javax.inject.Inject
 class TriggerSosUseCase @Inject constructor(
     private val repository: SosRepository,
 ) {
-    suspend operator fun invoke(): SosResult =
-        runCatching {
-            repository.triggerSos()
-        }.getOrElse { throwable ->
-            SosResult.Failure(throwable.message ?: "Unexpected SOS error")
-        }
+    suspend operator fun invoke(): SosResult = repository.triggerSos()
 }

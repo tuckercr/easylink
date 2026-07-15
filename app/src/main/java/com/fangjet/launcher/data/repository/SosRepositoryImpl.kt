@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.telephony.SmsManager
 import android.util.Log
+import com.fangjet.launcher.R
 import com.fangjet.launcher.data.local.EmergencyContactDao
 import com.fangjet.launcher.data.local.EmergencyContactEntity
 import com.fangjet.launcher.data.permissions.PermissionChecker
@@ -76,7 +77,7 @@ class SosRepositoryImpl @Inject constructor(
 
     // ── SOS trigger ───────────────────────────────────────────────────────────
 
-    override suspend fun triggerSos(): SosResult {
+    override suspend fun triggerSos(): SosResult = runCatching {
         val contacts = dao.getAll().map { it.toDomain() }
 
         if (contacts.isEmpty()) {
@@ -100,13 +101,17 @@ class SosRepositoryImpl @Inject constructor(
         val primaryContact = contacts.firstOrNull { it.isPrimary } ?: contacts.first()
         val callOutcome = placeCall(primaryContact.phoneNumber)
 
-        return resolveSosResult(
+        resolveSosResult(
+            context = context,
             smsPermitted = smsPermitted,
             smsSent = smsCount,
             callPlaced = callOutcome != CallOutcome.FAILED,
             locationShared = locationLink != null,
             calledContact = primaryContact,
         )
+    }.getOrElse { e ->
+        Log.e(TAG, "SOS trigger failed", e)
+        SosResult.Failure(e.message ?: context.getString(R.string.sos_error_unexpected))
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
@@ -148,11 +153,11 @@ class SosRepositoryImpl @Inject constructor(
         locationShared: Boolean,
         locationLink: String?,
     ): String {
-        val base = "EMERGENCY ALERT: This person needs immediate help!"
+        val base = context.getString(R.string.sos_sms_message_base)
         return if (locationShared && locationLink != null) {
-            "$base\n\nCurrent location:\n$locationLink"
+            "$base\n\n${context.getString(R.string.sos_sms_location_label)}\n$locationLink"
         } else {
-            "$base\n\n(Location unavailable — please call them directly)"
+            "$base\n\n${context.getString(R.string.sos_sms_location_unavailable)}"
         }
     }
 
@@ -225,6 +230,7 @@ class SosRepositoryImpl @Inject constructor(
  * Android framework dependencies.
  */
 internal fun resolveSosResult(
+    context: Context,
     smsPermitted: Boolean,
     smsSent: Int,
     callPlaced: Boolean,
@@ -234,9 +240,9 @@ internal fun resolveSosResult(
     // Nothing reached the contacts at all.
     if (smsSent == 0 && !callPlaced) {
         val reason = if (!smsPermitted) {
-            "Turn on text and phone permissions so SOS can reach your contacts."
+            context.getString(R.string.sos_error_no_permissions)
         } else {
-            "SOS couldn't send a text or start a call. Please call for help directly."
+            context.getString(R.string.sos_error_generic)
         }
         return SosResult.Failure(reason)
     }
@@ -245,7 +251,7 @@ internal fun resolveSosResult(
     if (!smsPermitted) {
         return SosResult.PartialSuccess(
             smsRecipients = 0,
-            reason = "Couldn't text your contacts (SMS permission is off). A call was started.",
+            reason = context.getString(R.string.sos_error_partial_no_sms),
         )
     }
 

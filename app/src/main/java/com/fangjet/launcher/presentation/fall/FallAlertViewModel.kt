@@ -31,7 +31,7 @@ private const val COUNTDOWN_SECONDS = 30
 
 @HiltViewModel
 class FallAlertViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val getEmergencyContacts: GetEmergencyContactsUseCase,
     private val notifHelper: FallDetectionNotificationHelper,
     private val permissions: PermissionChecker,

@@ -1,5 +1,7 @@
 package com.fangjet.launcher.data.repository
 
+import android.content.Context
+import com.fangjet.launcher.R
 import com.fangjet.launcher.data.alarm.AlarmScheduler
 import com.fangjet.launcher.data.local.MedicationDao
 import com.fangjet.launcher.data.local.MedicationEntity
@@ -18,6 +20,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 /**
  * Concrete implementation of [MedicationRepository].
@@ -40,6 +43,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class MedicationRepositoryImpl @Inject constructor(
+    @param:ApplicationContext private val context: Context,
     private val medicationDao: MedicationDao,
     private val reminderLogDao: ReminderLogDao,
     private val alarmScheduler: AlarmScheduler,
@@ -146,7 +150,7 @@ class MedicationRepositoryImpl @Inject constructor(
         val medication = medicationDao.getById(medicationId)
         val entity = ReminderLogEntity(
             medicationId = medicationId,
-            medicationName = medication?.name ?: "Unknown",
+            medicationName = medication?.name ?: context.getString(R.string.unknown),
             dosage = medication?.dosage ?: "",
             scheduledTime = scheduledTime,
             actionTime = LocalDateTime.now(),
