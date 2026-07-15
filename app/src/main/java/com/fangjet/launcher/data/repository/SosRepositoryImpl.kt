@@ -1,10 +1,11 @@
 package com.fangjet.launcher.data.repository
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.telephony.SmsManager
 import android.util.Log
+import androidx.core.net.toUri
 import com.fangjet.launcher.R
 import com.fangjet.launcher.data.local.EmergencyContactDao
 import com.fangjet.launcher.data.local.EmergencyContactEntity
@@ -77,42 +78,43 @@ class SosRepositoryImpl @Inject constructor(
 
     // ── SOS trigger ───────────────────────────────────────────────────────────
 
-    override suspend fun triggerSos(): SosResult = runCatching {
-        val contacts = dao.getAll().map { it.toDomain() }
+    override suspend fun triggerSos(): SosResult =
+        runCatching {
+            val contacts = dao.getAll().map { it.toDomain() }
 
-        if (contacts.isEmpty()) {
-            return SosResult.NoContactsConfigured
+            if (contacts.isEmpty()) {
+                return SosResult.NoContactsConfigured
+            }
+
+            // 1. Try to get GPS location — but don't block the SOS on it
+            val locationLink = fetchLocationLink()
+
+            // 2. Text all contacts (only if we're allowed to)
+            val smsPermitted = permissions.hasSendSms()
+            val smsCount = if (smsPermitted) {
+                val message = buildSmsMessage(locationShared = locationLink != null, locationLink)
+                sendSmsToAll(contacts, message)
+            } else {
+                Log.e(TAG, "SEND_SMS permission not granted — SOS cannot text contacts")
+                0
+            }
+
+            // 3. Call the primary contact (or fall back to the first one)
+            val primaryContact = contacts.firstOrNull { it.isPrimary } ?: contacts.first()
+            val callOutcome = placeCall(primaryContact.phoneNumber)
+
+            resolveSosResult(
+                context = context,
+                smsPermitted = smsPermitted,
+                smsSent = smsCount,
+                callPlaced = callOutcome != CallOutcome.FAILED,
+                locationShared = locationLink != null,
+                calledContact = primaryContact,
+            )
+        }.getOrElse { e ->
+            Log.e(TAG, "SOS trigger failed", e)
+            SosResult.Failure(e.message ?: context.getString(R.string.sos_error_unexpected))
         }
-
-        // 1. Try to get GPS location — but don't block the SOS on it
-        val locationLink = fetchLocationLink()
-
-        // 2. Text all contacts (only if we're allowed to)
-        val smsPermitted = permissions.hasSendSms()
-        val smsCount = if (smsPermitted) {
-            val message = buildSmsMessage(locationShared = locationLink != null, locationLink)
-            sendSmsToAll(contacts, message)
-        } else {
-            Log.e(TAG, "SEND_SMS permission not granted — SOS cannot text contacts")
-            0
-        }
-
-        // 3. Call the primary contact (or fall back to the first one)
-        val primaryContact = contacts.firstOrNull { it.isPrimary } ?: contacts.first()
-        val callOutcome = placeCall(primaryContact.phoneNumber)
-
-        resolveSosResult(
-            context = context,
-            smsPermitted = smsPermitted,
-            smsSent = smsCount,
-            callPlaced = callOutcome != CallOutcome.FAILED,
-            locationShared = locationLink != null,
-            calledContact = primaryContact,
-        )
-    }.getOrElse { e ->
-        Log.e(TAG, "SOS trigger failed", e)
-        SosResult.Failure(e.message ?: context.getString(R.string.sos_error_unexpected))
-    }
 
     // ── Private helpers ───────────────────────────────────────────────────────
 
@@ -123,6 +125,7 @@ class SosRepositoryImpl @Inject constructor(
      * Uses [suspendCancellableCoroutine] to bridge the GMS Task API
      * into a coroutine — a common and important Android pattern.
      */
+    @SuppressLint("MissingPermission")
     private suspend fun fetchLocationLink(): String? {
         if (!permissions.hasFineLocation()) {
             Log.w(TAG, "Location permission not granted — sending SOS without GPS")
@@ -212,7 +215,7 @@ class SosRepositoryImpl @Inject constructor(
             Log.w(TAG, "CALL_PHONE not granted — opening the dialer instead of calling directly")
         }
         return runCatching {
-            val intent = Intent(action, Uri.parse("tel:$phoneNumber")).apply {
+            val intent = Intent(action, "tel:$phoneNumber".toUri()).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)

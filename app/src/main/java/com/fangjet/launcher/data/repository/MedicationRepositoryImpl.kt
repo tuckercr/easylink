@@ -12,6 +12,7 @@ import com.fangjet.launcher.domain.model.ReminderAction
 import com.fangjet.launcher.domain.model.ReminderLog
 import com.fangjet.launcher.domain.model.TodayReminder
 import com.fangjet.launcher.domain.repository.MedicationRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -20,7 +21,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
-import dagger.hilt.android.qualifiers.ApplicationContext
 
 /**
  * Concrete implementation of [MedicationRepository].

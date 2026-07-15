@@ -9,12 +9,12 @@ import com.fangjet.launcher.domain.usecase.GetTtsPreferencesUseCase
 import com.fangjet.launcher.domain.usecase.SpeakLabelUseCase
 import com.fangjet.launcher.domain.usecase.UpdateTtsPreferencesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import dagger.hilt.android.qualifiers.ApplicationContext
 
 /**
  * ViewModel for the TTS Settings screen.

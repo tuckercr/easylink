@@ -10,6 +10,7 @@ import com.fangjet.launcher.domain.model.MedicationColor
 import com.fangjet.launcher.domain.repository.MedicationRepository
 import com.fangjet.launcher.domain.usecase.AddMedicationUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +19,6 @@ import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalTime
 import javax.inject.Inject
-import dagger.hilt.android.qualifiers.ApplicationContext
 
 /**
  * ViewModel for the Add/Edit Medication screen.
@@ -126,7 +126,12 @@ class AddMedicationViewModel @Inject constructor(
                     _uiState.update { it.copy(isSaving = false, saveSuccess = true) }
 
                 is AddMedicationUseCase.Result.InvalidName ->
-                    _uiState.update { it.copy(isSaving = false, nameError = context.getString(R.string.error_name_required)) }
+                    _uiState.update {
+                        it.copy(
+                            isSaving = false,
+                            nameError = context.getString(R.string.error_name_required),
+                        )
+                    }
 
                 is AddMedicationUseCase.Result.NoReminderTimes ->
                     _uiState.update {

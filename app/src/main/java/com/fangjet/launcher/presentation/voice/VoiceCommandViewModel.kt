@@ -82,7 +82,8 @@ class VoiceCommandViewModel @Inject constructor(
         if (_uiState.value is VoiceUiState.Listening) return
 
         if (!SpeechRecognizer.isRecognitionAvailable(context)) {
-            _uiState.value = VoiceUiState.Error(context.getString(R.string.voice_error_not_available))
+            _uiState.value =
+                VoiceUiState.Error(context.getString(R.string.voice_error_not_available))
             return
         }
 
@@ -147,7 +148,8 @@ class VoiceCommandViewModel @Inject constructor(
             Log.d(TAG, "onResults: \"$text\"")
 
             if (text.isBlank()) {
-                _uiState.value = VoiceUiState.Error(context.getString(R.string.voice_error_no_match))
+                _uiState.value =
+                    VoiceUiState.Error(context.getString(R.string.voice_error_no_match))
             } else {
                 handleText(text)
             }
@@ -166,12 +168,10 @@ class VoiceCommandViewModel @Inject constructor(
                 when (error) {
                     SpeechRecognizer.ERROR_NO_MATCH,
                     SpeechRecognizer.ERROR_SPEECH_TIMEOUT,
-                        -> context.getString(R.string.voice_error_no_match)
-
+                    -> context.getString(R.string.voice_error_no_match)
                     SpeechRecognizer.ERROR_NETWORK,
                     SpeechRecognizer.ERROR_NETWORK_TIMEOUT,
-                        -> context.getString(R.string.voice_error_network)
-
+                    -> context.getString(R.string.voice_error_network)
                     SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> context.getString(R.string.voice_error_busy)
                     SpeechRecognizer.ERROR_AUDIO -> context.getString(R.string.voice_error_audio)
                     SpeechRecognizer.ERROR_CLIENT -> context.getString(R.string.voice_error_client)
@@ -268,7 +268,8 @@ class VoiceCommandViewModel @Inject constructor(
         }
         val contact = contactsHelper.searchContacts(name).firstOrNull()
         if (contact == null) {
-            _uiState.value = VoiceUiState.Error(context.getString(R.string.voice_error_contact_not_found, name))
+            _uiState.value =
+                VoiceUiState.Error(context.getString(R.string.voice_error_contact_not_found, name))
             return
         }
         success(raw, context.getString(R.string.voice_command_calling, contact.name))
@@ -287,7 +288,8 @@ class VoiceCommandViewModel @Inject constructor(
         }
         val contact = contactsHelper.searchContacts(name).firstOrNull()
         if (contact == null) {
-            _uiState.value = VoiceUiState.Error(context.getString(R.string.voice_error_contact_not_found, name))
+            _uiState.value =
+                VoiceUiState.Error(context.getString(R.string.voice_error_contact_not_found, name))
             return
         }
         success(raw, context.getString(R.string.voice_command_texting, contact.name))
@@ -312,7 +314,8 @@ class VoiceCommandViewModel @Inject constructor(
         val app = apps.firstOrNull { it.label.lowercase().contains(appName.lowercase()) }
 
         if (app == null) {
-            _uiState.value = VoiceUiState.Error(context.getString(R.string.voice_error_app_not_found, appName))
+            _uiState.value =
+                VoiceUiState.Error(context.getString(R.string.voice_error_app_not_found, appName))
             return
         }
         success(raw, context.getString(R.string.voice_command_opening, app.label))

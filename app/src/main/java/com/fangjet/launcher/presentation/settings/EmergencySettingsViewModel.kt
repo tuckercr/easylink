@@ -9,6 +9,7 @@ import com.fangjet.launcher.domain.repository.SosRepository
 import com.fangjet.launcher.domain.usecase.GetEmergencyContactsUseCase
 import com.fangjet.launcher.domain.usecase.SaveEmergencyContactUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +18,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import dagger.hilt.android.qualifiers.ApplicationContext
 
 @HiltViewModel
 class EmergencySettingsViewModel @Inject constructor(
@@ -123,7 +123,14 @@ class EmergencySettingsViewModel @Inject constructor(
     fun onDeleteContact(contact: EmergencyContact) {
         viewModelScope.launch {
             repository.deleteEmergencyContact(contact)
-            localState.update { it.copy(snackbarMessage = context.getString(R.string.contact_removed, contact.name)) }
+            localState.update {
+                it.copy(
+                    snackbarMessage = context.getString(
+                        R.string.contact_removed,
+                        contact.name,
+                    ),
+                )
+            }
         }
     }
 
