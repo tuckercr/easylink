@@ -8,39 +8,25 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.fangjet.launcher.R
 import com.fangjet.launcher.data.preferences.OnboardingPreferences
 import com.fangjet.launcher.presentation.apps.AppsScreen
-import com.fangjet.launcher.presentation.clock.ClockScreen
 import com.fangjet.launcher.presentation.forecast.ForecastScreen
 import com.fangjet.launcher.presentation.home.HomeScreen
 import com.fangjet.launcher.presentation.home.customize.CustomizeHomeScreen
@@ -72,7 +58,6 @@ object Routes {
     const val ADD_SPEED_DIAL = "add_speed_dial"
     const val ADD_MEDICATION = "add_medication"
     const val EDIT_MEDICATION = "edit_medication/{medicationId}"
-    const val CLOCK = "clock"
     const val CUSTOMIZE_HOME = "customize_home"
     const val FORECAST = "weather_forecast"
     const val EMERGENCY_CONTACTS = "emergency_contacts"
@@ -102,24 +87,6 @@ class StartupViewModel @Inject constructor(
             initialValue = null,
         )
 }
-
-// ── Bottom-nav tabs ───────────────────────────────────────────────────────────
-
-private data class BottomNavItem(
-    val route: String,
-    val labelRes: Int,
-    val iconRes: Int,
-)
-
-private val bottomNavItems = listOf(
-    BottomNavItem(Routes.HOME, R.string.home, R.drawable.ic_home),
-    BottomNavItem(Routes.SPEED_DIAL, R.string.nav_call, R.drawable.ic_call),
-    BottomNavItem(Routes.MEDICATIONS, R.string.nav_meds, R.drawable.ic_pill),
-    BottomNavItem(Routes.CLOCK, R.string.clock, R.drawable.ic_alarm),
-    BottomNavItem(Routes.CUSTOMIZE_HOME, R.string.settings, R.drawable.ic_settings),
-)
-
-private val bottomNavRoutes = bottomNavItems.map { it.route }.toSet()
 
 // ── Nav host ──────────────────────────────────────────────────────────────────
 
@@ -178,56 +145,7 @@ fun EasyViewNavHost(
         }
     }
 
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-
-    val showBottomBar = currentRoute in bottomNavRoutes
-
-    Scaffold(
-        bottomBar = {
-            if (showBottomBar) {
-                // Cap font scale so nav labels stay legible at max accessibility settings.
-                // The rest of the app honours the full system font scale.
-                val density = LocalDensity.current
-                val clampedDensity = Density(
-                    density = density.density,
-                    fontScale = density.fontScale.coerceAtMost(1.3f),
-                )
-                CompositionLocalProvider(LocalDensity provides clampedDensity) {
-                    NavigationBar {
-                        bottomNavItems.forEach { item ->
-                            val selected = navBackStackEntry
-                                ?.destination
-                                ?.hierarchy
-                                ?.any { it.route == item.route } == true
-
-                            NavigationBarItem(
-                                selected = selected,
-                                onClick = {
-                                    navController.navigate(item.route) {
-                                        // Keep HOME as the permanent back stack base so back always returns to the home screen.
-                                        popUpTo(Routes.HOME) {
-                                            saveState = true
-                                            inclusive = false
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                },
-                                icon = {
-                                    Icon(
-                                        painter = painterResource(item.iconRes),
-                                        contentDescription = stringResource(item.labelRes),
-                                    )
-                                },
-                                label = { Text(stringResource(item.labelRes), fontSize = 11.sp) },
-                            )
-                        }
-                    }
-                } // end CompositionLocalProvider
-            }
-        },
-    ) { innerPadding ->
+    Scaffold { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = startDestination,
@@ -276,10 +194,14 @@ fun EasyViewNavHost(
                     onNavigateToMagnifier = { navController.navigate(Routes.MAGNIFIER) },
                     onNavigateToSos = { navController.navigate(Routes.SOS_COUNTDOWN) },
                     onNavigateToForecast = { navController.navigate(Routes.FORECAST) },
+                    onNavigateToSpeedDial = { navController.navigate(Routes.SPEED_DIAL) },
+                    onNavigateToMedications = { navController.navigate(Routes.MEDICATIONS) },
+                    onNavigateToSettings = { navController.navigate(Routes.CUSTOMIZE_HOME) },
                 )
             }
             composable(Routes.CUSTOMIZE_HOME) {
                 CustomizeHomeScreen(
+                    onBack = { navController.popBackStack() },
                     onNavigateToEmergencyContacts = {
                         navController.navigate(Routes.EMERGENCY_CONTACTS)
                     },
@@ -309,11 +231,13 @@ fun EasyViewNavHost(
             }
             composable(Routes.SPEED_DIAL) {
                 SpeedDialScreen(
+                    onBack = { navController.popBackStack() },
                     onNavigateToAddContact = { navController.navigate(Routes.ADD_SPEED_DIAL) },
                 )
             }
             composable(Routes.MEDICATIONS) {
                 MedicationsScreen(
+                    onBack = { navController.popBackStack() },
                     onNavigateToAddMedication = { navController.navigate(Routes.ADD_MEDICATION) },
                     onNavigateToEditMedication = { id ->
                         navController.navigate(Routes.editMedication(id))
@@ -331,9 +255,6 @@ fun EasyViewNavHost(
             }
             composable(Routes.ADD_MEDICATION) {
                 AddMedicationScreen(onBack = { navController.popBackStack() })
-            }
-            composable(Routes.CLOCK) {
-                ClockScreen()
             }
             composable(Routes.FORECAST) {
                 ForecastScreen(onBack = { navController.popBackStack() })

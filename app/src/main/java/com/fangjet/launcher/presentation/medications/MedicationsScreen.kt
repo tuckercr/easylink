@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,14 +20,11 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -53,11 +49,12 @@ import com.fangjet.launcher.R
 import com.fangjet.launcher.domain.model.Medication
 import com.fangjet.launcher.domain.model.MedicationColor
 import com.fangjet.launcher.domain.model.TodayReminder
+import com.fangjet.launcher.presentation.common.BigBackButton
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MedicationsScreen(
+    onBack: () -> Unit,
     onNavigateToAddMedication: () -> Unit,
     onNavigateToEditMedication: (Long) -> Unit,
     viewModel: MedicationsViewModel = hiltViewModel(),
@@ -89,24 +86,34 @@ fun MedicationsScreen(
             )
         }
 
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text(stringResource(R.string.medications_title), fontWeight = FontWeight.Bold) },
-                    actions = {
-                        Button(
-                            onClick = onNavigateToAddMedication,
-                            modifier = Modifier.padding(end = 8.dp),
-                        ) { Text(stringResource(R.string.add)) }
-                    },
-                    windowInsets = WindowInsets(0),
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+        ) {
+            // ── Header: title + Add ───────────────────────────────────────────
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = stringResource(R.string.medications_title),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp,
+                    color = MaterialTheme.colorScheme.onBackground,
                 )
-            },
-        ) { innerPadding ->
+                Button(onClick = onNavigateToAddMedication) {
+                    Text(stringResource(R.string.add), fontSize = 18.sp)
+                }
+            }
+
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
+                    .weight(1f)
+                    .fillMaxWidth(),
             ) {
                 when (val s = state) {
                     is MedicationsUiState.Loading -> {
@@ -155,6 +162,9 @@ fun MedicationsScreen(
                     }
                 }
             }
+
+            // ── Large full-width Back button ──────────────────────────────────
+            BigBackButton(onClick = onBack)
         }
     } // end CompositionLocalProvider
 }

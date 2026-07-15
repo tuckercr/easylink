@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,13 +23,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,11 +49,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.fangjet.launcher.R
 import com.fangjet.launcher.domain.model.SpeedDialContact
+import com.fangjet.launcher.presentation.common.BigBackButton
 import com.fangjet.launcher.ui.theme.ColorSpeedDial
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SpeedDialScreen(
+    onBack: () -> Unit,
     onNavigateToAddContact: () -> Unit,
     viewModel: SpeedDialViewModel = hiltViewModel(),
 ) {
@@ -80,26 +78,38 @@ fun SpeedDialScreen(
         )
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.speed_dial_title), fontWeight = FontWeight.Bold) },
-                actions = {
-                    Button(
-                        onClick = onNavigateToAddContact,
-                        modifier = Modifier.padding(end = 8.dp),
-                    ) {
-                        Text(stringResource(R.string.add))
-                    }
-                },
-                windowInsets = WindowInsets(0),
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+    ) {
+        // ── Header: title + Add ───────────────────────────────────────────────
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = stringResource(R.string.speed_dial_title),
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp,
+                color = MaterialTheme.colorScheme.onBackground,
             )
-        },
-    ) { innerPadding ->
+            Button(
+                onClick = onNavigateToAddContact,
+                colors = ButtonDefaults.buttonColors(containerColor = ColorSpeedDial),
+            ) {
+                Text(stringResource(R.string.add), fontSize = 18.sp, color = Color.White)
+            }
+        }
+
+        // ── Contacts ──────────────────────────────────────────────────────────
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
+                .weight(1f)
+                .fillMaxWidth(),
         ) {
             when (val s = state) {
                 is SpeedDialUiState.Loading -> {
@@ -140,6 +150,9 @@ fun SpeedDialScreen(
                 }
             }
         }
+
+        // ── Large full-width Back button ──────────────────────────────────────
+        BigBackButton(onClick = onBack)
     }
 }
 
@@ -199,28 +212,20 @@ private fun SpeedDialTile(
                 enabled = enabled,
                 onClick = onClick,
                 onLongClick = onLongClick,
-            ).padding(16.dp),
+            ).padding(vertical = 20.dp, horizontal = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        ContactPhoto(photoUri = contact.photoUri, initials = contact.initials, size = 80)
+        ContactPhoto(photoUri = contact.photoUri, initials = contact.initials, size = 96)
         Text(
             text = contact.name,
-            fontSize = 18.sp,
+            fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.fillMaxWidth(),
-        )
-        Text(
-            text = contact.phoneNumber,
-            fontSize = 13.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
         )
     }
 }

@@ -73,9 +73,11 @@ import com.fangjet.launcher.ui.theme.ColorEmail
 import com.fangjet.launcher.ui.theme.ColorFlashlight
 import com.fangjet.launcher.ui.theme.ColorMagnifier
 import com.fangjet.launcher.ui.theme.ColorMaps
+import com.fangjet.launcher.ui.theme.ColorMeds
 import com.fangjet.launcher.ui.theme.ColorPhone
 import com.fangjet.launcher.ui.theme.ColorPhotos
 import com.fangjet.launcher.ui.theme.ColorSos
+import com.fangjet.launcher.ui.theme.ColorSpeedDial
 import com.fangjet.launcher.ui.theme.ColorText
 import com.fangjet.launcher.ui.theme.ColorWeb
 import com.fangjet.launcher.ui.theme.ColorYouTube
@@ -96,6 +98,9 @@ fun HomeScreen(
     onNavigateToMagnifier: () -> Unit,
     onNavigateToSos: () -> Unit,
     onNavigateToForecast: () -> Unit,
+    onNavigateToSpeedDial: () -> Unit,
+    onNavigateToMedications: () -> Unit,
+    onNavigateToSettings: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val voiceState by voiceViewModel.uiState.collectAsStateWithLifecycle()
@@ -162,15 +167,22 @@ fun HomeScreen(
                 }
 
                 is HomeUiState.Success -> {
-                    // ── Weather card ────────────────────────────────────────
-                    WeatherCard(
-                        weather = s.weather,
-                        onRequestPermission = {
-                            locationLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
-                        },
-                        onRefresh = { viewModel.refreshWeather() },
-                        onNavigateToForecast = onNavigateToForecast,
-                    )
+                    // ── Weather card + Settings ─────────────────────────────
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        WeatherCard(
+                            weather = s.weather,
+                            onRequestPermission = {
+                                locationLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+                            },
+                            onRefresh = { viewModel.refreshWeather() },
+                            onNavigateToForecast = onNavigateToForecast,
+                            modifier = Modifier.weight(1f),
+                        )
+                        SettingsButton(onClick = onNavigateToSettings)
+                    }
 
                     Spacer(Modifier.height(12.dp))
 
@@ -203,6 +215,8 @@ fun HomeScreen(
                         onCamera = { launchIntent(Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)) },
                         onMagnifier = onNavigateToMagnifier,
                         onAllApps = onNavigateToApps,
+                        onSpeedDial = onNavigateToSpeedDial,
+                        onMedications = onNavigateToMedications,
                         onFlashlight = { viewModel.toggleFlashlight() },
                         onWeb = {
                             // Try Chrome variants first (restores last session without a URL).
@@ -331,13 +345,33 @@ fun HomeScreen(
 // ── Weather card ──────────────────────────────────────────────────────────────
 
 @Composable
+private fun SettingsButton(onClick: () -> Unit) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(64.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White.copy(alpha = 0.10f))
+            .clickable(onClick = onClick),
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_settings),
+            contentDescription = stringResource(R.string.home_settings_desc),
+            tint = Color.White,
+            modifier = Modifier.size(34.dp),
+        )
+    }
+}
+
+@Composable
 private fun WeatherCard(
     weather: WeatherInfo,
     onRequestPermission: () -> Unit,
     onRefresh: () -> Unit,
     onNavigateToForecast: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val cardModifier = Modifier
+    val cardModifier = modifier
         .fillMaxWidth()
         .clip(RoundedCornerShape(12.dp))
         .background(Color.White.copy(alpha = 0.10f))
@@ -467,6 +501,8 @@ private fun ButtonGrid(
     onCamera: () -> Unit,
     onMagnifier: () -> Unit,
     onAllApps: () -> Unit,
+    onSpeedDial: () -> Unit,
+    onMedications: () -> Unit,
     onFlashlight: () -> Unit,
     onWeb: () -> Unit,
     onMaps: () -> Unit,
@@ -512,6 +548,8 @@ private fun ButtonGrid(
                             onCamera = onCamera,
                             onMagnifier = onMagnifier,
                             onAllApps = onAllApps,
+                            onSpeedDial = onSpeedDial,
+                            onMedications = onMedications,
                             onFlashlight = onFlashlight,
                             onWeb = onWeb,
                             onMaps = onMaps,
@@ -544,6 +582,8 @@ private fun SingleHomeButton(
     onCamera: () -> Unit,
     onMagnifier: () -> Unit,
     onAllApps: () -> Unit,
+    onSpeedDial: () -> Unit,
+    onMedications: () -> Unit,
     onFlashlight: () -> Unit,
     onWeb: () -> Unit,
     onMaps: () -> Unit,
@@ -616,6 +656,32 @@ private fun SingleHomeButton(
                 modifier = modifier,
                 onClick = onAllApps,
                 onLongClick = { onLongPress(label) },
+            )
+        }
+
+        HomeButton.SPEED_DIAL -> {
+            val label = stringResource(R.string.home_button_people)
+            val ttsText = stringResource(R.string.home_tts_people)
+            HomeActionButton(
+                label = label,
+                iconRes = R.drawable.ic_contact_placeholder,
+                color = ColorSpeedDial,
+                modifier = modifier,
+                onClick = onSpeedDial,
+                onLongClick = { onLongPress(ttsText) },
+            )
+        }
+
+        HomeButton.MEDICATIONS -> {
+            val label = stringResource(R.string.nav_meds)
+            val ttsText = stringResource(R.string.home_tts_meds)
+            HomeActionButton(
+                label = label,
+                iconRes = R.drawable.ic_pill,
+                color = ColorMeds,
+                modifier = modifier,
+                onClick = onMedications,
+                onLongClick = { onLongPress(ttsText) },
             )
         }
 

@@ -78,7 +78,6 @@
     <string name="ez_magnifier">EasyView Magnifier</string>
 
     <!-- Bottom navigation -->
-    <string name="nav_call">Call</string>
     <string name="nav_meds">Meds</string>
 
     <!-- Home Screen -->
@@ -91,7 +90,7 @@
     <string name="home_voice_command_button">Say a Command</string>
 
     <!-- Speed Dial -->
-    <string name="speed_dial_title">Speed Dial</string>
+    <string name="speed_dial_title">People</string>
     <string name="speed_dial_empty_title">No favorites yet</string>
     <string name="speed_dial_empty_body">Add contacts here for one-tap calling</string>
     <string name="speed_dial_add_favorite">Add Favorite</string>
@@ -198,7 +197,17 @@
 
     <!-- Apps screen -->
     <string name="apps_no_apps">No apps found</string>
+    <string name="apps_no_matches">No apps match your search</string>
     <string name="apps_context_app_info">App Info</string>
+    <string name="apps_search_hint">Search apps</string>
+    <string name="apps_clear_search">Clear search</string>
+
+    <!-- Shared -->
+    <string name="action_back">Back</string>
+    <string name="home_settings_desc">Settings</string>
+    <string name="home_button_people">People</string>
+    <string name="home_tts_people">People you can call</string>
+    <string name="home_tts_meds">Medications</string>
 
     <!-- Customize / Settings screen -->
     <string name="customize_appearance_header">Appearance</string>

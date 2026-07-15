@@ -18,6 +18,8 @@ enum class HomeButton(
     CAMERA("Camera"),
     MAGNIFIER("Magnifier"),
     ALL_APPS("All Apps"),
+    SPEED_DIAL("People"),
+    MEDICATIONS("Meds"),
     FLASHLIGHT("Flashlight"),
     WEB("Web", defaultEnabled = false),
     MAPS("Maps", defaultEnabled = false),

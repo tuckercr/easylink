@@ -40,10 +40,12 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fangjet.launcher.R
 import com.fangjet.launcher.domain.model.FallSensitivity
+import com.fangjet.launcher.presentation.common.BigBackButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomizeHomeScreen(
+    onBack: () -> Unit = {},
     onNavigateToEmergencyContacts: () -> Unit = {},
     viewModel: CustomizeHomeViewModel = hiltViewModel(),
 ) {
@@ -57,6 +59,7 @@ fun CustomizeHomeScreen(
                 windowInsets = WindowInsets(0),
             )
         },
+        bottomBar = { BigBackButton(onClick = onBack) },
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier

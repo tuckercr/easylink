@@ -27,12 +27,14 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -54,6 +57,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fangjet.launcher.R
 import com.fangjet.launcher.domain.model.AppInfo
+import com.fangjet.launcher.presentation.common.BigBackButton
 
 @Composable
 fun AppsScreen(
@@ -65,6 +69,7 @@ fun AppsScreen(
     val view = LocalView.current
 
     var longPressedApp by remember { mutableStateOf<AppInfo?>(null) }
+    var query by rememberSaveable { mutableStateOf("") }
 
     longPressedApp?.let { app ->
         AppContextDialog(
@@ -86,81 +91,132 @@ fun AppsScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
     ) {
-        // ── Header ────────────────────────────────────────────────────────────
-        // Plain Row instead of TopAppBar+Scaffold — avoids double status-bar
-        // padding from the outer NavHost Scaffold.
-        Row(
+        // ── Search / filter box ───────────────────────────────────────────────
+        AppSearchField(
+            query = query,
+            onQueryChange = { query = it },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 4.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+        )
+
+        // ── App grid (fills the space between search box and Back button) ─────
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
         ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_home),
-                    contentDescription = stringResource(R.string.home),
-                    tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.size(28.dp),
-                )
-            }
-            Text(
-                text = stringResource(R.string.all_applications),
-                fontWeight = FontWeight.Bold,
-                fontSize = 22.sp,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
-        }
-
-        // ── Content ───────────────────────────────────────────────────────────
-        when (val s = state) {
-            is AppsUiState.Loading -> {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+            when (val s = state) {
+                is AppsUiState.Loading -> {
+                    CircularProgressIndicator(Modifier.align(Alignment.Center))
                 }
-            }
 
-            is AppsUiState.Error -> {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                is AppsUiState.Error -> {
                     Text(
                         text = s.message,
                         color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(16.dp),
+                        fontSize = 20.sp,
                         textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(24.dp),
                     )
                 }
-            }
 
-            is AppsUiState.Success -> {
-                if (s.apps.isEmpty()) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(
-                            stringResource(R.string.apps_no_apps),
-                            color = MaterialTheme.colorScheme.onBackground,
-                        )
+                is AppsUiState.Success -> {
+                    val filtered = remember(s.apps, query) {
+                        val q = query.trim()
+                        if (q.isEmpty()) {
+                            s.apps
+                        } else {
+                            s.apps.filter { it.label.contains(q, ignoreCase = true) }
+                        }
                     }
-                } else {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(3),
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        items(s.apps, key = { it.packageName }) { app ->
-                            AppGridItem(
-                                app = app,
-                                onClick = { viewModel.onAppTapped(app.packageName) },
-                                onLongClick = {
-                                    view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                                    longPressedApp = app
-                                },
-                            )
+
+                    if (filtered.isEmpty()) {
+                        Text(
+                            text = stringResource(
+                                if (query.isBlank()) R.string.apps_no_apps else R.string.apps_no_matches,
+                            ),
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontSize = 20.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(24.dp),
+                        )
+                    } else {
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(3),
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
+                            verticalArrangement = Arrangement.spacedBy(0.dp),
+                            horizontalArrangement = Arrangement.spacedBy(0.dp),
+                        ) {
+                            items(filtered, key = { it.packageName }) { app ->
+                                AppGridItem(
+                                    app = app,
+                                    onClick = { viewModel.onAppTapped(app.packageName) },
+                                    onLongClick = {
+                                        view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                                        longPressedApp = app
+                                    },
+                                )
+                            }
                         }
                     }
                 }
             }
         }
+
+        // ── Large full-width Back button ──────────────────────────────────────
+        BigBackButton(onClick = onBack)
     }
 }
+
+// ── Search field ────────────────────────────────────────────────────────────────
+
+@Composable
+private fun AppSearchField(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = modifier,
+        singleLine = true,
+        shape = RoundedCornerShape(16.dp),
+        textStyle = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Medium),
+        placeholder = {
+            Text(
+                text = stringResource(R.string.apps_search_hint),
+                fontSize = 22.sp,
+            )
+        },
+        leadingIcon = {
+            Icon(
+                painter = painterResource(R.drawable.ic_search),
+                contentDescription = null,
+                modifier = Modifier.size(28.dp),
+            )
+        },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_close),
+                        contentDescription = stringResource(R.string.apps_clear_search),
+                        modifier = Modifier.size(28.dp),
+                    )
+                }
+            }
+        },
+    )
+}
+
+// ── Grid item ───────────────────────────────────────────────────────────────────
 
 @Composable
 private fun AppGridItem(
@@ -168,10 +224,10 @@ private fun AppGridItem(
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ) {
-    // Render at 2× pixel density so icons are sharp on hdpi+ screens
+    // Render larger than the display size so icons stay sharp on xxhdpi+ screens.
     val bitmap: ImageBitmap? = remember(app.packageName) {
         app.icon?.let { drawable ->
-            runCatching { drawable.toBitmap(128, 128).asImageBitmap() }.getOrNull()
+            runCatching { drawable.toBitmap(192, 192).asImageBitmap() }.getOrNull()
         }
     }
 
@@ -179,28 +235,28 @@ private fun AppGridItem(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-            .padding(vertical = 14.dp, horizontal = 6.dp),
+            .padding(vertical = 12.dp, horizontal = 2.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         if (bitmap != null) {
             Image(
                 bitmap = bitmap,
                 contentDescription = null,
-                modifier = Modifier.size(64.dp),
+                modifier = Modifier.size(84.dp),
             )
         } else {
             Icon(
                 painter = painterResource(R.drawable.ic_home),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.size(64.dp),
+                modifier = Modifier.size(84.dp),
             )
         }
         Text(
             text = app.label,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
