@@ -207,6 +207,9 @@
     <string name="home_settings_desc">Settings</string>
     <string name="home_button_people">People</string>
     <string name="home_tts_people">People you can call</string>
+    <string name="sos_perm_banner_title">SOS isn\'t ready yet</string>
+    <string name="sos_perm_banner_body">Allow EasyView to send texts and make calls so an SOS can alert your emergency contacts.</string>
+    <string name="sos_perm_grant">Grant permissions</string>
     <string name="home_tts_meds">Medications</string>
 
     <!-- Customize / Settings screen -->

@@ -48,6 +48,7 @@ class SpeedDialViewModelTest {
             getContacts = getContacts,
             removeContact = removeContact,
             repository = repository,
+            permissions = mockk(relaxed = true),
         )
 
     private fun contact(id: Long = 1L) =

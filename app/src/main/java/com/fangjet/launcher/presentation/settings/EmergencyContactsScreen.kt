@@ -1,5 +1,9 @@
 package com.fangjet.launcher.presentation.settings
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -45,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -52,6 +57,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fangjet.launcher.R
@@ -128,12 +134,19 @@ fun EmergencyContactsScreen(
 
             is EmergencySettingsUiState.Ready -> {
                 if (s.contacts.isEmpty()) {
-                    EmptyContactsState(
+                    Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding),
-                        onAdd = { viewModel.onAddContactClicked() },
-                    )
+                    ) {
+                        SosPermissionBanner()
+                        EmptyContactsState(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            onAdd = { viewModel.onAddContactClicked() },
+                        )
+                    }
                 } else {
                     LazyColumn(
                         modifier = Modifier
@@ -143,6 +156,7 @@ fun EmergencyContactsScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(vertical = 12.dp),
                     ) {
+                        item { SosPermissionBanner() }
                         item {
                             Text(
                                 text = stringResource(R.string.emergency_contacts_description),
@@ -181,6 +195,76 @@ fun EmergencyContactsScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+// ── SOS permission readiness banner ─────────────────────────────────────────────
+
+/**
+ * Warns (and offers a one-tap fix) when the permissions SOS needs to text and
+ * call contacts aren't granted. Self-hides once everything is granted, and
+ * re-checks after the permission request returns. Location is included because
+ * it enriches the SOS text with the person's coordinates.
+ */
+@Composable
+private fun SosPermissionBanner() {
+    val context = LocalContext.current
+    val required = remember {
+        listOf(
+            Manifest.permission.SEND_SMS,
+            Manifest.permission.CALL_PHONE,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+        )
+    }
+
+    fun missing(): List<String> =
+        required.filter {
+            ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+    var missingPerms by remember { mutableStateOf(missing()) }
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { missingPerms = missing() }
+
+    if (missingPerms.isEmpty()) return
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFF5D2A0E))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.sos_perm_banner_title),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFFFFCC80),
+        )
+        Text(
+            text = stringResource(R.string.sos_perm_banner_body),
+            fontSize = 14.sp,
+            color = Color.White.copy(alpha = 0.9f),
+        )
+        Button(
+            onClick = { launcher.launch(missingPerms.toTypedArray()) },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFE65100),
+                contentColor = Color.White,
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
+        ) {
+            Text(
+                stringResource(R.string.sos_perm_grant),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+            )
         }
     }
 }

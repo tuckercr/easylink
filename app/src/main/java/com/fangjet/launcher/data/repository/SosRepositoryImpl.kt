@@ -1,15 +1,13 @@
 package com.fangjet.launcher.data.repository
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.telephony.SmsManager
 import android.util.Log
-import androidx.core.content.ContextCompat
 import com.fangjet.launcher.data.local.EmergencyContactDao
 import com.fangjet.launcher.data.local.EmergencyContactEntity
+import com.fangjet.launcher.data.permissions.PermissionChecker
 import com.fangjet.launcher.domain.model.EmergencyContact
 import com.fangjet.launcher.domain.model.SosResult
 import com.fangjet.launcher.domain.repository.SosRepository
@@ -29,6 +27,18 @@ import kotlin.time.Duration.Companion.milliseconds
 private const val TAG = "SosRepository"
 private const val LOCATION_TIMEOUT_MS = 8_000L // don't delay SOS more than 8 seconds for GPS
 
+/** How the emergency call was (or wasn't) started. */
+private enum class CallOutcome {
+    /** Placed directly via ACTION_CALL (CALL_PHONE granted). */
+    DIRECT,
+
+    /** CALL_PHONE was missing — opened the dialer pre-filled so the user can tap call. */
+    DIALER,
+
+    /** Couldn't start any call activity. */
+    FAILED,
+}
+
 /**
  * Concrete implementation of [SosRepository].
  *
@@ -44,6 +54,7 @@ private const val LOCATION_TIMEOUT_MS = 8_000L // don't delay SOS more than 8 se
 class SosRepositoryImpl @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val dao: EmergencyContactDao,
+    private val permissions: PermissionChecker,
 ) : SosRepository {
 
     private val fusedLocationClient =
@@ -75,24 +86,26 @@ class SosRepositoryImpl @Inject constructor(
         // 1. Try to get GPS location — but don't block the SOS on it
         val locationLink = fetchLocationLink()
 
-        // 2. Build the SMS message
-        val message = buildSmsMessage(locationShared = locationLink != null, locationLink)
-
-        // 3. Send SMS to ALL contacts
-        val smsCount = sendSmsToAll(contacts, message)
-
-        // 4. Call the primary contact (or fall back to the first one)
-        val primaryContact = contacts.firstOrNull { it.isPrimary } ?: contacts.first()
-        val callPlaced = placeCall(primaryContact.phoneNumber)
-
-        if (!callPlaced) {
-            Log.e(TAG, "Failed to place emergency call to ${primaryContact.name}")
+        // 2. Text all contacts (only if we're allowed to)
+        val smsPermitted = permissions.hasSendSms()
+        val smsCount = if (smsPermitted) {
+            val message = buildSmsMessage(locationShared = locationLink != null, locationLink)
+            sendSmsToAll(contacts, message)
+        } else {
+            Log.e(TAG, "SEND_SMS permission not granted — SOS cannot text contacts")
+            0
         }
 
-        return SosResult.Success(
-            calledContact = if (callPlaced) primaryContact else null,
-            smsRecipients = smsCount,
+        // 3. Call the primary contact (or fall back to the first one)
+        val primaryContact = contacts.firstOrNull { it.isPrimary } ?: contacts.first()
+        val callOutcome = placeCall(primaryContact.phoneNumber)
+
+        return resolveSosResult(
+            smsPermitted = smsPermitted,
+            smsSent = smsCount,
+            callPlaced = callOutcome != CallOutcome.FAILED,
             locationShared = locationLink != null,
+            calledContact = primaryContact,
         )
     }
 
@@ -106,12 +119,7 @@ class SosRepositoryImpl @Inject constructor(
      * into a coroutine — a common and important Android pattern.
      */
     private suspend fun fetchLocationLink(): String? {
-        val hasPermission = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION,
-        ) == PackageManager.PERMISSION_GRANTED
-
-        if (!hasPermission) {
+        if (!permissions.hasFineLocation()) {
             Log.w(TAG, "Location permission not granted — sending SOS without GPS")
             return null
         }
@@ -152,19 +160,11 @@ class SosRepositoryImpl @Inject constructor(
      * Sends the SOS SMS to every configured contact.
      * Uses multipart send for messages longer than 160 characters.
      * Returns the number of contacts messaged successfully.
+     *
+     * Caller must confirm SEND_SMS is granted before calling.
      */
     @Suppress("DEPRECATION") // SmsManager.getDefault() fine for API 26+
     private fun sendSmsToAll(contacts: List<EmergencyContact>, message: String): Int {
-        val hasSmsPermission = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.SEND_SMS,
-        ) == PackageManager.PERMISSION_GRANTED
-
-        if (!hasSmsPermission) {
-            Log.e(TAG, "SEND_SMS permission not granted")
-            return 0
-        }
-
         val smsManager = context.getSystemService(SmsManager::class.java)
         var successCount = 0
 
@@ -193,30 +193,65 @@ class SosRepositoryImpl @Inject constructor(
     }
 
     /**
-     * Initiates a phone call to [phoneNumber].
-     * Uses ACTION_CALL (requires CALL_PHONE permission) so the call
-     * starts immediately without the dialer confirmation screen.
+     * Starts the emergency call to [phoneNumber].
+     *
+     * With CALL_PHONE granted, uses ACTION_CALL to dial immediately. Without it,
+     * falls back to ACTION_DIAL — the dialer opens pre-filled so the user (or a
+     * bystander) only has to tap the call button, rather than the call silently
+     * failing.
      */
-    private fun placeCall(phoneNumber: String): Boolean {
-        val hasCallPermission = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.CALL_PHONE,
-        ) == PackageManager.PERMISSION_GRANTED
-
-        if (!hasCallPermission) {
-            Log.e(TAG, "CALL_PHONE permission not granted")
-            return false
+    private fun placeCall(phoneNumber: String): CallOutcome {
+        val direct = permissions.hasCallPhone()
+        val action = if (direct) Intent.ACTION_CALL else Intent.ACTION_DIAL
+        if (!direct) {
+            Log.w(TAG, "CALL_PHONE not granted — opening the dialer instead of calling directly")
         }
-
         return runCatching {
-            val intent = Intent(Intent.ACTION_CALL, Uri.parse("tel:$phoneNumber")).apply {
+            val intent = Intent(action, Uri.parse("tel:$phoneNumber")).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
-            true
+            if (direct) CallOutcome.DIRECT else CallOutcome.DIALER
         }.getOrElse { e ->
-            Log.e(TAG, "Failed to place call", e)
-            false
+            Log.e(TAG, "Failed to start emergency call", e)
+            CallOutcome.FAILED
         }
     }
+}
+
+/**
+ * Pure decision: given what actually happened during an SOS dispatch, what
+ * result should the user see? Extracted so it can be unit-tested without any
+ * Android framework dependencies.
+ */
+internal fun resolveSosResult(
+    smsPermitted: Boolean,
+    smsSent: Int,
+    callPlaced: Boolean,
+    locationShared: Boolean,
+    calledContact: EmergencyContact?,
+): SosResult {
+    // Nothing reached the contacts at all.
+    if (smsSent == 0 && !callPlaced) {
+        val reason = if (!smsPermitted) {
+            "Turn on text and phone permissions so SOS can reach your contacts."
+        } else {
+            "SOS couldn't send a text or start a call. Please call for help directly."
+        }
+        return SosResult.Failure(reason)
+    }
+
+    // The call went out, but texts were blocked by a missing SMS permission.
+    if (!smsPermitted) {
+        return SosResult.PartialSuccess(
+            smsRecipients = 0,
+            reason = "Couldn't text your contacts (SMS permission is off). A call was started.",
+        )
+    }
+
+    return SosResult.Success(
+        calledContact = if (callPlaced) calledContact else null,
+        smsRecipients = smsSent,
+        locationShared = locationShared,
+    )
 }

@@ -1,11 +1,11 @@
 package com.fangjet.launcher.presentation.fall
 
 import android.content.Context
-import android.content.Intent
-import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fangjet.launcher.data.fall.FallDetectionNotificationHelper
+import com.fangjet.launcher.data.permissions.PermissionChecker
+import com.fangjet.launcher.data.permissions.placePhoneCall
 import com.fangjet.launcher.domain.model.EmergencyContact
 import com.fangjet.launcher.domain.usecase.GetEmergencyContactsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,6 +34,7 @@ class FallAlertViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val getEmergencyContacts: GetEmergencyContactsUseCase,
     private val notifHelper: FallDetectionNotificationHelper,
+    private val permissions: PermissionChecker,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(FallAlertUiState())
@@ -84,9 +85,6 @@ class FallAlertViewModel @Inject constructor(
         notifHelper.dismissFallAlert()
         _state.value = _state.value.copy(callingNow = true, dismissed = true)
 
-        val callIntent = Intent(Intent.ACTION_CALL, "tel:${contact.phoneNumber}".toUri()).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        context.startActivity(callIntent)
+        placePhoneCall(context, contact.phoneNumber, permissions)
     }
 }

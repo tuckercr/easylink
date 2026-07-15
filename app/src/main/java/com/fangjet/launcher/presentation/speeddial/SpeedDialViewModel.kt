@@ -1,10 +1,10 @@
 package com.fangjet.launcher.presentation.speeddial
 
 import android.content.Context
-import android.content.Intent
-import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fangjet.launcher.data.permissions.PermissionChecker
+import com.fangjet.launcher.data.permissions.placePhoneCall
 import com.fangjet.launcher.domain.model.SpeedDialContact
 import com.fangjet.launcher.domain.repository.SpeedDialRepository
 import com.fangjet.launcher.domain.usecase.GetSpeedDialContactsUseCase
@@ -41,6 +41,7 @@ class SpeedDialViewModel @Inject constructor(
     private val getContacts: GetSpeedDialContactsUseCase,
     private val removeContact: RemoveSpeedDialContactUseCase,
     private val repository: SpeedDialRepository,
+    private val permissions: PermissionChecker,
 ) : ViewModel() {
 
     private val callInProgress = MutableStateFlow(false)
@@ -68,11 +69,7 @@ class SpeedDialViewModel @Inject constructor(
         viewModelScope.launch {
             callInProgress.value = true
             try {
-                val dialIntent = Intent(Intent.ACTION_CALL).apply {
-                    data = "tel:${contact.phoneNumber}".toUri()
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                }
-                context.startActivity(dialIntent)
+                placePhoneCall(context, contact.phoneNumber, permissions)
             } finally {
                 delay(2_000.milliseconds)
                 callInProgress.value = false

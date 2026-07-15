@@ -15,6 +15,8 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fangjet.launcher.data.contacts.ContactsHelper
+import com.fangjet.launcher.data.permissions.PermissionChecker
+import com.fangjet.launcher.data.permissions.placePhoneCall
 import com.fangjet.launcher.data.voice.VoiceCommandParser
 import com.fangjet.launcher.domain.model.VoiceCommand
 import com.fangjet.launcher.domain.repository.AppRepository
@@ -57,6 +59,7 @@ class VoiceCommandViewModel @Inject constructor(
     private val contactsHelper: ContactsHelper,
     private val appRepository: AppRepository,
     private val launchAppUseCase: LaunchAppUseCase,
+    private val permissions: PermissionChecker,
 ) : ViewModel() {
 
     // ── State & effects ───────────────────────────────────────────────────────
@@ -268,10 +271,7 @@ class VoiceCommandViewModel @Inject constructor(
             return
         }
         success(raw, "Calling ${contact.name}…")
-        context.startActivity(
-            Intent(Intent.ACTION_CALL, "tel:${contact.phoneNumber}".toUri())
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-        )
+        placePhoneCall(context, contact.phoneNumber, permissions)
         autoDismiss()
     }
 
