@@ -1,6 +1,6 @@
 # EasyLink
 
-![Android CI](https://github.com/tuckercr/ez-launcher/actions/workflows/ci.yml/badge.svg)
+[![Android CI](https://github.com/tuckercr/easylink/actions/workflows/ci.yml/badge.svg)](https://github.com/tuckercr/easylink/actions/workflows/ci.yml)
 
 **An Android home-screen replacement for older adults, and the caregiver companion app
 that sets it up and watches over it — connected through Firebase.**

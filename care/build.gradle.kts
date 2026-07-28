@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -5,6 +7,17 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.google.services) // reads care/google-services.json
+}
+
+// Release signing credentials live in local.properties (git-ignored) or, in CI,
+// are written there before the build. Same keystore as :app — one signing
+// identity for both EasyLink apps.
+val localProps = Properties().also { props ->
+    rootProject
+        .file("local.properties")
+        .takeIf { it.exists() }
+        ?.inputStream()
+        ?.use { props.load(it) }
 }
 
 android {
@@ -21,6 +34,18 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            val path = localProps["KEYSTORE_PATH"] as String?
+            if (path != null) {
+                storeFile = file(path)
+                storePassword = localProps["KEYSTORE_PASSWORD"] as String? ?: ""
+                keyAlias = localProps["KEY_ALIAS"] as String? ?: ""
+                keyPassword = localProps["KEY_PASSWORD"] as String? ?: ""
+            }
+        }
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
@@ -30,6 +55,12 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            // Falls back to unsigned when no keystore is configured (CI without
+            // secrets, a fresh clone) rather than failing the build.
+            val releaseSigning = signingConfigs.getByName("release")
+            if (releaseSigning.storeFile != null) {
+                signingConfig = releaseSigning
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
