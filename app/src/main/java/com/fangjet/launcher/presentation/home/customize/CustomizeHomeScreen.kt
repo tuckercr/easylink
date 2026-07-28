@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.fangjet.launcher.BuildConfig
 import com.fangjet.launcher.R
 import com.fangjet.launcher.domain.model.FallSensitivity
 import com.fangjet.launcher.presentation.common.BigBackButton
@@ -128,26 +129,27 @@ fun CustomizeHomeScreen(
                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
             }
 
-            // ── Voice command button toggle ───────────────────────────────────
-            item {
-                ToggleRow(
-                    label = stringResource(R.string.customize_voice_button_label),
-                    description = stringResource(R.string.customize_voice_button_description),
-                    checked = state.voiceButtonEnabled,
-                    onCheckedChange = { viewModel.setVoiceButtonEnabled(it) },
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
-            }
+            // ── Voice + SOS toggles (safety flavor only) ──────────────────────
+            if (BuildConfig.SAFETY_FEATURES) {
+                item {
+                    ToggleRow(
+                        label = stringResource(R.string.customize_voice_button_label),
+                        description = stringResource(R.string.customize_voice_button_description),
+                        checked = state.voiceButtonEnabled,
+                        onCheckedChange = { viewModel.setVoiceButtonEnabled(it) },
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                }
 
-            // ── SOS button toggle ─────────────────────────────────────────────
-            item {
-                ToggleRow(
-                    label = stringResource(R.string.customize_sos_button_label),
-                    description = stringResource(R.string.customize_sos_button_description),
-                    checked = state.sosButtonEnabled,
-                    onCheckedChange = { viewModel.setSosButtonEnabled(it) },
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                item {
+                    ToggleRow(
+                        label = stringResource(R.string.customize_sos_button_label),
+                        description = stringResource(R.string.customize_sos_button_description),
+                        checked = state.sosButtonEnabled,
+                        onCheckedChange = { viewModel.setSosButtonEnabled(it) },
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                }
             }
 
             // ── Section: My Apps row ──────────────────────────────────────────
@@ -218,61 +220,62 @@ fun CustomizeHomeScreen(
                 }
             }
 
-            // ── Section: Fall Detection ───────────────────────────────────────
-            item {
-                Spacer(Modifier.height(28.dp))
-                SectionHeader(stringResource(R.string.customize_fall_detection_header))
-                Text(
-                    stringResource(R.string.customize_fall_detection_description),
-                    fontSize = DESC_SIZE,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 12.dp),
-                )
-
-                FallDetectionCard(
-                    enabled = state.fallDetectionEnabled,
-                    sensitivity = state.fallSensitivity,
-                    onToggle = { viewModel.setFallDetectionEnabled(it) },
-                    onSensitivity = { viewModel.setFallSensitivity(it) },
-                )
-
-                Spacer(Modifier.height(28.dp))
-            }
-
-            // ── Section: Emergency Contacts ───────────────────────────────────
-            item {
-                SectionHeader(stringResource(R.string.customize_emergency_contacts_header))
-                Text(
-                    stringResource(R.string.customize_emergency_contacts_description),
-                    fontSize = DESC_SIZE,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 12.dp),
-                )
-                Button(
-                    onClick = onNavigateToEmergencyContacts,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFB71C1C),
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(72.dp),
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_call),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(28.dp)
-                            .padding(end = 8.dp),
-                        tint = Color.White,
-                    )
+            // ── Sections: Fall Detection + Emergency Contacts (safety only) ───
+            if (BuildConfig.SAFETY_FEATURES) {
+                item {
+                    Spacer(Modifier.height(28.dp))
+                    SectionHeader(stringResource(R.string.customize_fall_detection_header))
                     Text(
-                        stringResource(R.string.customize_manage_emergency_contacts),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
+                        stringResource(R.string.customize_fall_detection_description),
+                        fontSize = DESC_SIZE,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 12.dp),
                     )
+
+                    FallDetectionCard(
+                        enabled = state.fallDetectionEnabled,
+                        sensitivity = state.fallSensitivity,
+                        onToggle = { viewModel.setFallDetectionEnabled(it) },
+                        onSensitivity = { viewModel.setFallSensitivity(it) },
+                    )
+
+                    Spacer(Modifier.height(28.dp))
                 }
-                Spacer(Modifier.height(28.dp))
+
+                item {
+                    SectionHeader(stringResource(R.string.customize_emergency_contacts_header))
+                    Text(
+                        stringResource(R.string.customize_emergency_contacts_description),
+                        fontSize = DESC_SIZE,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 12.dp),
+                    )
+                    Button(
+                        onClick = onNavigateToEmergencyContacts,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFB71C1C),
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(72.dp),
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_call),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(28.dp)
+                                .padding(end = 8.dp),
+                            tint = Color.White,
+                        )
+                        Text(
+                            stringResource(R.string.customize_manage_emergency_contacts),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                        )
+                    }
+                    Spacer(Modifier.height(28.dp))
+                }
             }
 
             // ── Section: Family ───────────────────────────────────────────────
@@ -292,6 +295,34 @@ fun CustomizeHomeScreen(
                 ) {
                     Text(
                         stringResource(R.string.customize_connect_family),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Spacer(Modifier.height(28.dp))
+            }
+
+            // ── Section: Home app ─────────────────────────────────────────────
+            // An always-available way out of EasyLink (Play launcher policy:
+            // never obstruct switching the default home app).
+            item {
+                SectionHeader(stringResource(R.string.customize_home_app_header))
+                Text(
+                    stringResource(R.string.customize_home_app_description),
+                    fontSize = DESC_SIZE,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 12.dp),
+                )
+                OutlinedButton(
+                    onClick = {
+                        context.startActivity(Intent(Settings.ACTION_HOME_SETTINGS))
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(72.dp),
+                ) {
+                    Text(
+                        stringResource(R.string.customize_change_home_app),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                     )

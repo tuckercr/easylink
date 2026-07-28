@@ -42,8 +42,9 @@ jobs:
       run: |
         ./gradlew ktlintCheck lint test build
 
-    - name: Upload APK
+    - name: Upload APKs
       uses: actions/upload-artifact@v4
       with:
         name: app-debug
-        path: app/build/outputs/apk/debug/*.apk
+        # Both distribution flavors: standard (Play Store) and safety (full feature set)
+        path: app/build/outputs/apk/*/debug/*.apk

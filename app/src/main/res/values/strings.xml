@@ -295,6 +295,11 @@
     <string name="customize_my_apps_grant_access">Allow Notification Access</string>
     <string name="favorite_picker_title">My Apps (%1$d of %2$d)</string>
 
+    <!-- Home app (default launcher) -->
+    <string name="customize_home_app_header">Home App</string>
+    <string name="customize_home_app_description">EasyLink is currently your home screen. You can switch to a different home app at any time.</string>
+    <string name="customize_change_home_app">Change Home App</string>
+
     <!-- Connect Family (pairing with EasyLink Care) -->
     <string name="customize_family_header">Family</string>
     <string name="customize_family_description">Let a family member set up this phone and get alerts from their own phone using the EasyLink Care app.</string>
@@ -351,11 +356,13 @@
 
     <!-- Onboarding -->
     <string name="onboarding_phone_title">Phone &amp; Contacts</string>
-    <string name="onboarding_phone_desc">EasyLink Launcher can call your contacts directly and powers Speed Dial and voice commands like \"Call John\".</string>
+    <!-- Overridden in src/safety/res (mentions voice commands). -->
+    <string name="onboarding_phone_desc">EasyLink Launcher can call your contacts directly and powers Speed Dial, so favorite people are one tap away.</string>
     <string name="onboarding_sms_title">Text Messages</string>
     <string name="onboarding_sms_desc">Allows EasyLink Launcher to send SOS alert messages to your emergency contacts when you trigger an SOS.</string>
     <string name="onboarding_location_title">Location</string>
-    <string name="onboarding_location_desc">Your location is included in SOS messages so emergency contacts know where to find you. Also powers the weather widget.</string>
+    <!-- Overridden in src/safety/res (mentions SOS location sharing). -->
+    <string name="onboarding_location_desc">Shows the weather for where you are, right on your home screen. Your location never leaves the weather service.</string>
     <string name="onboarding_camera_title">Camera</string>
     <string name="onboarding_camera_desc">Powers the Magnifier (great for small print) and the Flashlight. Your camera is never used without your knowledge.</string>
     <string name="onboarding_notifications_title">Notifications</string>

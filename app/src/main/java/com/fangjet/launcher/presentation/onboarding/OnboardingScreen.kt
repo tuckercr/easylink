@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fangjet.launcher.BuildConfig
 import com.fangjet.launcher.R
 import com.fangjet.launcher.data.preferences.OnboardingPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -74,23 +75,28 @@ private val STEPS: List<OnboardingStep> = buildList {
             permissions = listOf(Manifest.permission.CALL_PHONE, Manifest.permission.READ_CONTACTS),
         ),
     )
-    add(
-        OnboardingStep(
-            emoji = "💬",
-            titleRes = R.string.onboarding_sms_title,
-            descRes = R.string.onboarding_sms_desc,
-            permissions = listOf(Manifest.permission.SEND_SMS),
-        ),
-    )
+    // SMS (SOS alerts) exists only in the safety flavor — the standard manifest
+    // has no SEND_SMS, so requesting it would be auto-denied.
+    if (BuildConfig.SAFETY_FEATURES) {
+        add(
+            OnboardingStep(
+                emoji = "💬",
+                titleRes = R.string.onboarding_sms_title,
+                descRes = R.string.onboarding_sms_desc,
+                permissions = listOf(Manifest.permission.SEND_SMS),
+            ),
+        )
+    }
     add(
         OnboardingStep(
             emoji = "📍",
             titleRes = R.string.onboarding_location_title,
             descRes = R.string.onboarding_location_desc,
-            permissions = listOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-            ),
+            permissions = buildList {
+                // Fine location is SOS-only (safety flavor); weather needs coarse.
+                if (BuildConfig.SAFETY_FEATURES) add(Manifest.permission.ACCESS_FINE_LOCATION)
+                add(Manifest.permission.ACCESS_COARSE_LOCATION)
+            },
         ),
     )
     add(
@@ -112,14 +118,17 @@ private val STEPS: List<OnboardingStep> = buildList {
             ),
         )
     }
-    add(
-        OnboardingStep(
-            emoji = "🎤",
-            titleRes = R.string.onboarding_microphone_title,
-            descRes = R.string.onboarding_microphone_desc,
-            permissions = listOf(Manifest.permission.RECORD_AUDIO),
-        ),
-    )
+    // Microphone (voice commands) exists only in the safety flavor.
+    if (BuildConfig.SAFETY_FEATURES) {
+        add(
+            OnboardingStep(
+                emoji = "🎤",
+                titleRes = R.string.onboarding_microphone_title,
+                descRes = R.string.onboarding_microphone_desc,
+                permissions = listOf(Manifest.permission.RECORD_AUDIO),
+            ),
+        )
+    }
 }
 
 // ── Screen ────────────────────────────────────────────────────────────────────

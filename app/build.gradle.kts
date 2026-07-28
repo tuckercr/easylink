@@ -32,6 +32,29 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // ── Distribution flavors ──────────────────────────────────────────────────
+    // standard — Play Store build. No SOS / fall detection / voice, so the
+    //            manifest carries no SMS, fine-location, microphone, or
+    //            health-foreground-service permissions (all Play-restricted
+    //            or scrutinized). See src/safety/AndroidManifest.xml.
+    // safety   — everything enabled; sideload / future release once the
+    //            restricted-permission declarations are approved.
+    // Both share one applicationId (and Firebase registration); only one can
+    // be installed at a time.
+    flavorDimensions += "distribution"
+    productFlavors {
+        create("standard") {
+            dimension = "distribution"
+            isDefault = true
+            buildConfigField("boolean", "SAFETY_FEATURES", "false")
+        }
+        create("safety") {
+            dimension = "distribution"
+            versionNameSuffix = "-safety"
+            buildConfigField("boolean", "SAFETY_FEATURES", "true")
+        }
+    }
+
     signingConfigs {
         create("release") {
             val path = localProps["KEYSTORE_PATH"] as String?

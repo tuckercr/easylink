@@ -21,18 +21,12 @@
         </intent>
     </queries>
 
-    <!-- ── Voice commands ───────────────────────────────────────────────────── -->
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-
-    <!-- ── SOS ────────────────────────────────────────────────────────────── -->
+    <!-- ── Speed Dial (direct call + contact picker) ──────────────────────── -->
     <uses-permission android:name="android.permission.CALL_PHONE" />
-    <uses-permission android:name="android.permission.SEND_SMS" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
-
-    <!-- ── Speed Dial ─────────────────────────────────────────────────────── -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+
+    <!-- ── Weather (city-level fix is enough; FINE is safety-flavor only) ──── -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <!-- ── Medication reminders ───────────────────────────────────────────── -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -41,13 +35,9 @@
         android:name="android.permission.SCHEDULE_EXACT_ALARM"
         tools:ignore="ExactAlarm" />
 
-
-    <!-- ── Fall detection ────────────────────────────────────────────────────── -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <!-- Required on API 34+ for foregroundServiceType="health" -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
-    <!-- Companion permission required by health FGS type (install-time, API 31+, ignored below) -->
-    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
+    <!-- SOS, fall detection, and voice permissions live in
+         src/safety/AndroidManifest.xml — the Play Store (standard) build
+         must not request them. -->
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -109,19 +99,8 @@
             </intent-filter>
         </receiver>
 
-        <!-- ── Fall detection ─────────────────────────────────────────────── -->
-        <service
-            android:name=".data.fall.FallDetectionService"
-            android:exported="false"
-            android:foregroundServiceType="health" />
-
-        <activity
-            android:name=".presentation.fall.FallAlertActivity"
-            android:exported="false"
-            android:launchMode="singleTask"
-            android:showOnLockScreen="true"
-            android:turnScreenOn="true"
-            android:theme="@style/AppTheme.NoActionBar" />
+        <!-- Fall detection service + alert activity are declared in
+             src/safety/AndroidManifest.xml (safety flavor only). -->
 
         <receiver
             android:name=".data.alarm.BootCompletedReceiver"

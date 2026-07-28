@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Safety flavor overlay — merged on top of src/main/AndroidManifest.xml.
+
+  Everything here is a permission or component that Google Play restricts or
+  scrutinizes (SMS, fine location, microphone, health foreground service).
+  Keeping them out of the standard flavor lets the Play Store build request
+  only ordinary permissions. See app/build.gradle.kts → productFlavors.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- ── SOS: text + call emergency contacts, share location ────────────── -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+
+    <!-- ── Voice commands ─────────────────────────────────────────────────── -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- ── Fall detection ─────────────────────────────────────────────────── -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Required on API 34+ for foregroundServiceType="health" -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
+    <!-- Companion permission required by health FGS type (install-time, API 31+, ignored below) -->
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
+
+    <application>
+
+        <!-- ── Fall detection ─────────────────────────────────────────────── -->
+        <service
+            android:name="com.fangjet.launcher.data.fall.FallDetectionService"
+            android:exported="false"
+            android:foregroundServiceType="health" />
+
+        <activity
+            android:name="com.fangjet.launcher.presentation.fall.FallAlertActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:theme="@style/AppTheme.NoActionBar" />
+
+    </application>
+
+</manifest>

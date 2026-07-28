@@ -55,8 +55,11 @@ jobs:
           cp app/google-services.json care/google-services.json
 
       # ── Run full test suite before releasing ───────────────────────────────
+      # `test` covers every module and variant that has unit tests. (AGP does
+      # not create testReleaseUnitTest tasks for every module, so the release-
+      # only task name does not resolve.)
       - name: Run tests
-        run: ./gradlew testReleaseUnitTest --stacktrace
+        run: ./gradlew test --stacktrace
 
       # ── Build signed release AAB ───────────────────────────────────────────
       # AAB (Android App Bundle) is required for Play Store; APK is for sideloading.
@@ -81,11 +84,14 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: "EZ Launcher ${{ github.ref_name }}"
+          name: "EasyLink ${{ github.ref_name }}"
           generate_release_notes: true
+          # standard = Play Store flavor (no restricted permissions);
+          # safety   = full feature set (SOS / fall detection / voice), sideload.
           files: |
-            app/build/outputs/bundle/release/app-release.aab
-            app/build/outputs/apk/release/app-release.apk
+            app/build/outputs/bundle/standardRelease/app-standard-release.aab
+            app/build/outputs/apk/standard/release/app-standard-release.apk
+            app/build/outputs/apk/safety/release/app-safety-release.apk
 
       # ── Upload to Play Store internal track ────────────────────────────────
       # Requires the Google Play Android Developer API service account JSON
@@ -96,7 +102,7 @@ jobs:
       #   with:
       #     serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
       #     packageName: com.fangjet.launcher
-      #     releaseFiles: app/build/outputs/bundle/release/app-release.aab
+      #     releaseFiles: app/build/outputs/bundle/standardRelease/app-standard-release.aab
       #     track: internal
       #     status: completed
 

@@ -270,11 +270,30 @@ and an alerts feed with push notifications for SOS, falls and missed doses.
 ## Building & testing
 
 ```bash
-./gradlew testDebugUnitTest          # all modules
-./gradlew ktlintCheck                # lint
-./gradlew :app:assembleDebug         # launcher APK
-./gradlew :care:assembleDebug        # companion APK
+./gradlew testDebugUnitTest              # all modules
+./gradlew ktlintCheck                    # lint
+./gradlew :app:assembleStandardDebug     # launcher APK (Play Store flavor)
+./gradlew :app:assembleSafetyDebug       # launcher APK (full feature set)
+./gradlew :care:assembleDebug            # companion APK
 ```
+
+### Launcher flavors
+
+The launcher builds in two distribution flavors (`app/build.gradle.kts`):
+
+| | `standard` | `safety` |
+|---|---|---|
+| SOS button, fall detection, voice commands | — | ✅ |
+| `SEND_SMS`, `ACCESS_FINE_LOCATION`, `RECORD_AUDIO`, health foreground service | not in manifest | requested |
+| Distribution | Play Store | sideload (pending Play declarations) |
+
+`standard` exists because Google Play restricts SMS and scrutinizes health-service
+permissions; shipping the launcher first without them keeps review simple. The split is
+enforced at three levels: a flavor manifest (`app/src/safety/AndroidManifest.xml`), a
+compile-time `BuildConfig.SAFETY_FEATURES` flag gating every UI entry point, and an
+injected [`FeatureFlags`](app/src/main/java/com/fangjet/launcher/data/config/FeatureFlags.kt)
+that forces the SOS/voice preferences off so not even Remote Config or a caregiver
+can surface a feature whose permissions aren't in the manifest.
 
 Firebase is optional for building. Without `google-services.json` the apps compile and
 run — Remote Config falls back to compiled-in defaults, and cloud features stay inert
@@ -342,21 +361,21 @@ Changing a default never overrides a choice a user or caregiver already made.
 
 ## Permissions
 
-| Permission | Why it's needed |
-|---|---|
-| `CAMERA` | Magnifier and flashlight |
-| `RECORD_AUDIO` | Voice commands |
-| `ACCESS_FINE_LOCATION` | GPS coordinates in the SOS SMS |
-| `ACCESS_COARSE_LOCATION` | Weather widget |
-| `CALL_PHONE` | SOS and "Call" commands |
-| `SEND_SMS` | SOS alert messages |
-| `READ_CONTACTS` | Speed dial and voice lookups |
-| `POST_NOTIFICATIONS` | Medication reminders, fall alerts, set-as-home reminder |
-| `FOREGROUND_SERVICE_HEALTH` | Fall detection service |
-| `HIGH_SAMPLING_RATE_SENSORS` | Accelerometer for fall detection |
-| `RECEIVE_BOOT_COMPLETED` | Restore alarms and services after reboot |
-| `USE_FULL_SCREEN_INTENT` | Fall alert over the lock screen (Android 14+) |
-| `INTERNET` | Weather, Firebase sync |
+| Permission | Why it's needed | Flavor |
+|---|---|---|
+| `CAMERA` | Magnifier and flashlight | both |
+| `ACCESS_COARSE_LOCATION` | Weather widget | both |
+| `CALL_PHONE` | Speed dial and SOS calls | both |
+| `READ_CONTACTS` | Speed dial and voice lookups | both |
+| `POST_NOTIFICATIONS` | Medication reminders, fall alerts, set-as-home reminder | both |
+| `RECEIVE_BOOT_COMPLETED` | Restore alarms and services after reboot | both |
+| `INTERNET` | Weather, Firebase sync | both |
+| `SEND_SMS` | SOS alert messages | safety |
+| `ACCESS_FINE_LOCATION` | GPS coordinates in the SOS SMS | safety |
+| `RECORD_AUDIO` | Voice commands | safety |
+| `FOREGROUND_SERVICE_HEALTH` | Fall detection service | safety |
+| `HIGH_SAMPLING_RATE_SENSORS` | Accelerometer for fall detection | safety |
+| `USE_FULL_SCREEN_INTENT` | Fall alert over the lock screen (Android 14+) | safety |
 
 Notification access (for the My Apps dots) is a separate user-granted setting, not a
 manifest permission — the feature simply stays off until it's granted.

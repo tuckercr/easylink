@@ -3,6 +3,7 @@ package com.fangjet.launcher.data.preferences
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import app.cash.turbine.test
 import com.fangjet.launcher.data.config.FakeSettingsDefaultsProvider
+import com.fangjet.launcher.data.config.FeatureFlags
 import com.fangjet.launcher.domain.model.HomeButton
 import com.fangjet.shared.config.SettingsDefaults
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,6 +29,9 @@ import org.junit.rules.TemporaryFolder
  * is no shared state between tests. [UnconfinedTestDispatcher] is used so
  * DataStore writes complete eagerly without needing [advanceUntilIdle].
  */
+private val SAFETY = FeatureFlags(safetyFeatures = true)
+private val STANDARD = FeatureFlags(safetyFeatures = false)
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomePreferencesDataSourceTest {
 
@@ -45,7 +49,7 @@ class HomePreferencesDataSourceTest {
             scope = testScope,
             produceFile = { tmpFolder.newFile("home_prefs_test.preferences_pb") },
         )
-        dataSource = HomePreferencesDataSource(dataStore, FakeSettingsDefaultsProvider())
+        dataSource = HomePreferencesDataSource(dataStore, FakeSettingsDefaultsProvider(), SAFETY)
     }
 
     // ── Default state (no stored preferences) ────────────────────────────────
@@ -334,7 +338,7 @@ class HomePreferencesDataSourceTest {
                 scope = testScope,
                 produceFile = { tmpFolder.newFile("home_prefs_override.preferences_pb") },
             )
-            val source = HomePreferencesDataSource(store, FakeSettingsDefaultsProvider(overridden))
+            val source = HomePreferencesDataSource(store, FakeSettingsDefaultsProvider(overridden), SAFETY)
 
             source.sosButtonEnabled.test { assertFalse(awaitItem()) }
             source.voiceButtonEnabled.test { assertTrue(awaitItem()) }
@@ -349,10 +353,37 @@ class HomePreferencesDataSourceTest {
                 scope = testScope,
                 produceFile = { tmpFolder.newFile("home_prefs_override2.preferences_pb") },
             )
-            val source = HomePreferencesDataSource(store, FakeSettingsDefaultsProvider(overridden))
+            val source = HomePreferencesDataSource(store, FakeSettingsDefaultsProvider(overridden), SAFETY)
 
             // The user (or caregiver) explicitly turns SOS on; the default is irrelevant now.
             source.setSosButtonEnabled(true)
             source.sosButtonEnabled.test { assertTrue(awaitItem()) }
+        }
+
+    // ── Standard flavor (safety features compiled out) ────────────────────────
+
+    @Test
+    fun `standard flavor - sos and voice stay hidden even when stored and defaulted on`() =
+        testScope.runTest {
+            // Remote Config says both buttons should be visible…
+            val overridden = SettingsDefaults.HARDCODED.copy(
+                sosButtonVisible = true,
+                voiceButtonVisible = true,
+            )
+            val store = PreferenceDataStoreFactory.create(
+                scope = testScope,
+                produceFile = { tmpFolder.newFile("home_prefs_standard.preferences_pb") },
+            )
+            val source =
+                HomePreferencesDataSource(store, FakeSettingsDefaultsProvider(overridden), STANDARD)
+
+            // …and the user has explicitly turned them on (e.g. prefs written by a
+            // previous safety-flavor install). The manifest has no SMS/mic
+            // permissions, so the buttons must stay hidden regardless.
+            source.setSosButtonEnabled(true)
+            source.setVoiceButtonEnabled(true)
+
+            source.sosButtonEnabled.test { assertFalse(awaitItem()) }
+            source.voiceButtonEnabled.test { assertFalse(awaitItem()) }
         }
 }

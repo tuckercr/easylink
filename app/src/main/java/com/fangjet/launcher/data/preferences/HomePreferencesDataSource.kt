@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringSetPreferencesKey
+import com.fangjet.launcher.data.config.FeatureFlags
 import com.fangjet.launcher.data.config.SettingsDefaultsProvider
 import com.fangjet.launcher.domain.model.HomeButton
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +31,7 @@ import javax.inject.Singleton
 class HomePreferencesDataSource @Inject constructor(
     @Named("homePrefs") private val dataStore: DataStore<Preferences>,
     private val defaults: SettingsDefaultsProvider,
+    private val featureFlags: FeatureFlags,
 ) {
     companion object {
         private val DISABLED_BUTTONS = stringSetPreferencesKey("disabled_home_buttons")
@@ -58,19 +60,33 @@ class HomePreferencesDataSource @Inject constructor(
                 }.toSet()
         }
 
-    /** Whether the full-width voice command button is shown on the Home screen. */
+    /**
+     * Whether the full-width voice command button is shown on the Home screen.
+     * Always false in the standard flavor — RECORD_AUDIO is not in its manifest,
+     * so neither stored preference nor Remote Config may surface the button.
+     */
     val voiceButtonEnabled: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
-        .map { prefs -> prefs[VOICE_BUTTON_ENABLED] ?: defaults.current().voiceButtonVisible }
+        .map { prefs ->
+            featureFlags.safetyFeatures &&
+                (prefs[VOICE_BUTTON_ENABLED] ?: defaults.current().voiceButtonVisible)
+        }
 
     suspend fun setVoiceButtonEnabled(enabled: Boolean) {
         dataStore.edit { prefs -> prefs[VOICE_BUTTON_ENABLED] = enabled }
     }
 
-    /** Whether the full-width SOS button is shown on the Home screen. */
+    /**
+     * Whether the full-width SOS button is shown on the Home screen.
+     * Always false in the standard flavor — SEND_SMS is not in its manifest,
+     * so neither stored preference nor Remote Config may surface the button.
+     */
     val sosButtonEnabled: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
-        .map { prefs -> prefs[SOS_BUTTON_ENABLED] ?: defaults.current().sosButtonVisible }
+        .map { prefs ->
+            featureFlags.safetyFeatures &&
+                (prefs[SOS_BUTTON_ENABLED] ?: defaults.current().sosButtonVisible)
+        }
 
     suspend fun setSosButtonEnabled(enabled: Boolean) {
         dataStore.edit { prefs -> prefs[SOS_BUTTON_ENABLED] = enabled }
