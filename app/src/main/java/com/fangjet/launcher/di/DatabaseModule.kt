@@ -3,7 +3,7 @@ package com.fangjet.launcher.di
 import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.fangjet.launcher.data.local.EasyViewDatabase
+import com.fangjet.launcher.data.local.EasyLinkDatabase
 import com.fangjet.launcher.data.local.EmergencyContactDao
 import com.fangjet.launcher.data.local.MIGRATION_1_2
 import com.fangjet.launcher.data.local.MIGRATION_2_3
@@ -45,12 +45,12 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(
         @ApplicationContext context: Context,
-    ): EasyViewDatabase =
+    ): EasyLinkDatabase =
         Room
             .databaseBuilder(
                 context,
-                EasyViewDatabase::class.java,
-                "easyview.db",
+                EasyLinkDatabase::class.java,
+                "easylink.db",
             ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             // TRUNCATE journal mode writes directly to the .db file instead of
             // WAL side-car files (.db-wal / .db-shm).  This keeps the database
@@ -61,19 +61,19 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideEmergencyContactDao(db: EasyViewDatabase): EmergencyContactDao = db.emergencyContactDao()
+    fun provideEmergencyContactDao(db: EasyLinkDatabase): EmergencyContactDao = db.emergencyContactDao()
 
     @Provides
     @Singleton
-    fun provideMedicationDao(db: EasyViewDatabase): MedicationDao = db.medicationDao()
+    fun provideMedicationDao(db: EasyLinkDatabase): MedicationDao = db.medicationDao()
 
     @Provides
     @Singleton
-    fun provideReminderLogDao(db: EasyViewDatabase): ReminderLogDao = db.reminderLogDao()
+    fun provideReminderLogDao(db: EasyLinkDatabase): ReminderLogDao = db.reminderLogDao()
 
     @Provides
     @Singleton
-    fun provideSpeedDialDao(db: EasyViewDatabase): SpeedDialDao = db.speedDialDao()
+    fun provideSpeedDialDao(db: EasyLinkDatabase): SpeedDialDao = db.speedDialDao()
 }
 
 /**

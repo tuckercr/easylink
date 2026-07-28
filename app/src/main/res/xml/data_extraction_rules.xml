@@ -10,7 +10,7 @@
 
     <cloud-backup>
         <!-- Room database (single file; WAL disabled via JournalMode.TRUNCATE) -->
-        <include domain="database" path="easyview.db" />
+        <include domain="database" path="easylink.db" />
 
         <!-- DataStore preference stores -->
         <include domain="file" path="datastore/home_prefs.preferences_pb" />
@@ -21,7 +21,7 @@
 
     <device-transfer>
         <!-- Include everything for a full transfer to a new phone -->
-        <include domain="database" path="easyview.db" />
+        <include domain="database" path="easylink.db" />
         <include domain="file" path="datastore/home_prefs.preferences_pb" />
         <include domain="file" path="datastore/onboarding_prefs.preferences_pb" />
         <include domain="file" path="datastore/fall_prefs.preferences_pb" />

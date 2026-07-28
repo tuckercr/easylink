@@ -1,7 +1,10 @@
 package com.fangjet.launcher.presentation.home.customize
 
 import app.cash.turbine.test
+import com.fangjet.launcher.data.apps.FavoriteAppsMode
+import com.fangjet.launcher.data.apps.FavoriteAppsPreferences
 import com.fangjet.launcher.data.fall.FallDetectionManager
+import com.fangjet.launcher.data.notifications.NotificationBadgeRepository
 import com.fangjet.launcher.data.preferences.FallDetectionPreferences
 import com.fangjet.launcher.data.preferences.HomePreferencesDataSource
 import com.fangjet.launcher.domain.model.FallSensitivity
@@ -12,6 +15,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -55,7 +59,12 @@ class CustomizeHomeViewModelTest {
         every { fallPrefs.isEnabled } returns fallEnabledFlow
         every { fallPrefs.sensitivity } returns fallSensitivityFlow
 
-        viewModel = CustomizeHomeViewModel(homePrefs, fallPrefs, fallManager)
+        val favoritePrefs = mockk<FavoriteAppsPreferences>(relaxed = true)
+        every { favoritePrefs.rowEnabled } returns flowOf(true)
+        every { favoritePrefs.mode } returns flowOf(FavoriteAppsMode.AUTOMATIC)
+        every { favoritePrefs.badgesEnabled } returns flowOf(false)
+        val badgeRepository = mockk<NotificationBadgeRepository>(relaxed = true)
+        viewModel = CustomizeHomeViewModel(homePrefs, fallPrefs, fallManager, favoritePrefs, badgeRepository)
     }
 
     @After

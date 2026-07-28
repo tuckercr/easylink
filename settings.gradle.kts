@@ -21,5 +21,12 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "Launcher"
-include(":app")
+rootProject.name = "EasyLink"
+
+// ── Applications ──────────────────────────────────────────────────────────
+include(":app") // EasyLink Launcher — runs on the elder's phone
+include(":care") // EasyLink Care — the caregiver companion app
+
+// ── Libraries ─────────────────────────────────────────────────────────────
+include(":shared") // Firestore contract shared by both apps
+include(":weather") // Standalone weather widget, reusable across projects

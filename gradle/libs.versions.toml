@@ -53,6 +53,10 @@ hilt-navigation-compose = "1.3.0"
 desugar-jdk             = "2.1.5"
 startup                 = "1.1.1"
 
+# Firebase — Auth / Firestore / FCM for the Care companion app
+firebase-bom            = "33.7.0"
+google-services         = "4.4.2"
+
 [libraries]
 android-desugar-jdk              = { group = "com.android.tools",           name = "desugar_jdk_libs",             version.ref = "desugar-jdk" }
 # Core
@@ -69,6 +73,7 @@ hilt-compiler                    = { group = "com.google.dagger",         name =
 
 # Coroutines
 kotlinx-coroutines-android       = { group = "org.jetbrains.kotlinx",    name = "kotlinx-coroutines-android",   version.ref = "coroutines" }
+kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx",    name = "kotlinx-coroutines-play-services", version.ref = "coroutines" }
 
 # Room
 room-runtime                     = { group = "androidx.room",             name = "room-runtime",                 version.ref = "room" }
@@ -112,8 +117,17 @@ hilt-navigation-compose          = { group = "androidx.hilt",              name 
 lifecycle-runtime-compose        = { group = "androidx.lifecycle",         name = "lifecycle-runtime-compose",    version.ref = "lifecycle" }
 startup-runtime                  = { group = "androidx.startup",            name = "startup-runtime",              version.ref = "startup" }
 
+# Firebase (versions come from BOM — no version.ref on individual artifacts)
+firebase-bom                     = { group = "com.google.firebase",         name = "firebase-bom",                 version.ref = "firebase-bom" }
+firebase-auth                    = { group = "com.google.firebase",         name = "firebase-auth-ktx" }
+firebase-firestore               = { group = "com.google.firebase",         name = "firebase-firestore-ktx" }
+firebase-messaging               = { group = "com.google.firebase",         name = "firebase-messaging-ktx" }
+firebase-config                  = { group = "com.google.firebase",         name = "firebase-config-ktx" }
+
 [plugins]
 android-application  = { id = "com.android.application",              version.ref = "agp" }
+android-library      = { id = "com.android.library",                  version.ref = "agp" }
+google-services      = { id = "com.google.gms.google-services",        version.ref = "google-services" }
 kotlin-parcelize     = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 kotlin-compose       = { id = "org.jetbrains.kotlin.plugin.compose",   version.ref = "kotlin" }
 hilt                 = { id = "com.google.dagger.hilt.android",        version.ref = "hilt" }

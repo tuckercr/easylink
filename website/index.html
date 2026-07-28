@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EasyLink Care — Know they're okay, without hovering</title>
+<meta name="description" content="EasyLink Care lets you set up and watch over a parent's phone from your own. Medication adherence, instant fall and SOS alerts, remote setup.">
+<style>
+  :root{
+    --ground:#FAF8F3; --card:#FFFFFF; --ink:#17231F; --teal:#12776A; --teal-deep:#0E3A3E;
+    --orange:#DD5A1E; --muted:#5E6B66; --line:#DCE5E2; --soft:#EFF4F2;
+    --good:#2E7D46; --warn:#B7791F; --crit:#C0392B;
+    --serif:Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --wrap:1140px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.6;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--wrap);margin:0 auto;padding:0 28px}
+  a{color:inherit}
+
+  /* ---------- nav ---------- */
+  nav{position:sticky;top:0;z-index:50;background:rgba(250,248,243,.88);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:70px}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);
+    font-size:21px;font-weight:700;letter-spacing:-.01em}
+  .mark{width:30px;height:30px;border-radius:9px;background:var(--teal);position:relative;flex:0 0 auto}
+  .mark::before,.mark::after{content:"";position:absolute;background:#fff;border-radius:2px}
+  .mark::before{width:13px;height:3.5px;left:5px;top:13.2px}
+  .mark::after{width:3.5px;height:13px;left:13.2px;top:8.5px}
+  .navlinks{display:flex;gap:30px;font-size:15px;color:var(--muted);align-items:center}
+  .navlinks a{text-decoration:none}
+  .navlinks a:hover{color:var(--teal)}
+  .btn{display:inline-block;background:var(--teal);color:#fff;text-decoration:none;
+    padding:13px 24px;border-radius:10px;font-weight:700;font-size:15px;border:none;
+    cursor:pointer;font-family:inherit;transition:background .15s}
+  .btn:hover{background:#0f6459}
+  .btn.orange{background:var(--orange)}
+  .btn.orange:hover{background:#c44d16}
+  .btn.sm{padding:10px 18px;font-size:14px}
+
+  /* ---------- hero ---------- */
+  .hero{padding:78px 0 84px;display:grid;grid-template-columns:1.05fr .95fr;gap:52px;align-items:center}
+  .tag{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;
+    color:var(--teal);background:#E4EFEC;border:1px solid #C9DCD7;border-radius:999px;padding:7px 15px}
+  .tag .pip{width:7px;height:7px;border-radius:50%;background:var(--orange)}
+  h1{font-family:var(--serif);font-size:57px;line-height:1.08;font-weight:700;
+    letter-spacing:-.02em;margin-top:20px}
+  h1 em{font-style:normal;color:var(--teal)}
+  .lede{font-size:19px;color:var(--muted);margin-top:20px;max-width:520px}
+  .cta{display:flex;gap:11px;margin-top:30px;max-width:480px}
+  .cta input{flex:1;padding:14px 16px;border:1px solid var(--line);border-radius:10px;
+    font-size:15px;font-family:inherit;background:var(--card);color:var(--ink)}
+  .cta input:focus{outline:2px solid var(--teal);outline-offset:-1px;border-color:transparent}
+  .fineprint{font-size:13.5px;color:var(--muted);margin-top:12px}
+
+  /* phones */
+  .phones{display:flex;gap:18px;justify-content:center;align-items:center}
+  .phone{width:212px;background:#0c0c0e;border-radius:28px;padding:6px;
+    box-shadow:0 22px 48px rgba(15,45,40,.22);flex:0 0 auto}
+  .phone.back{width:186px;margin-top:42px;opacity:.96}
+  .scr{background:#F3F6F5;border-radius:23px;overflow:hidden;display:flex;flex-direction:column}
+  .bar{background:var(--teal);color:#fff;padding:13px 14px 12px;font-weight:700;font-size:14px}
+  .bar small{display:block;font-weight:500;opacity:.85;font-size:11px;margin-top:2px}
+  .pad{padding:12px;display:flex;flex-direction:column;gap:9px}
+  .pcard{background:#fff;border:1px solid #E4EAE8;border-radius:12px;padding:11px}
+  .prow{display:flex;align-items:center;gap:9px}
+  .av{width:32px;height:32px;border-radius:50%;color:#fff;font-size:12px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .nm{font-size:13px;font-weight:700;line-height:1.25}
+  .rel{font-size:10.5px;color:#6b7a74}
+  .live{margin-left:auto;font-size:10px;color:var(--good);display:flex;align-items:center;gap:4px}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--good)}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+  .chip{font-size:10px;font-weight:600;padding:4px 7px;border-radius:6px;background:#EEF2F0;color:#4a5a54}
+  .chip.g{background:#E4F1E8;color:var(--good)}
+  .chip.w{background:#F6ECD6;color:#8a5a0f}
+  .chip.c{background:#FADFDB;color:#B23423}
+  .adh{display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #E4EAE8;
+    border-radius:12px;padding:12px}
+  .ring{width:50px;height:50px;flex:0 0 auto}
+  .big{font-size:19px;font-weight:800;line-height:1.15}
+  .cap2{font-size:10.5px;color:#6b7a74}
+  .dose{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid #E4EAE8;
+    border-radius:11px;padding:9px 10px}
+  .mk{width:20px;height:20px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;
+    justify-content:center;font-size:11px;color:#fff}
+  .mk.g{background:var(--good)}
+  .mk.u{background:#eef2f0;color:#8a968f;border:1px dashed #cdd6d2}
+  .m1{font-size:12px;font-weight:700;line-height:1.25}
+  .m2{font-size:10px;color:#6b7a74}
+  .dt{margin-left:auto;font-size:11px;font-weight:700;color:#4a5a54}
+
+  /* ---------- sections ---------- */
+  section{padding:80px 0}
+  .band{background:var(--card);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .eyebrow{font-size:13px;font-weight:700;letter-spacing:.2em;color:var(--orange);
+    text-transform:uppercase}
+  h2{font-family:var(--serif);font-size:39px;line-height:1.15;font-weight:700;
+    margin-top:11px;letter-spacing:-.015em;max-width:640px}
+  h2 em{font-style:normal;color:var(--teal)}
+  .sectlede{font-size:17.5px;color:var(--muted);margin-top:14px;max-width:600px}
+
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:46px}
+  .feat{background:var(--ground);border:1px solid var(--line);border-radius:16px;padding:28px 26px}
+  .band .feat{background:var(--ground)}
+  .ficon{width:46px;height:46px;border-radius:12px;background:var(--teal);color:#fff;
+    display:flex;align-items:center;justify-content:center;margin-bottom:17px}
+  .ficon svg{width:24px;height:24px;stroke:#fff;fill:none;stroke-width:2;
+    stroke-linecap:round;stroke-linejoin:round}
+  .feat h3{font-size:20px;font-weight:700;letter-spacing:-.01em}
+  .feat p{font-size:15.5px;color:var(--muted);margin-top:9px}
+
+  /* steps */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:46px;position:relative}
+  .step{padding:0 26px;position:relative}
+  .step:first-child{padding-left:0}
+  .step+.step{border-left:1px solid var(--line)}
+  .sn{width:44px;height:44px;border-radius:12px;background:var(--teal);color:#fff;
+    font-family:var(--serif);font-size:21px;font-weight:700;display:flex;
+    align-items:center;justify-content:center;margin-bottom:16px}
+  .step h3{font-size:19px;font-weight:700}
+  .step p{font-size:15.5px;color:var(--muted);margin-top:8px}
+
+  /* two apps */
+  .apps{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:46px}
+  .app{border:1px solid var(--line);border-radius:18px;padding:32px;background:var(--card)}
+  .app.paid{border:2px solid var(--teal);position:relative;background:#F4F9F7}
+  .ribbon{position:absolute;top:-13px;left:32px;background:var(--teal);color:#fff;
+    font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    padding:5px 13px;border-radius:999px}
+  .app h3{font-family:var(--serif);font-size:27px;font-weight:700}
+  .price{font-size:15px;color:var(--muted);margin-top:6px}
+  .price b{font-size:27px;color:var(--ink);font-family:var(--serif)}
+  .app ul{list-style:none;margin-top:20px;display:flex;flex-direction:column;gap:11px}
+  .app li{font-size:15.5px;display:flex;gap:11px;align-items:flex-start;color:var(--muted)}
+  .tick{color:var(--teal);font-weight:800;flex:0 0 auto}
+  .app .btn{margin-top:26px;width:100%;text-align:center}
+
+  /* quote */
+  .quote{text-align:center;max-width:800px;margin:0 auto}
+  .quote blockquote{font-family:var(--serif);font-size:31px;line-height:1.38;
+    letter-spacing:-.01em;font-style:italic}
+  .quote cite{display:block;font-style:normal;font-size:15px;color:var(--muted);margin-top:22px}
+
+  /* final cta */
+  .final{background:var(--teal-deep);color:#fff;border-radius:22px;padding:62px 48px;text-align:center}
+  .final h2{color:#fff;margin:0 auto;max-width:620px;font-size:39px}
+  .final p{color:#B9D2CD;font-size:17.5px;margin-top:16px}
+  .final .cta{margin:30px auto 0;justify-content:center}
+  .final .cta input{border-color:transparent}
+  .final .fineprint{color:#8FB0AA}
+
+  /* footer */
+  footer{border-top:1px solid var(--line);padding:40px 0;font-size:14.5px;color:var(--muted)}
+  .foot{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+  .foot a{text-decoration:none}
+  .foot a:hover{color:var(--teal)}
+  .footlinks{display:flex;gap:24px}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:900px){
+    .hero{grid-template-columns:1fr;gap:44px;padding:52px 0 60px}
+    h1{font-size:42px}
+    h2,.final h2{font-size:32px}
+    .grid3,.apps{grid-template-columns:1fr}
+    .steps{grid-template-columns:1fr;gap:32px}
+    .step{padding:0}
+    .step+.step{border-left:none;border-top:1px solid var(--line);padding-top:32px}
+    .navlinks{display:none}
+    .cta{flex-direction:column}
+    .quote blockquote{font-size:24px}
+    .final{padding:44px 26px}
+  }
+
+  /* ---------- dark ---------- */
+  @media (prefers-color-scheme:dark){
+    :root{--ground:#12181A;--card:#182022;--ink:#ECF2F0;--muted:#9DAEA9;
+      --line:#263234;--soft:#1D2729;--teal:#3FA294;--teal-deep:#0C2A2C}
+    nav{background:rgba(18,24,26,.88)}
+    .band .feat,.feat{background:#141B1D}
+    .app.paid{background:#16241F}
+    .cta input{background:#141B1D}
+    .phone{box-shadow:0 22px 48px rgba(0,0,0,.5)}
+    .tag{background:#16302C;border-color:#204A44;color:#5FBCAD}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav">
+    <div class="brand"><span class="mark"></span>EasyLink</div>
+    <div class="navlinks">
+      <a href="#how">How it works</a>
+      <a href="#apps">The two apps</a>
+      <a href="#care">EasyLink Care</a>
+      <a href="#waitlist" class="btn sm">Join the waitlist</a>
+    </div>
+  </div>
+</nav>
+
+<header class="wrap hero">
+  <div>
+    <span class="tag"><span class="pip"></span>EasyLink Care · in development</span>
+    <h1>Set up their phone from yours.<br><em>Know they're okay</em> — without hovering.</h1>
+    <p class="lede">Your mom's phone shouldn't be a source of stress for either of you.
+      EasyLink turns the phone she already owns into something she can actually use —
+      and gives you a quiet window into how she's doing.</p>
+    <form class="cta" id="top-form" onsubmit="return joinWaitlist(event)">
+      <input type="email" placeholder="you@example.com" aria-label="Email address" required>
+      <button class="btn orange" type="submit">Join the waitlist</button>
+    </form>
+    <p class="fineprint">Free launcher available now on Android. Care app coming soon — no spam, one email at launch.</p>
+  </div>
+
+  <div class="phones">
+    <!-- alerts (back) -->
+    <div class="phone back">
+      <div class="scr">
+        <div class="bar">Alerts<small>Newest first</small></div>
+        <div class="pad">
+          <div class="pcard" style="border-left:4px solid var(--crit)">
+            <div class="m1">Fall detected — Dad</div>
+            <div class="m2">Auto-called Sarah · 2:14p</div>
+          </div>
+          <div class="pcard" style="border-left:4px solid var(--warn)">
+            <div class="m1">Missed dose — Dad</div>
+            <div class="m2">Metformin, 12:00 · 12:31p</div>
+          </div>
+          <div class="pcard" style="border-left:4px solid var(--good)">
+            <div class="m1">Meds taken — Mom</div>
+            <div class="m2">Morning doses · 8:05a</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- dashboard (front) -->
+    <div class="phone">
+      <div class="scr">
+        <div class="bar">EasyLink Care<small>Good morning, Sarah</small></div>
+        <div class="pad">
+          <div class="pcard">
+            <div class="prow">
+              <div class="av" style="background:#12776A">ER</div>
+              <div><div class="nm">Eleanor</div><div class="rel">Mom</div></div>
+              <div class="live"><span class="dot"></span>Online</div>
+            </div>
+            <div class="chips"><span class="chip g">Meds on track</span><span class="chip">62%</span></div>
+          </div>
+          <div class="pcard">
+            <div class="prow">
+              <div class="av" style="background:#3C6478">RM</div>
+              <div><div class="nm">Robert</div><div class="rel">Dad</div></div>
+              <div class="live" style="color:#8a968f">20m ago</div>
+            </div>
+            <div class="chips"><span class="chip c">Missed dose</span><span class="chip w">18%</span></div>
+          </div>
+          <div class="adh">
+            <svg class="ring" viewBox="0 0 36 36">
+              <circle cx="18" cy="18" r="15.5" fill="none" stroke="#e5ebe9" stroke-width="5"/>
+              <circle cx="18" cy="18" r="15.5" fill="none" stroke="#2E7D46" stroke-width="5"
+                stroke-linecap="round" stroke-dasharray="65 100" transform="rotate(-90 18 18)"/>
+            </svg>
+            <div><div class="big">2 of 3</div><div class="cap2">doses taken today</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ---------- problem / pillars ---------- -->
+<section class="band" id="care">
+  <div class="wrap">
+    <div class="eyebrow">The companion app</div>
+    <h2>Everything you'd do if you <em>lived down the street.</em></h2>
+    <p class="sectlede">EasyLink Care runs on your phone. It's how you set up their
+      home screen, manage their medications, and find out — immediately — when
+      something's wrong.</p>
+
+    <div class="grid3">
+      <div class="feat">
+        <div class="ficon"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
+        <h3>Remote setup</h3>
+        <p>Choose which buttons appear on their home screen, add speed-dial contacts
+          and photos, and build medication schedules — all from your phone. No more
+          walking someone through settings menus over the phone.</p>
+      </div>
+      <div class="feat">
+        <div class="ficon"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <h3>Medication adherence</h3>
+        <p>Not just reminders. See that the noon dose was actually taken, spot a
+          pattern of missed evenings, and get a nudge before it becomes a
+          hospital visit.</p>
+      </div>
+      <div class="feat">
+        <div class="ficon"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+        <h3>Instant alerts</h3>
+        <p>SOS presses, detected falls, missed doses, and a phone about to die —
+          pushed to you the moment they happen, with the whole family notified
+          at once.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ---------- how it works ---------- -->
+<section id="how">
+  <div class="wrap">
+    <div class="eyebrow">How it works</div>
+    <h2>Two apps. One <em>6-digit code.</em></h2>
+    <p class="sectlede">Setup takes about five minutes, and only one person needs
+      to be comfortable with a phone.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="sn">1</div>
+        <h3>Install the launcher</h3>
+        <p>EasyLink Launcher replaces the home screen on the Android phone they
+          already own. Big buttons, high contrast, no app drawer to get lost in.</p>
+      </div>
+      <div class="step">
+        <div class="sn">2</div>
+        <h3>Pair with a code</h3>
+        <p>Their phone shows a 6-digit code. You type it into EasyLink Care once,
+          and the two phones are linked — securely, and for good.</p>
+      </div>
+      <div class="step">
+        <div class="sn">3</div>
+        <h3>Set it up and step back</h3>
+        <p>Configure everything from your phone, then let it run. You'll only hear
+          from it when something actually needs you.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ---------- two apps ---------- -->
+<section class="band" id="apps">
+  <div class="wrap">
+    <div class="eyebrow">Pricing</div>
+    <h2>The launcher is free. <em>Always.</em></h2>
+    <p class="sectlede">The phone your parent uses should never be behind a paywall.
+      You pay only for the caregiving layer on your side.</p>
+
+    <div class="apps">
+      <div class="app">
+        <h3>EasyLink Launcher</h3>
+        <div class="price"><b>Free</b> · on their phone</div>
+        <ul>
+          <li><span class="tick">✓</span><span>Big-button, high-contrast home screen</span></li>
+          <li><span class="tick">✓</span><span>Photo speed dial for family</span></li>
+          <li><span class="tick">✓</span><span>Medication reminders</span></li>
+          <li><span class="tick">✓</span><span>Magnifier and flashlight</span></li>
+          <li><span class="tick">✓</span><span>Hold-to-activate SOS with fall detection</span></li>
+        </ul>
+        <a class="btn" href="#" style="background:var(--muted)">Get it on Google Play</a>
+      </div>
+      <div class="app paid">
+        <span class="ribbon">Coming soon</span>
+        <h3>EasyLink Family</h3>
+        <div class="price"><b>$—</b> / month · on your phone</div>
+        <ul>
+          <li><span class="tick">✓</span><span>Everything in the free launcher</span></li>
+          <li><span class="tick">✓</span><span>Set up their phone remotely</span></li>
+          <li><span class="tick">✓</span><span>Medication adherence history</span></li>
+          <li><span class="tick">✓</span><span>Instant SOS, fall, and missed-dose alerts</span></li>
+          <li><span class="tick">✓</span><span>Unlimited family members, shared view</span></li>
+        </ul>
+        <a class="btn" href="#waitlist">Join the waitlist</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ---------- quote ---------- -->
+<section>
+  <div class="wrap quote">
+    <blockquote>"I don't want to take her independence away.<br>
+      I just want to know she took her pills."</blockquote>
+    <cite>— the reason we built this</cite>
+  </div>
+</section>
+
+<!-- ---------- final cta ---------- -->
+<section id="waitlist" style="padding-top:0">
+  <div class="wrap">
+    <div class="final">
+      <h2>Be first to know when EasyLink Care launches.</h2>
+      <p>We'll email you once — when the companion app is ready. That's it.</p>
+      <form class="cta" onsubmit="return joinWaitlist(event)">
+        <input type="email" placeholder="you@example.com" aria-label="Email address" required>
+        <button class="btn orange" type="submit">Join the waitlist</button>
+      </form>
+      <p class="fineprint">No spam, no sharing your address. Unsubscribe in one click.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div class="brand" style="font-size:17px"><span class="mark" style="width:24px;height:24px;border-radius:7px"></span>EasyLink</div>
+    <div class="footlinks">
+      <a href="#how">How it works</a>
+      <a href="#apps">Pricing</a>
+      <a href="#">Privacy</a>
+      <a href="mailto:hello@easylinkcare.com">Contact</a>
+    </div>
+    <div>© 2026 FangJet LLC</div>
+  </div>
+</footer>
+
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+  import { getFirestore, doc, setDoc, serverTimestamp }
+    from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+
+  // Firebase Hosting serves this site's own config at a reserved path, so no
+  // project keys live in the repo. Initialised lazily on first submit: a config
+  // fetch failure then surfaces as a retryable error instead of breaking the page.
+  //
+  // Note: /__/firebase/* only exists when served BY Firebase Hosting — use
+  // `firebase emulators:start --only hosting` (not a plain static server) locally.
+  let dbPromise = null;
+  function firestore() {
+    if (!dbPromise) {
+      dbPromise = fetch('/__/firebase/init.json')
+        .then((r) => r.json())
+        .then((config) => getFirestore(initializeApp(config)));
+    }
+    return dbPromise;
+  }
+
+  window.joinWaitlist = function (e) {
+    e.preventDefault();
+    const input = e.target.querySelector('input');
+    const btn = e.target.querySelector('button');
+    const email = input.value.trim().toLowerCase();
+    if (!email) return false;
+
+    btn.disabled = true;
+    btn.textContent = 'Joining…';
+
+    // Email as doc id: a second signup fails the create-only rule, which we
+    // happily report as already-subscribed.
+    firestore()
+      .then((db) =>
+        setDoc(doc(db, 'waitlist', email), {
+          email: email,
+          createdAt: serverTimestamp(),
+          source: 'easylinkcare.com',
+        }),
+      )
+      .then(() => showSuccess())
+      .catch((err) => {
+        if (err && err.code === 'permission-denied') {
+          showSuccess(true); // duplicate (or malformed slipped past the input) — don't punish the user
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Try again';
+        }
+      });
+
+    function showSuccess(already) {
+      btn.textContent = already ? "You're already on the list ✓" : "You're on the list ✓";
+      btn.style.background = '#2E7D46';
+      btn.disabled = true;
+      input.disabled = true;
+    }
+    return false;
+  };
+</script>
+</body>
+</html>

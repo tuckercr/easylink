@@ -1,0 +1,100 @@
+rules_version = '2';
+
+// EasyLink Firestore security rules.
+//
+// Model and paths: shared/src/main/java/com/fangjet/shared/FirestorePaths.kt
+// The write direction is the whole point of the design:
+//   - config   is caregiver-owned  (Care writes, launcher reads)
+//   - status   is launcher-owned   (launcher writes, Care reads)
+//   - events   are launcher-appended, caregiver-acknowledged, never deleted
+//
+// Caregivers are added to a link by the `redeemPairing` Cloud Function, which uses
+// the Admin SDK and bypasses these rules. Test edits in the console Rules Playground
+// before deploying.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /links/{linkId} {
+      function signedIn() { return request.auth != null; }
+      function parent() { return get(/databases/$(database)/documents/links/$(linkId)).data; }
+      function isElder() { return signedIn() && request.auth.uid == parent().elderUid; }
+      function isCaregiver() { return signedIn() && request.auth.uid in parent().caregiverUids; }
+
+      // The link document itself: the elder's phone (anonymous auth) creates it
+      // during pairing; only the elder can change or remove it afterwards —
+      // with one exception, redemption, below.
+      allow read: if signedIn() &&
+        (request.auth.uid == resource.data.elderUid ||
+         request.auth.uid in resource.data.caregiverUids);
+      allow create: if signedIn() && request.auth.uid == request.resource.data.elderUid;
+      allow delete: if signedIn() && request.auth.uid == resource.data.elderUid;
+
+      // Updates: the elder freely; anyone else only via pairing redemption —
+      // adding *their own* uid to caregiverUids (never removing others) while a
+      // live, unexpired code is set, optionally burning the code in the same
+      // write. Knowing the code is what led them to this linkId (linkIds are
+      // random UUIDs and unlistable). TODO(functions): move redemption into a
+      // `redeemPairing` Cloud Function for rate limiting.
+      allow update: if signedIn() && (
+        request.auth.uid == resource.data.elderUid ||
+        (
+          resource.data.pairingCode != null &&
+          request.time.toMillis() < resource.data.pairingCodeExpiresAt &&
+          request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['caregiverUids', 'pairingCode']) &&
+          // get() with a default: on a fresh link the field doesn't exist yet.
+          request.resource.data.caregiverUids.hasAll(resource.data.get('caregiverUids', [])) &&
+          request.auth.uid in request.resource.data.caregiverUids
+        )
+      );
+
+      // Config — caregiver writes, both read.
+      match /config/{doc} {
+        allow read: if isElder() || isCaregiver();
+        allow write: if isCaregiver();
+      }
+
+      // Status heartbeat — launcher writes, both read.
+      match /status/{doc} {
+        allow read: if isElder() || isCaregiver();
+        allow write: if isElder();
+      }
+
+      // Events — launcher appends, caregiver acknowledges, nobody deletes.
+      match /events/{eventId} {
+        allow read: if isElder() || isCaregiver();
+        allow create: if isElder();
+        allow update: if isCaregiver();
+        allow delete: if false;
+      }
+    }
+
+    // Waitlist signups from easylinkcare.com. Write-only from the public web:
+    // the doc id is the lowercased email, so a duplicate signup fails create
+    // (the site treats that as "already on the list"). Nobody can read or
+    // enumerate the list from a client — export it from the console.
+    match /waitlist/{email} {
+      allow read, list, update, delete: if false;
+      allow create: if
+        request.resource.data.keys().hasOnly(['email', 'createdAt', 'source']) &&
+        request.resource.data.email is string &&
+        request.resource.data.email == email &&
+        email.matches('.+@.+\\..+') &&
+        email.size() <= 254;
+    }
+
+    // Short-lived code → linkId lookup for pairing. The doc id IS the 6-digit
+    // code; `get` only (no list), so the code itself stays the secret. Docs are
+    // created by the elder's phone and deleted on redemption or left to expire
+    // (the app checks `expiresAt`, and link rules enforce it server-side).
+    match /pairingCodes/{code} {
+      allow get: if request.auth != null;
+      allow list: if false;
+      allow create: if request.auth != null &&
+        request.resource.data.keys().hasOnly(['linkId', 'expiresAt']);
+      allow delete: if request.auth != null;
+      allow update: if false;
+    }
+  }
+}

@@ -11,9 +11,13 @@ import android.provider.Settings
 import android.view.HapticFeedbackConstants
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,6 +43,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,7 +68,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fangjet.launcher.R
 import com.fangjet.launcher.domain.model.HomeButton
-import com.fangjet.launcher.domain.model.WeatherInfo
 import com.fangjet.launcher.presentation.tts.TtsViewModel
 import com.fangjet.launcher.presentation.voice.VoiceCommandViewModel
 import com.fangjet.launcher.presentation.voice.VoiceEffect
@@ -84,6 +89,8 @@ import com.fangjet.launcher.ui.theme.ColorText
 import com.fangjet.launcher.ui.theme.ColorWeb
 import com.fangjet.launcher.ui.theme.ColorYouTube
 import com.fangjet.launcher.ui.theme.LocalHighContrast
+import com.fangjet.weather.model.WeatherInfo
+import kotlinx.coroutines.launch
 
 private const val BUTTONS_PER_ROW = 3
 
@@ -208,6 +215,18 @@ fun HomeScreen(
 
                     Spacer(Modifier.height(12.dp))
 
+                    // ── My Apps row (real apps, real icons, usage-ranked) ───
+                    val favoriteApps by viewModel.favoriteApps.collectAsStateWithLifecycle()
+                    val badgedPackages by viewModel.badgedPackages.collectAsStateWithLifecycle()
+                    if (favoriteApps.isNotEmpty()) {
+                        FavoriteAppsRow(
+                            apps = favoriteApps,
+                            badgedPackages = badgedPackages,
+                            onAppTapped = { viewModel.onAppTapped(it) },
+                        )
+                        Spacer(Modifier.height(12.dp))
+                    }
+
                     // ── Dynamic button grid ─────────────────────────────────
                     val view = LocalView.current
                     val launchIntent: (Intent) -> Unit = { intent ->
@@ -328,24 +347,10 @@ fun HomeScreen(
                         // present whether or not the voice button is visible.
                         Spacer(Modifier.height(12.dp))
 
-                        Surface(
-                            onClick = onNavigateToSos,
-                            color = ColorSos,
-                            shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(120.dp),
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(
-                                    stringResource(R.string.sos),
-                                    fontSize = 52.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = Color.White,
-                                    letterSpacing = 6.sp,
-                                )
-                            }
-                        }
+                        SosHoldButton(
+                            onActivate = onNavigateToSos,
+                            holdDurationMs = s.sosHoldDurationMs.toInt(),
+                        )
 
                         Spacer(Modifier.height(8.dp))
                     }
@@ -382,6 +387,85 @@ private fun SettingsButton(onClick: () -> Unit) {
             tint = Color.White,
             modifier = Modifier.size(34.dp),
         )
+    }
+}
+
+// ── SOS hold-to-activate button ───────────────────────────────────────────────
+
+/**
+ * SOS requires a deliberate press-and-hold so a stray tap can't trigger it. A
+ * white sweep fills the button while it's held; releasing early cancels and the
+ * fill drains back. Completing the hold gives a haptic tick and opens the SOS
+ * countdown screen (which still offers a big Cancel).
+ *
+ * [holdDurationMs] is a Remote Config-tunable default (see [com.fangjet.shared.config.SettingsDefaults]),
+ * clamped to a safe range before it reaches here.
+ */
+@Composable
+private fun SosHoldButton(
+    onActivate: () -> Unit,
+    holdDurationMs: Int,
+    modifier: Modifier = Modifier,
+) {
+    val progress = remember { Animatable(0f) }
+    val scope = rememberCoroutineScope()
+    val view = LocalView.current
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(120.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(ColorSos)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        var completed = false
+                        val holdJob = scope.launch {
+                            progress.snapTo(0f)
+                            progress.animateTo(
+                                targetValue = 1f,
+                                animationSpec = tween(holdDurationMs, easing = LinearEasing),
+                            )
+                            completed = true
+                            view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                            onActivate()
+                            progress.snapTo(0f)
+                        }
+                        tryAwaitRelease()
+                        if (!completed) {
+                            holdJob.cancel()
+                            scope.launch { progress.animateTo(0f, tween(250)) }
+                        }
+                    },
+                )
+            },
+    ) {
+        // Progress sweep — fills left to right over the 3-second hold
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(progress.value)
+                .background(Color.White.copy(alpha = 0.30f)),
+        )
+        Column(
+            modifier = Modifier.align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                stringResource(R.string.sos),
+                fontSize = 48.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White,
+                letterSpacing = 6.sp,
+            )
+            Text(
+                stringResource(R.string.sos_hold_hint),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.White.copy(alpha = 0.9f),
+            )
+        }
     }
 }
 
@@ -438,15 +522,8 @@ private fun WeatherCard(
                         Text(
                             text = subtitle,
                             color = Color.White.copy(alpha = 0.8f),
-                            fontSize = 13.sp,
+                            fontSize = 15.sp,
                         )
-                        if (weather.usingCachedLocation && !weather.usingCachedWeather) {
-                            Text(
-                                text = stringResource(R.string.weather_saved_location),
-                                color = Color.White.copy(alpha = 0.5f),
-                                fontSize = 11.sp,
-                            )
-                        }
                     }
                 }
                 // Chevron hint — tapping opens forecast

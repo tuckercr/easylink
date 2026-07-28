@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringSetPreferencesKey
+import com.fangjet.launcher.data.config.SettingsDefaultsProvider
 import com.fangjet.launcher.domain.model.HomeButton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -28,6 +29,7 @@ import javax.inject.Singleton
 @Singleton
 class HomePreferencesDataSource @Inject constructor(
     @Named("homePrefs") private val dataStore: DataStore<Preferences>,
+    private val defaults: SettingsDefaultsProvider,
 ) {
     companion object {
         private val DISABLED_BUTTONS = stringSetPreferencesKey("disabled_home_buttons")
@@ -59,7 +61,7 @@ class HomePreferencesDataSource @Inject constructor(
     /** Whether the full-width voice command button is shown on the Home screen. */
     val voiceButtonEnabled: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
-        .map { prefs -> prefs[VOICE_BUTTON_ENABLED] ?: false }
+        .map { prefs -> prefs[VOICE_BUTTON_ENABLED] ?: defaults.current().voiceButtonVisible }
 
     suspend fun setVoiceButtonEnabled(enabled: Boolean) {
         dataStore.edit { prefs -> prefs[VOICE_BUTTON_ENABLED] = enabled }
@@ -68,7 +70,7 @@ class HomePreferencesDataSource @Inject constructor(
     /** Whether the full-width SOS button is shown on the Home screen. */
     val sosButtonEnabled: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
-        .map { prefs -> prefs[SOS_BUTTON_ENABLED] ?: true }
+        .map { prefs -> prefs[SOS_BUTTON_ENABLED] ?: defaults.current().sosButtonVisible }
 
     suspend fun setSosButtonEnabled(enabled: Boolean) {
         dataStore.edit { prefs -> prefs[SOS_BUTTON_ENABLED] = enabled }
@@ -77,7 +79,7 @@ class HomePreferencesDataSource @Inject constructor(
     /** Whether the high-contrast theme is active. */
     val highContrastEnabled: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
-        .map { prefs -> prefs[HIGH_CONTRAST_ENABLED] ?: false }
+        .map { prefs -> prefs[HIGH_CONTRAST_ENABLED] ?: defaults.current().highContrast }
 
     suspend fun setHighContrastEnabled(enabled: Boolean) {
         dataStore.edit { prefs -> prefs[HIGH_CONTRAST_ENABLED] = enabled }

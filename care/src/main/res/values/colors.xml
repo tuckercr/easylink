@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- EasyLink brand palette — shared with the deck and easylinkcare.com -->
+    <color name="care_teal">#12776A</color>
+    <color name="care_teal_dark">#0E3A3E</color>
+    <color name="care_ground">#FAF8F3</color>
+</resources>

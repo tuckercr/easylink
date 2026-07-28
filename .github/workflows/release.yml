@@ -40,6 +40,20 @@ jobs:
           mkdir -p app/keystore
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/keystore/release.jks
 
+      # ── Restore google-services.json from secret ───────────────────────────
+      # Not in the repo (see .gitignore); the google-services plugin needs it.
+      # To encode: base64 -i app/google-services.json | pbcopy
+      - name: Restore google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+            echo "::error::GOOGLE_SERVICES_JSON secret is not set."
+            exit 1
+          fi
+          echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+          cp app/google-services.json care/google-services.json
+
       # ── Run full test suite before releasing ───────────────────────────────
       - name: Run tests
         run: ./gradlew testReleaseUnitTest --stacktrace

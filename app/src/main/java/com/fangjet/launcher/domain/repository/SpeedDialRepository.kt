@@ -21,6 +21,12 @@ interface SpeedDialRepository {
      */
     suspend fun addContact(contact: DeviceContact)
 
+    /** One-shot lookup of a pinned contact by id — used by the Edit Person screen. */
+    suspend fun getContact(id: Long): SpeedDialContact?
+
+    /** Persist edits (name, number, photo) to an existing pinned contact. */
+    suspend fun updateContact(contact: SpeedDialContact)
+
     /** Remove a pinned contact. */
     suspend fun removeContact(contact: SpeedDialContact)
 

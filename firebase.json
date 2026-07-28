@@ -1,0 +1,29 @@
+{
+  "remoteconfig": {
+    "template": "firebase/remoteconfig.template.json"
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default"
+    }
+  ],
+  "hosting": {
+    "public": "website",
+    "cleanUrls": true,
+    "trailingSlash": false,
+    "ignore": ["firebase.json", "**/.*"],
+    "headers": [
+      {
+        "source": "**/*.html",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=300" }
+        ]
+      }
+    ]
+  }
+}

@@ -37,7 +37,7 @@ class ReminderNotificationHelper @Inject constructor(
 
     /**
      * Create the notification channel (safe to call multiple times — idempotent).
-     * Must be called before posting any notifications. We call it in [EasyViewApplication].
+     * Must be called before posting any notifications. We call it in [EasyLinkApplication].
      */
     fun createChannel() {
         val channel = NotificationChannel(

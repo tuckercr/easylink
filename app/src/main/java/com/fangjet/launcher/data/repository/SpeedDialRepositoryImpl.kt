@@ -45,6 +45,12 @@ class SpeedDialRepositoryImpl @Inject constructor(
         dao.insert(entity)
     }
 
+    override suspend fun getContact(id: Long): SpeedDialContact? = dao.getById(id)?.toDomain()
+
+    override suspend fun updateContact(contact: SpeedDialContact) {
+        dao.update(SpeedDialEntity.fromDomain(contact))
+    }
+
     override suspend fun removeContact(contact: SpeedDialContact) {
         dao.delete(SpeedDialEntity.fromDomain(contact))
     }

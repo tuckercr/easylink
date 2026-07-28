@@ -43,9 +43,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.fangjet.launcher.R
-import com.fangjet.launcher.data.weather.WeatherService
-import com.fangjet.launcher.domain.model.ForecastDay
-import com.fangjet.launcher.domain.model.ForecastResult
+import com.fangjet.weather.WeatherService
+import com.fangjet.weather.model.ForecastDay
+import com.fangjet.weather.model.ForecastResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

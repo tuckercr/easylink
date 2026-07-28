@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.google.services) // reads app/google-services.json
 }
 
 val localProps = Properties().also { props ->
@@ -101,6 +102,20 @@ kotlin {
 }
 
 dependencies {
+    // Project modules
+    implementation(project(":shared")) // Firestore contract shared with :care
+    implementation(project(":weather")) // Weather widget, also reusable elsewhere
+
+    // Firebase — Remote Config supplies server-tunable setting defaults.
+    // The SDK compiles and the app runs without google-services.json; Firebase
+    // simply stays uninitialised until it's added, and the provider falls back
+    // to hardcoded defaults. See README → "Remote Config".
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.config)
+    implementation(libs.firebase.auth) // anonymous identity for pairing
+    implementation(libs.firebase.firestore) // links/pairingCodes documents
+    implementation(libs.kotlinx.coroutines.play.services) // Task.await()
+
     // Core
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

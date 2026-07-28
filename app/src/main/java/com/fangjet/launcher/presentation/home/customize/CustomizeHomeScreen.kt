@@ -1,5 +1,7 @@
 package com.fangjet.launcher.presentation.home.customize
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,12 +34,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fangjet.launcher.R
 import com.fangjet.launcher.domain.model.FallSensitivity
@@ -56,10 +60,20 @@ private val SwitchModifier = Modifier.scale(1.3f)
 fun CustomizeHomeScreen(
     onBack: () -> Unit = {},
     onNavigateToEmergencyContacts: () -> Unit = {},
+    onNavigateToConnectFamily: () -> Unit = {},
+    onNavigateToFavoritePicker: () -> Unit = {},
     viewModel: CustomizeHomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val highContrast by viewModel.highContrastEnabled.collectAsStateWithLifecycle()
+    val favoriteState by viewModel.favoriteAppsState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    // Re-check Notification access after the user returns from system settings.
+    LifecycleResumeEffect(Unit) {
+        viewModel.refreshBadgePermission()
+        onPauseOrDispose { }
+    }
 
     Scaffold(
         topBar = {
@@ -136,6 +150,74 @@ fun CustomizeHomeScreen(
                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
             }
 
+            // ── Section: My Apps row ──────────────────────────────────────────
+            item {
+                Spacer(Modifier.height(28.dp))
+                SectionHeader(stringResource(R.string.customize_my_apps_header))
+                Text(
+                    stringResource(R.string.customize_my_apps_description),
+                    fontSize = DESC_SIZE,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 4.dp),
+                )
+                ToggleRow(
+                    label = stringResource(R.string.customize_my_apps_show),
+                    checked = favoriteState.rowEnabled,
+                    onCheckedChange = { viewModel.setFavoriteRowEnabled(it) },
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                if (favoriteState.rowEnabled) {
+                    ToggleRow(
+                        label = stringResource(R.string.customize_my_apps_auto),
+                        description = stringResource(R.string.customize_my_apps_auto_description),
+                        checked = favoriteState.isAutomatic,
+                        onCheckedChange = { viewModel.setFavoriteAutomatic(it) },
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                    if (!favoriteState.isAutomatic) {
+                        Button(
+                            onClick = onNavigateToFavoritePicker,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp)
+                                .height(64.dp),
+                        ) {
+                            Text(
+                                stringResource(R.string.customize_my_apps_choose),
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
+                    ToggleRow(
+                        label = stringResource(R.string.customize_my_apps_badges),
+                        description = stringResource(R.string.customize_my_apps_badges_description),
+                        checked = favoriteState.badgesEnabled,
+                        onCheckedChange = { viewModel.setBadgesEnabled(it) },
+                    )
+                    if (favoriteState.badgesEnabled && !favoriteState.badgeAccessGranted) {
+                        Button(
+                            onClick = {
+                                context.startActivity(
+                                    Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS),
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp)
+                                .height(64.dp),
+                        ) {
+                            Text(
+                                stringResource(R.string.customize_my_apps_grant_access),
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                }
+            }
+
             // ── Section: Fall Detection ───────────────────────────────────────
             item {
                 Spacer(Modifier.height(28.dp))
@@ -188,6 +270,30 @@ fun CustomizeHomeScreen(
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
+                    )
+                }
+                Spacer(Modifier.height(28.dp))
+            }
+
+            // ── Section: Family ───────────────────────────────────────────────
+            item {
+                SectionHeader(stringResource(R.string.customize_family_header))
+                Text(
+                    stringResource(R.string.customize_family_description),
+                    fontSize = DESC_SIZE,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 12.dp),
+                )
+                Button(
+                    onClick = onNavigateToConnectFamily,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(72.dp),
+                ) {
+                    Text(
+                        stringResource(R.string.customize_connect_family),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
                     )
                 }
                 Spacer(Modifier.height(28.dp))

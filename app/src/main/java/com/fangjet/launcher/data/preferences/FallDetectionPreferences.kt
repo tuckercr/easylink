@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.fangjet.launcher.data.config.SettingsDefaultsProvider
 import com.fangjet.launcher.domain.model.FallSensitivity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -17,6 +18,7 @@ import javax.inject.Singleton
 @Singleton
 class FallDetectionPreferences @Inject constructor(
     @param:Named("fallPrefs") private val dataStore: DataStore<Preferences>,
+    private val defaults: SettingsDefaultsProvider,
 ) {
     companion object {
         private val KEY_ENABLED = booleanPreferencesKey("fall_detection_enabled")
@@ -25,12 +27,12 @@ class FallDetectionPreferences @Inject constructor(
 
     val isEnabled: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
-        .map { it[KEY_ENABLED] ?: false }
+        .map { it[KEY_ENABLED] ?: defaults.current().fallDetectionEnabled }
 
     val sensitivity: Flow<FallSensitivity> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { prefs ->
-            val name = prefs[KEY_SENSITIVITY] ?: FallSensitivity.MEDIUM.name
+            val name = prefs[KEY_SENSITIVITY] ?: defaults.current().fallSensitivity
             FallSensitivity.entries.firstOrNull { it.name == name } ?: FallSensitivity.MEDIUM
         }
 

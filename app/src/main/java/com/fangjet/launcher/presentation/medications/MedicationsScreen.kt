@@ -72,16 +72,37 @@ fun MedicationsScreen(
         pendingDelete?.let { med ->
             AlertDialog(
                 onDismissRequest = { pendingDelete = null },
-                title = { Text(stringResource(R.string.medications_delete_title)) },
-                text = { Text(stringResource(R.string.medications_delete_body, med.name)) },
+                title = {
+                    Text(
+                        stringResource(R.string.medications_delete_title),
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+                text = {
+                    Text(
+                        stringResource(R.string.medications_delete_body, med.name),
+                        fontSize = 19.sp,
+                        lineHeight = 26.sp,
+                    )
+                },
                 confirmButton = {
                     TextButton(onClick = {
                         viewModel.deleteMedication(med)
                         pendingDelete = null
-                    }) { Text(stringResource(R.string.medications_delete_confirm), color = MaterialTheme.colorScheme.error) }
+                    }) {
+                        Text(
+                            stringResource(R.string.medications_delete_confirm),
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 19.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
                 },
                 dismissButton = {
-                    TextButton(onClick = { pendingDelete = null }) { Text(stringResource(R.string.cancel)) }
+                    TextButton(onClick = { pendingDelete = null }) {
+                        Text(stringResource(R.string.cancel), fontSize = 19.sp)
+                    }
                 },
             )
         }
@@ -190,7 +211,7 @@ private fun AllDoneBanner() {
             Text(
                 text = stringResource(R.string.medications_all_done),
                 color = Color(0xFFA5D6A7),
-                fontSize = 18.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
             )
         }
@@ -246,21 +267,22 @@ private fun ReminderCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = reminder.medication.name,
-                    fontSize = 20.sp,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
                 )
                 if (reminder.medication.dosage.isNotBlank()) {
                     Text(
                         text = reminder.medication.dosage,
-                        fontSize = 14.sp,
-                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 18.sp,
+                        color = Color.White.copy(alpha = 0.85f),
                     )
                 }
                 Text(
                     text = reminder.scheduledAt.format(DateTimeFormatter.ofPattern("h:mm a")),
-                    fontSize = 16.sp,
-                    color = Color.White.copy(alpha = 0.9f),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.White.copy(alpha = 0.95f),
                 )
             }
             // Status badge
@@ -273,7 +295,7 @@ private fun ReminderCard(
                 Text(
                     text = statusText,
                     color = statusTextColor,
-                    fontSize = 13.sp,
+                    fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                 )
             }
@@ -314,7 +336,7 @@ private fun ReminderCard(
                     )
                     Text(
                         text = stringResource(R.string.medications_taken),
-                        fontSize = 16.sp,
+                        fontSize = 19.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
                     )
@@ -332,7 +354,7 @@ private fun ReminderCard(
                     )
                     Text(
                         text = stringResource(R.string.medications_snooze),
-                        fontSize = 16.sp,
+                        fontSize = 19.sp,
                         color = Color.White,
                     )
                 }
@@ -358,7 +380,7 @@ private fun ReminderCard(
                 Text(
                     text = stringResource(R.string.medications_taken_well_done),
                     color = Color(0xFFA5D6A7),
-                    fontSize = 15.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                 )
             }
@@ -407,18 +429,18 @@ private fun EmptyMedications(onAdd: () -> Unit) {
 
 private fun medicationCardColor(color: MedicationColor): Color =
     when (color) {
-        MedicationColor.BLUE -> Color(0xFF1565C0)
-        MedicationColor.GREEN -> Color(0xFF2E7D32)
-        MedicationColor.AMBER -> Color(0xFFE65100)
-        MedicationColor.CORAL -> Color(0xFFC62828)
-        MedicationColor.PURPLE -> Color(0xFF4527A0)
+        MedicationColor.BLUE -> Color(0xFF1565C0) // home Web blue
+        MedicationColor.GREEN -> Color(0xFF2E7D32) // home Maps green
+        MedicationColor.AMBER -> Color(0xFFB26A00) // deep amber/gold (home Magnifier family)
+        MedicationColor.CORAL -> Color(0xFFAD1457) // home Meds rose
+        MedicationColor.PURPLE -> Color(0xFF6A1B9A) // home Photos purple
     }
 
 private fun statusBackgroundColor(status: TodayReminder.Status): Color =
     when (status) {
         TodayReminder.Status.UPCOMING -> Color(0xFF0D47A1)
         TodayReminder.Status.TAKEN -> Color(0xFF1B5E20)
-        TodayReminder.Status.SNOOZED -> Color(0xFFE65100)
+        TodayReminder.Status.SNOOZED -> Color(0xFFB26A00)
         TodayReminder.Status.MISSED -> Color(0xFFBF360C)
         TodayReminder.Status.OVERDUE -> Color(0xFFB71C1C)
     }

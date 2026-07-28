@@ -59,6 +59,7 @@ fun SosCountdownScreen(
         when (val s = state) {
             is SosUiState.Counting -> CountingContent(
                 secondsRemaining = s.secondsRemaining,
+                totalSeconds = s.totalSeconds,
                 onCancel = { viewModel.cancel() },
             )
 
@@ -72,6 +73,7 @@ fun SosCountdownScreen(
 @Composable
 private fun CountingContent(
     secondsRemaining: Int,
+    totalSeconds: Int,
     onCancel: () -> Unit,
 ) {
     Column(
@@ -96,7 +98,7 @@ private fun CountingContent(
             modifier = Modifier.size(160.dp),
         ) {
             CircularProgressIndicator(
-                progress = { secondsRemaining / SosUiState.COUNTDOWN_SECONDS.toFloat() },
+                progress = { secondsRemaining / totalSeconds.toFloat() },
                 modifier = Modifier.size(160.dp),
                 color = ColorSos,
                 strokeWidth = 8.dp,

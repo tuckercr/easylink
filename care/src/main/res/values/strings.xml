@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">EasyLink Care</string>
+
+    <!-- Pairing -->
+    <string name="pairing_title">Connect to their phone</string>
+    <string name="pairing_body">On their phone, open EasyLink and tap Settings → Connect family. A 6-digit code will appear.</string>
+    <string name="pairing_code_label">6-digit code</string>
+    <string name="pairing_connect">Connect</string>
+    <string name="pairing_error_format">Enter all 6 digits.</string>
+    <string name="paired_title">Connected!</string>
+    <string name="paired_body">You\'re now linked to %1$s. Setup and alerts are coming in the next update.</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_greeting">Looking after the people you love</string>
+    <string name="dashboard_loading">Connecting…</string>
+    <string name="dashboard_connected">Connected</string>
+    <string name="dashboard_manage_header">MANAGE THEIR PHONE</string>
+    <string name="dashboard_contacts_title">Emergency Contacts</string>
+    <plurals name="dashboard_contacts_count">
+        <item quantity="one">%1$d contact — called and texted by SOS</item>
+        <item quantity="other">%1$d contacts — called and texted by SOS</item>
+    </plurals>
+    <string name="dashboard_contacts_none">None yet — add who SOS should reach</string>
+    <string name="dashboard_meds_title">Medications</string>
+    <string name="dashboard_alerts_title">Alerts</string>
+    <string name="dashboard_coming_soon">Coming soon</string>
+
+    <!-- Emergency contacts editor -->
+    <string name="contacts_title">Emergency Contacts</string>
+    <string name="contacts_add">+ Add Contact</string>
+    <string name="contacts_empty_title">No emergency contacts yet</string>
+    <string name="contacts_empty_body">When SOS is pressed on their phone, these people get called and texted. Add at least one.</string>
+    <string name="contacts_primary_badge">PRIMARY — CALLED FIRST</string>
+    <string name="contacts_dialog_add">Add Emergency Contact</string>
+    <string name="contacts_dialog_edit">Edit Emergency Contact</string>
+    <string name="contacts_field_name">Name</string>
+    <string name="contacts_field_phone">Phone number</string>
+    <string name="contacts_field_relationship">Relationship (optional)</string>
+    <string name="contacts_field_primary">Primary — SOS calls this person</string>
+    <string name="contacts_delete">Delete contact</string>
+    <string name="contacts_save">Save</string>
+    <string name="contacts_cancel">Cancel</string>
+</resources>

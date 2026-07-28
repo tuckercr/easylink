@@ -2,7 +2,9 @@ package com.fangjet.launcher.data.preferences
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import app.cash.turbine.test
+import com.fangjet.launcher.data.config.FakeSettingsDefaultsProvider
 import com.fangjet.launcher.domain.model.HomeButton
+import com.fangjet.shared.config.SettingsDefaults
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -43,7 +45,7 @@ class HomePreferencesDataSourceTest {
             scope = testScope,
             produceFile = { tmpFolder.newFile("home_prefs_test.preferences_pb") },
         )
-        dataSource = HomePreferencesDataSource(dataStore)
+        dataSource = HomePreferencesDataSource(dataStore, FakeSettingsDefaultsProvider())
     }
 
     // ── Default state (no stored preferences) ────────────────────────────────
@@ -313,5 +315,44 @@ class HomePreferencesDataSourceTest {
             dataSource.highContrastEnabled.test {
                 assertFalse(awaitItem())
             }
+        }
+
+    // ── Remote-Config-driven defaults ────────────────────────────────────────
+
+    @Test
+    fun `overridden defaults change the fresh-install state`() =
+        testScope.runTest {
+            // Simulate Remote Config having flipped the factory defaults: SOS off,
+            // voice on, high contrast on. With nothing stored yet, the source must
+            // surface those instead of the hardcoded values.
+            val overridden = SettingsDefaults.HARDCODED.copy(
+                sosButtonVisible = false,
+                voiceButtonVisible = true,
+                highContrast = true,
+            )
+            val store = PreferenceDataStoreFactory.create(
+                scope = testScope,
+                produceFile = { tmpFolder.newFile("home_prefs_override.preferences_pb") },
+            )
+            val source = HomePreferencesDataSource(store, FakeSettingsDefaultsProvider(overridden))
+
+            source.sosButtonEnabled.test { assertFalse(awaitItem()) }
+            source.voiceButtonEnabled.test { assertTrue(awaitItem()) }
+            source.highContrastEnabled.test { assertTrue(awaitItem()) }
+        }
+
+    @Test
+    fun `a stored choice still wins over an overridden default`() =
+        testScope.runTest {
+            val overridden = SettingsDefaults.HARDCODED.copy(sosButtonVisible = false)
+            val store = PreferenceDataStoreFactory.create(
+                scope = testScope,
+                produceFile = { tmpFolder.newFile("home_prefs_override2.preferences_pb") },
+            )
+            val source = HomePreferencesDataSource(store, FakeSettingsDefaultsProvider(overridden))
+
+            // The user (or caregiver) explicitly turns SOS on; the default is irrelevant now.
+            source.setSosButtonEnabled(true)
+            source.sosButtonEnabled.test { assertTrue(awaitItem()) }
         }
 }

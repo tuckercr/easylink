@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Compose owns the real theming; this exists only so the window has sensible
+      pre-Compose colours and no action bar. See values-night for the dark variant.
+    -->
+    <style name="Theme.EasyLinkCare" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/care_teal</item>
+        <item name="android:windowBackground">@color/care_ground</item>
+    </style>
+</resources>

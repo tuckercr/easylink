@@ -19,6 +19,10 @@ interface SpeedDialDao {
     @Query("SELECT COUNT(*) FROM speed_dial_contacts")
     suspend fun count(): Int
 
+    /** One-shot lookup by Room row id — used by the Edit Person screen. */
+    @Query("SELECT * FROM speed_dial_contacts WHERE id = :id")
+    suspend fun getById(id: Long): SpeedDialEntity?
+
     /** Insert or silently replace (unique constraint on contactId handles duplicates). */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(entity: SpeedDialEntity): Long

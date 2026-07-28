@@ -1,8 +1,10 @@
 package com.fangjet.launcher.presentation.sos
 
+import com.fangjet.launcher.data.config.FakeSettingsDefaultsProvider
 import com.fangjet.launcher.domain.model.EmergencyContact
 import com.fangjet.launcher.domain.model.SosResult
 import com.fangjet.launcher.domain.usecase.TriggerSosUseCase
+import com.fangjet.shared.config.SettingsDefaults
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -33,6 +35,9 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class SosViewModelTest {
 
+    /** Mirrors SettingsDefaults.HARDCODED.sosCountdownSeconds via the fake provider. */
+    private val totalSeconds = SettingsDefaults.HARDCODED.sosCountdownSeconds
+
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var triggerSos: TriggerSosUseCase
     private lateinit var viewModel: SosViewModel
@@ -50,7 +55,7 @@ class SosViewModelTest {
             delay(10) // Ensure suspension so UI state transitions aren't conflated
             successResult
         }
-        viewModel = SosViewModel(triggerSos)
+        viewModel = SosViewModel(triggerSos, FakeSettingsDefaultsProvider())
     }
 
     @After
@@ -59,11 +64,11 @@ class SosViewModelTest {
     }
 
     @Test
-    fun `initial state is Counting at COUNTDOWN_SECONDS`() =
+    fun `initial state is Counting at the configured countdown`() =
         runTest {
             val state = viewModel.uiState.value
             assertTrue(state is SosUiState.Counting)
-            assertEquals(SosUiState.COUNTDOWN_SECONDS, (state as SosUiState.Counting).secondsRemaining)
+            assertEquals(totalSeconds, (state as SosUiState.Counting).secondsRemaining)
         }
 
     @Test
@@ -86,7 +91,7 @@ class SosViewModelTest {
             val states = mutableListOf<SosUiState>()
             val job = launch { viewModel.uiState.toList(states) }
 
-            advanceTimeBy((SosUiState.COUNTDOWN_SECONDS + 1) * 1_000L)
+            advanceTimeBy((totalSeconds + 1) * 1_000L)
 
             job.cancel()
 
@@ -111,11 +116,11 @@ class SosViewModelTest {
     fun `NoContactsConfigured result propagated to Done state`() =
         runTest {
             coEvery { triggerSos() } returns SosResult.NoContactsConfigured
-            val vm = SosViewModel(triggerSos)
+            val vm = SosViewModel(triggerSos, FakeSettingsDefaultsProvider())
 
             val states = mutableListOf<SosUiState>()
             val job = launch { vm.uiState.toList(states) }
-            advanceTimeBy((SosUiState.COUNTDOWN_SECONDS + 1) * 1_000L)
+            advanceTimeBy((totalSeconds + 1) * 1_000L)
             job.cancel()
 
             val done = states.filterIsInstance<SosUiState.Done>().lastOrNull()
@@ -125,7 +130,7 @@ class SosViewModelTest {
     @Test
     fun `triggerSos is called exactly once after countdown`() =
         runTest {
-            advanceTimeBy((SosUiState.COUNTDOWN_SECONDS + 1) * 1_000L)
+            advanceTimeBy((totalSeconds + 1) * 1_000L)
             coVerify(exactly = 1) { triggerSos() }
         }
 }

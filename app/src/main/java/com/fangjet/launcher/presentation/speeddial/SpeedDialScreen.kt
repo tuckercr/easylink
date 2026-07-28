@@ -2,6 +2,7 @@ package com.fangjet.launcher.presentation.speeddial
 
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,25 +57,20 @@ import com.fangjet.launcher.ui.theme.ColorSpeedDial
 fun SpeedDialScreen(
     onBack: () -> Unit,
     onNavigateToAddContact: () -> Unit,
+    onNavigateToEdit: (Long) -> Unit,
     viewModel: SpeedDialViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    var pendingDelete by remember { mutableStateOf<SpeedDialContact?>(null) }
-    pendingDelete?.let { contact ->
-        AlertDialog(
-            onDismissRequest = { pendingDelete = null },
-            title = { Text(stringResource(R.string.speed_dial_remove_title)) },
-            text = { Text(stringResource(R.string.speed_dial_remove_body, contact.name)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.onRemoveContact(contact)
-                    pendingDelete = null
-                }) { Text(stringResource(R.string.speed_dial_remove_confirm), color = MaterialTheme.colorScheme.error) }
+    var contextContact by remember { mutableStateOf<SpeedDialContact?>(null) }
+    contextContact?.let { contact ->
+        PersonContextDialog(
+            name = contact.name,
+            onEdit = {
+                contextContact = null
+                onNavigateToEdit(contact.id)
             },
-            dismissButton = {
-                TextButton(onClick = { pendingDelete = null }) { Text(stringResource(R.string.cancel)) }
-            },
+            onDismiss = { contextContact = null },
         )
     }
 
@@ -143,7 +139,7 @@ fun SpeedDialScreen(
                                 contact = contact,
                                 enabled = !s.callInProgress,
                                 onClick = { viewModel.onContactTapped(contact) },
-                                onLongClick = { pendingDelete = contact },
+                                onLongClick = { contextContact = contact },
                             )
                         }
                     }
@@ -154,6 +150,56 @@ fun SpeedDialScreen(
         // ── Large full-width Back button ──────────────────────────────────────
         BigBackButton(onClick = onBack)
     }
+}
+
+// ── Long-press context dialog ─────────────────────────────────────────────────
+
+@Composable
+private fun PersonContextDialog(
+    name: String,
+    onEdit: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = name,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+            )
+        },
+        text = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable(onClick = onEdit)
+                    .padding(vertical = 14.dp, horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_edit),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(26.dp),
+                )
+                Text(
+                    text = stringResource(R.string.people_context_edit),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel), fontSize = 19.sp)
+            }
+        },
+    )
 }
 
 @Composable

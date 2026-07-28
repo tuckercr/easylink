@@ -2,8 +2,8 @@ package com.fangjet.launcher.presentation.sos
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fangjet.launcher.data.config.SettingsDefaultsProvider
 import com.fangjet.launcher.domain.usecase.TriggerSosUseCase
-import com.fangjet.launcher.presentation.sos.SosUiState.Companion.COUNTDOWN_SECONDS
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -28,9 +28,14 @@ import javax.inject.Inject
 @HiltViewModel
 class SosViewModel @Inject constructor(
     private val triggerSos: TriggerSosUseCase,
+    settingsDefaults: SettingsDefaultsProvider,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<SosUiState>(SosUiState.Counting(COUNTDOWN_SECONDS))
+    /** Remote Config-tunable; validated/clamped to 3–30 s before it gets here. */
+    private val countdownSeconds = settingsDefaults.current().sosCountdownSeconds
+
+    private val _uiState =
+        MutableStateFlow<SosUiState>(SosUiState.Counting(countdownSeconds, countdownSeconds))
     val uiState: StateFlow<SosUiState> = _uiState.asStateFlow()
 
     private var countdownJob: Job? = null
@@ -43,8 +48,8 @@ class SosViewModel @Inject constructor(
 
     private fun startCountdown() {
         countdownJob = viewModelScope.launch {
-            for (secondsLeft in COUNTDOWN_SECONDS downTo 1) {
-                _uiState.value = SosUiState.Counting(secondsLeft)
+            for (secondsLeft in countdownSeconds downTo 1) {
+                _uiState.value = SosUiState.Counting(secondsLeft, countdownSeconds)
                 delay(1_000)
             }
             // Countdown finished — fire the SOS

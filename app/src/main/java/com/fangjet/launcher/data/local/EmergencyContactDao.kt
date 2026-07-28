@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -37,4 +38,20 @@ interface EmergencyContactDao {
 
     @Delete
     suspend fun delete(entity: EmergencyContactEntity)
+
+    @Query("DELETE FROM emergency_contacts")
+    suspend fun deleteAll()
+
+    @Insert
+    suspend fun insertAll(entities: List<EmergencyContactEntity>)
+
+    /**
+     * Atomically swaps the whole table for [entities] — used by remote config
+     * sync, where the caregiver's list is authoritative.
+     */
+    @Transaction
+    suspend fun replaceAll(entities: List<EmergencyContactEntity>) {
+        deleteAll()
+        insertAll(entities)
+    }
 }

@@ -1,11 +1,18 @@
 package com.fangjet.launcher.presentation.home
 
 import app.cash.turbine.test
+import com.fangjet.launcher.data.apps.AppUsageTracker
+import com.fangjet.launcher.data.apps.FavoriteAppsMode
+import com.fangjet.launcher.data.apps.FavoriteAppsPreferences
+import com.fangjet.launcher.data.config.FakeSettingsDefaultsProvider
+import com.fangjet.launcher.data.notifications.NotificationBadgeRepository
 import com.fangjet.launcher.data.preferences.HomePreferencesDataSource
-import com.fangjet.launcher.data.weather.WeatherService
 import com.fangjet.launcher.domain.model.HomeButton
-import com.fangjet.launcher.domain.model.WeatherInfo
+import com.fangjet.launcher.domain.repository.AppRepository
 import com.fangjet.launcher.domain.usecase.LaunchAppUseCase
+import com.fangjet.shared.config.SettingsDefaults
+import com.fangjet.weather.WeatherService
+import com.fangjet.weather.model.WeatherInfo
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -13,6 +20,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -32,6 +40,11 @@ class HomeViewModelTest {
     private lateinit var launchAppUseCase: LaunchAppUseCase
     private lateinit var homePrefs: HomePreferencesDataSource
     private lateinit var weatherService: WeatherService
+    private var settingsDefaults = FakeSettingsDefaultsProvider()
+    private lateinit var appRepository: AppRepository
+    private lateinit var usageTracker: AppUsageTracker
+    private lateinit var favoritePrefs: FavoriteAppsPreferences
+    private lateinit var badgeRepository: NotificationBadgeRepository
     private lateinit var viewModel: HomeViewModel
 
     private val enabledButtonsFlow = MutableStateFlow(setOf(HomeButton.PHONE))
@@ -51,7 +64,28 @@ class HomeViewModelTest {
         every { homePrefs.sosButtonEnabled } returns sosEnabledFlow
         coEvery { weatherService.fetch() } returns WeatherInfo.Unavailable("Network error")
 
-        viewModel = HomeViewModel(launchAppUseCase, homePrefs, weatherService)
+        appRepository = mockk(relaxed = true)
+        usageTracker = mockk(relaxed = true)
+        favoritePrefs = mockk(relaxed = true)
+        badgeRepository = mockk(relaxed = true)
+        every { appRepository.getInstalledApps() } returns flowOf(emptyList())
+        every { usageTracker.launchCounts } returns flowOf(emptyMap())
+        every { favoritePrefs.rowEnabled } returns flowOf(true)
+        every { favoritePrefs.mode } returns flowOf(FavoriteAppsMode.AUTOMATIC)
+        every { favoritePrefs.customPackages } returns flowOf(emptyList())
+        every { favoritePrefs.badgesEnabled } returns flowOf(false)
+        every { badgeRepository.badgedPackages } returns MutableStateFlow(emptySet())
+
+        viewModel = HomeViewModel(
+            launchAppUseCase,
+            homePrefs,
+            weatherService,
+            settingsDefaults,
+            appRepository,
+            usageTracker,
+            favoritePrefs,
+            badgeRepository,
+        )
     }
 
     @After
@@ -90,6 +124,32 @@ class HomeViewModelTest {
 
                 assertEquals(listOf(HomeButton.PHONE, HomeButton.CAMERA), finalSuccess.enabledButtons)
                 assertTrue(finalSuccess.voiceButtonEnabled)
+            }
+        }
+
+    @Test
+    fun `uiState carries the tunable SOS hold duration from defaults`() =
+        runTest {
+            settingsDefaults = FakeSettingsDefaultsProvider(
+                SettingsDefaults.HARDCODED.copy(sosHoldDurationMs = 5_000L),
+            )
+            viewModel = HomeViewModel(
+                launchAppUseCase,
+                homePrefs,
+                weatherService,
+                settingsDefaults,
+                appRepository,
+                usageTracker,
+                favoritePrefs,
+                badgeRepository,
+            )
+
+            viewModel.uiState.test {
+                var item = awaitItem()
+                while (item !is HomeUiState.Success) {
+                    item = awaitItem()
+                }
+                assertEquals(5_000L, item.sosHoldDurationMs)
             }
         }
 

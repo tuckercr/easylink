@@ -8,7 +8,6 @@ import com.fangjet.launcher.data.permissions.placePhoneCall
 import com.fangjet.launcher.domain.model.SpeedDialContact
 import com.fangjet.launcher.domain.repository.SpeedDialRepository
 import com.fangjet.launcher.domain.usecase.GetSpeedDialContactsUseCase
-import com.fangjet.launcher.domain.usecase.RemoveSpeedDialContactUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
@@ -39,7 +38,6 @@ import kotlin.time.Duration.Companion.milliseconds
 class SpeedDialViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val getContacts: GetSpeedDialContactsUseCase,
-    private val removeContact: RemoveSpeedDialContactUseCase,
     private val repository: SpeedDialRepository,
     private val permissions: PermissionChecker,
 ) : ViewModel() {
@@ -74,12 +72,6 @@ class SpeedDialViewModel @Inject constructor(
                 delay(2_000.milliseconds)
                 callInProgress.value = false
             }
-        }
-    }
-
-    fun onRemoveContact(contact: SpeedDialContact) {
-        viewModelScope.launch {
-            removeContact(contact)
         }
     }
 

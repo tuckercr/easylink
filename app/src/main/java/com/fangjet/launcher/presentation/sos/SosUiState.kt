@@ -15,10 +15,13 @@ sealed class SosUiState {
      * Countdown is ticking. The Fragment renders the number large and red,
      * and shows a prominent Cancel button.
      *
-     * @param secondsRemaining  Counts down from COUNTDOWN_SECONDS to 1.
+     * @param secondsRemaining  Counts down from [totalSeconds] to 1.
+     * @param totalSeconds  The full countdown length (Remote Config-tunable);
+     *   carried in the state so the progress ring scales correctly.
      */
     data class Counting(
         val secondsRemaining: Int,
+        val totalSeconds: Int,
     ) : SosUiState()
 
     /** SOS is in progress — location fetch + SMS + call underway. */
@@ -31,8 +34,4 @@ sealed class SosUiState {
 
     /** User pressed Cancel — SOS was not sent. */
     data object Cancelled : SosUiState()
-
-    companion object {
-        const val COUNTDOWN_SECONDS = 5
-    }
 }

@@ -4,7 +4,6 @@ import app.cash.turbine.test
 import com.fangjet.launcher.domain.model.SpeedDialContact
 import com.fangjet.launcher.domain.repository.SpeedDialRepository
 import com.fangjet.launcher.domain.usecase.GetSpeedDialContactsUseCase
-import com.fangjet.launcher.domain.usecase.RemoveSpeedDialContactUseCase
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -29,14 +28,12 @@ class SpeedDialViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var repository: SpeedDialRepository
     private lateinit var getContacts: GetSpeedDialContactsUseCase
-    private lateinit var removeContact: RemoveSpeedDialContactUseCase
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         repository = mockk(relaxed = true)
         getContacts = GetSpeedDialContactsUseCase(repository)
-        removeContact = RemoveSpeedDialContactUseCase(repository)
     }
 
     @After
@@ -46,7 +43,6 @@ class SpeedDialViewModelTest {
         SpeedDialViewModel(
             context = mockk(relaxed = true),
             getContacts = getContacts,
-            removeContact = removeContact,
             repository = repository,
             permissions = mockk(relaxed = true),
         )
@@ -114,19 +110,6 @@ class SpeedDialViewModelTest {
 
                 cancelAndIgnoreRemainingEvents()
             }
-        }
-
-    @Test
-    fun `onRemoveContact delegates to RemoveSpeedDialContactUseCase`() =
-        runTest {
-            val c = contact(1L)
-            every { repository.getSpeedDialContacts() } returns flowOf(listOf(c))
-            val vm = makeViewModel()
-
-            vm.onRemoveContact(c)
-            testDispatcher.scheduler.advanceUntilIdle()
-
-            coVerify(exactly = 1) { repository.removeContact(c) }
         }
 
     @Test

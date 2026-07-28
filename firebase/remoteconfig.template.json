@@ -1,0 +1,44 @@
+{
+  "parameters": {
+    "sos_button_visible_by_default": {
+      "defaultValue": { "value": "true" },
+      "valueType": "BOOLEAN",
+      "description": "Show the full-width SOS button on a fresh install."
+    },
+    "voice_button_visible_by_default": {
+      "defaultValue": { "value": "false" },
+      "valueType": "BOOLEAN",
+      "description": "Show the 'Say a Command' voice bar on a fresh install."
+    },
+    "high_contrast_by_default": {
+      "defaultValue": { "value": "false" },
+      "valueType": "BOOLEAN",
+      "description": "Start new installs in high-contrast mode."
+    },
+    "fall_detection_enabled_by_default": {
+      "defaultValue": { "value": "false" },
+      "valueType": "BOOLEAN",
+      "description": "Turn fall detection on by default. Note: requires the physical-activity permission, so leaving this off avoids an unprompted permission ask."
+    },
+    "fall_sensitivity_default": {
+      "defaultValue": { "value": "MEDIUM" },
+      "valueType": "STRING",
+      "description": "Default fall-detection sensitivity. One of LOW, MEDIUM, HIGH (case-insensitive). Anything else falls back to MEDIUM."
+    },
+    "sos_hold_duration_ms": {
+      "defaultValue": { "value": "3000" },
+      "valueType": "NUMBER",
+      "description": "How long the SOS button must be held to fire, in milliseconds. Clamped to 1000–10000 in-app."
+    },
+    "sos_countdown_seconds": {
+      "defaultValue": { "value": "5" },
+      "valueType": "NUMBER",
+      "description": "Seconds the SOS countdown screen ticks (with a Cancel button) before dispatching. Clamped to 3–30 in-app."
+    },
+    "favorite_apps_max_count": {
+      "defaultValue": { "value": "12" },
+      "valueType": "NUMBER",
+      "description": "How many apps the Home screen's My Apps row shows. Clamped to 4–24 in-app."
+    }
+  }
+}

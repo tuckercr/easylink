@@ -2,11 +2,18 @@ package com.fangjet.launcher.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fangjet.launcher.data.apps.AppUsageTracker
+import com.fangjet.launcher.data.apps.FavoriteAppsPreferences
+import com.fangjet.launcher.data.config.SettingsDefaultsProvider
+import com.fangjet.launcher.data.notifications.NotificationBadgeRepository
 import com.fangjet.launcher.data.preferences.HomePreferencesDataSource
-import com.fangjet.launcher.data.weather.WeatherService
+import com.fangjet.launcher.domain.FavoriteAppsSelector
+import com.fangjet.launcher.domain.model.AppInfo
 import com.fangjet.launcher.domain.model.HomeButton
-import com.fangjet.launcher.domain.model.WeatherInfo
+import com.fangjet.launcher.domain.repository.AppRepository
 import com.fangjet.launcher.domain.usecase.LaunchAppUseCase
+import com.fangjet.weather.WeatherService
+import com.fangjet.weather.model.WeatherInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,6 +29,11 @@ class HomeViewModel @Inject constructor(
     private val launchAppUseCase: LaunchAppUseCase,
     private val homePrefs: HomePreferencesDataSource,
     private val weatherService: WeatherService,
+    private val settingsDefaults: SettingsDefaultsProvider,
+    appRepository: AppRepository,
+    usageTracker: AppUsageTracker,
+    favoritePrefs: FavoriteAppsPreferences,
+    badgeRepository: NotificationBadgeRepository,
 ) : ViewModel() {
 
     // ── Private mutable state ─────────────────────────────────────────────────
@@ -45,11 +57,54 @@ class HomeViewModel @Inject constructor(
             weather = weather,
             voiceButtonEnabled = voiceEnabled,
             sosButtonEnabled = sosEnabled,
+            // Snapshot of the (Remote Config-tunable) default; read here rather than
+            // as a 6th combine flow since it only needs to be current at render time.
+            sosHoldDurationMs = settingsDefaults.current().sosHoldDurationMs,
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = HomeUiState.Loading,
+    )
+
+    // ── My Apps row ───────────────────────────────────────────────────────────
+
+    /** Apps for the scrollable row; empty when the row is disabled in Settings. */
+    val favoriteApps: StateFlow<List<AppInfo>> = combine(
+        favoritePrefs.rowEnabled,
+        appRepository.getInstalledApps(),
+        usageTracker.launchCounts,
+        favoritePrefs.mode,
+        favoritePrefs.customPackages,
+    ) { enabled, installed, counts, mode, custom ->
+        if (!enabled) {
+            emptyList()
+        } else {
+            FavoriteAppsSelector.select(
+                installed = installed,
+                launchCounts = counts,
+                mode = mode,
+                customPackages = custom,
+                // Remote Config-tunable; snapshot per emission is current enough.
+                max = settingsDefaults.current().favoriteAppsMaxCount,
+            )
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList(),
+    )
+
+    /** Packages that should show a notification dot; empty unless enabled + granted. */
+    val badgedPackages: StateFlow<Set<String>> = combine(
+        favoritePrefs.badgesEnabled,
+        badgeRepository.badgedPackages,
+    ) { enabled, badged ->
+        if (enabled) badged else emptySet()
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptySet(),
     )
 
     // ── Weather ───────────────────────────────────────────────────────────────

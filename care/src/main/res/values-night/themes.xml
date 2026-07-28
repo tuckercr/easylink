@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.EasyLinkCare" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@color/care_teal_dark</item>
+        <item name="android:windowBackground">@color/care_ground</item>
+    </style>
+</resources>

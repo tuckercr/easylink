@@ -8,7 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.fangjet.launcher.navigation.Routes
 import com.fangjet.launcher.presentation.main.MainActivity
-import com.fangjet.launcher.ui.theme.EasyViewTheme
+import com.fangjet.launcher.ui.theme.EasyLinkTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -41,7 +41,7 @@ class FallAlertActivity : ComponentActivity() {
         )
 
         setContent {
-            EasyViewTheme {
+            EasyLinkTheme {
                 FallAlertScreen(
                     onDismiss = { finish() },
                     onNavigateToSettings = {

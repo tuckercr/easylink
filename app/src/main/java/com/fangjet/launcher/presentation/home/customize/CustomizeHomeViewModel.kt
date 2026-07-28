@@ -2,12 +2,16 @@ package com.fangjet.launcher.presentation.home.customize
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fangjet.launcher.data.apps.FavoriteAppsMode
+import com.fangjet.launcher.data.apps.FavoriteAppsPreferences
 import com.fangjet.launcher.data.fall.FallDetectionManager
+import com.fangjet.launcher.data.notifications.NotificationBadgeRepository
 import com.fangjet.launcher.data.preferences.FallDetectionPreferences
 import com.fangjet.launcher.data.preferences.HomePreferencesDataSource
 import com.fangjet.launcher.domain.model.FallSensitivity
 import com.fangjet.launcher.domain.model.HomeButton
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -29,12 +33,64 @@ data class CustomizeUiState(
     val sosButtonEnabled: Boolean = true,
 )
 
+/** Settings state for the My Apps row section. */
+data class FavoriteAppsSettingsState(
+    val rowEnabled: Boolean = true,
+    val isAutomatic: Boolean = true,
+    val badgesEnabled: Boolean = false,
+    /** False when the user still needs to grant Notification access. */
+    val badgeAccessGranted: Boolean = false,
+)
+
 @HiltViewModel
 class CustomizeHomeViewModel @Inject constructor(
     private val homePrefs: HomePreferencesDataSource,
     private val fallPrefs: FallDetectionPreferences,
     private val fallManager: FallDetectionManager,
+    private val favoritePrefs: FavoriteAppsPreferences,
+    private val badgeRepository: NotificationBadgeRepository,
 ) : ViewModel() {
+
+    /** Bumped on screen resume so the permission status re-reads after Settings. */
+    private val permissionRefresh = MutableStateFlow(0)
+
+    val favoriteAppsState: StateFlow<FavoriteAppsSettingsState> = combine(
+        favoritePrefs.rowEnabled,
+        favoritePrefs.mode,
+        favoritePrefs.badgesEnabled,
+        permissionRefresh,
+    ) { rowEnabled, mode, badges, _ ->
+        FavoriteAppsSettingsState(
+            rowEnabled = rowEnabled,
+            isAutomatic = mode == FavoriteAppsMode.AUTOMATIC,
+            badgesEnabled = badges,
+            badgeAccessGranted = badgeRepository.isListenerPermissionGranted(),
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = FavoriteAppsSettingsState(),
+    )
+
+    fun refreshBadgePermission() {
+        permissionRefresh.value++
+    }
+
+    fun setFavoriteRowEnabled(enabled: Boolean) {
+        viewModelScope.launch { favoritePrefs.setRowEnabled(enabled) }
+    }
+
+    fun setFavoriteAutomatic(automatic: Boolean) {
+        viewModelScope.launch {
+            favoritePrefs.setMode(
+                if (automatic) FavoriteAppsMode.AUTOMATIC else FavoriteAppsMode.CUSTOM,
+            )
+        }
+    }
+
+    fun setBadgesEnabled(enabled: Boolean) {
+        viewModelScope.launch { favoritePrefs.setBadgesEnabled(enabled) }
+    }
 
     val uiState: StateFlow<CustomizeUiState> = combine(
         homePrefs.enabledButtons,

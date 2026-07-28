@@ -54,3 +54,14 @@ Thumbs.db
 
 # Crashlytics
 com_crashlytics_export_strings.xml
+
+# Firebase — per-developer config, contains project API keys. Keep out of the repo
+# (especially if the launcher is ever open-sourced). Each dev downloads their own.
+google-services.json
+**/google-services.json
+
+# Cloud Functions
+functions/node_modules/
+
+# Firebase CLI deploy cache
+.firebase/

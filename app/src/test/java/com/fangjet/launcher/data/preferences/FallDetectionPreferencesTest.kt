@@ -2,6 +2,7 @@ package com.fangjet.launcher.data.preferences
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import app.cash.turbine.test
+import com.fangjet.launcher.data.config.FakeSettingsDefaultsProvider
 import com.fangjet.launcher.domain.model.FallSensitivity
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
@@ -32,7 +33,7 @@ class FallDetectionPreferencesTest {
             scope = testScope,
             produceFile = { tmpFolder.newFile("fall_prefs_test.preferences_pb") },
         )
-        prefs = FallDetectionPreferences(dataStore)
+        prefs = FallDetectionPreferences(dataStore, FakeSettingsDefaultsProvider())
     }
 
     // ── Defaults ──────────────────────────────────────────────────────────────
