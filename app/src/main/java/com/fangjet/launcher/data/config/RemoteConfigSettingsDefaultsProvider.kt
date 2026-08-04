@@ -116,6 +116,12 @@ class RemoteConfigSettingsDefaultsProvider
                 RemoteConfigKeys.SOS_HOLD_DURATION_MS to SettingsDefaults.HARDCODED.sosHoldDurationMs,
                 RemoteConfigKeys.SOS_COUNTDOWN_SECONDS to SettingsDefaults.HARDCODED.sosCountdownSeconds,
                 RemoteConfigKeys.FAVORITE_APPS_MAX_COUNT to SettingsDefaults.HARDCODED.favoriteAppsMaxCount,
+                RemoteConfigKeys.VOICE_COMMANDS_FEATURE_ENABLED to
+                    SettingsDefaults.HARDCODED.voiceCommandsFeatureEnabled,
+                RemoteConfigKeys.FAVORITE_APPS_FEATURE_ENABLED to
+                    SettingsDefaults.HARDCODED.favoriteAppsFeatureEnabled,
+                RemoteConfigKeys.FAVORITE_APPS_CURATED_POOL to
+                    SettingsDefaults.HARDCODED.favoriteAppsCuratedPool.joinToString(","),
             )
         }
     }

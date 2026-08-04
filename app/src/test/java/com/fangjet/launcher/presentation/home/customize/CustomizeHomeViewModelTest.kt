@@ -3,7 +3,9 @@ package com.fangjet.launcher.presentation.home.customize
 import app.cash.turbine.test
 import com.fangjet.launcher.data.apps.FavoriteAppsMode
 import com.fangjet.launcher.data.apps.FavoriteAppsPreferences
+import com.fangjet.launcher.data.config.FakeSettingsDefaultsProvider
 import com.fangjet.launcher.data.fall.FallDetectionManager
+import com.fangjet.launcher.data.home.DefaultHomeChecker
 import com.fangjet.launcher.data.notifications.NotificationBadgeRepository
 import com.fangjet.launcher.data.preferences.FallDetectionPreferences
 import com.fangjet.launcher.data.preferences.HomePreferencesDataSource
@@ -35,6 +37,7 @@ class CustomizeHomeViewModelTest {
     private lateinit var homePrefs: HomePreferencesDataSource
     private lateinit var fallPrefs: FallDetectionPreferences
     private lateinit var fallManager: FallDetectionManager
+    private lateinit var defaultHomeChecker: DefaultHomeChecker
     private lateinit var viewModel: CustomizeHomeViewModel
 
     private val enabledButtonsFlow = MutableStateFlow(setOf(HomeButton.PHONE))
@@ -64,7 +67,18 @@ class CustomizeHomeViewModelTest {
         every { favoritePrefs.mode } returns flowOf(FavoriteAppsMode.AUTOMATIC)
         every { favoritePrefs.badgesEnabled } returns flowOf(false)
         val badgeRepository = mockk<NotificationBadgeRepository>(relaxed = true)
-        viewModel = CustomizeHomeViewModel(homePrefs, fallPrefs, fallManager, favoritePrefs, badgeRepository)
+        defaultHomeChecker = mockk(relaxed = true)
+        every { defaultHomeChecker.isDefault() } returns true
+        every { defaultHomeChecker.defaultHomeLabel() } returns "EasyLink"
+        viewModel = CustomizeHomeViewModel(
+            homePrefs,
+            fallPrefs,
+            fallManager,
+            favoritePrefs,
+            badgeRepository,
+            defaultHomeChecker,
+            FakeSettingsDefaultsProvider(),
+        )
     }
 
     @After
@@ -175,5 +189,34 @@ class CustomizeHomeViewModelTest {
         runTest {
             viewModel.setSosButtonEnabled(false)
             coVerify { homePrefs.setSosButtonEnabled(false) }
+        }
+
+    // ── Home App section (default-launcher status) ────────────────────────────
+
+    @Test
+    fun `homeAppState reflects the default-home checker`() =
+        runTest {
+            viewModel.homeAppState.test {
+                val state = awaitItem()
+                assertTrue(state.isDefault)
+                assertEquals("EasyLink", state.currentHomeLabel)
+            }
+        }
+
+    @Test
+    fun `refreshSystemStatus re-reads the default-home role`() =
+        runTest {
+            viewModel.homeAppState.test {
+                assertTrue(awaitItem().isDefault)
+
+                // The user switches launchers in system settings, then comes back.
+                every { defaultHomeChecker.isDefault() } returns false
+                every { defaultHomeChecker.defaultHomeLabel() } returns "Pixel Launcher"
+                viewModel.refreshSystemStatus()
+
+                val state = awaitItem()
+                assertFalse(state.isDefault)
+                assertEquals("Pixel Launcher", state.currentHomeLabel)
+            }
         }
 }

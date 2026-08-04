@@ -1,5 +1,6 @@
 package com.fangjet.care.presentation.pairing
 
+import com.fangjet.care.R
 import com.fangjet.care.data.pairing.CarePairingRepository
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
@@ -49,7 +50,7 @@ class PairingViewModelTest {
         viewModel.onSubmit()
 
         val state = viewModel.uiState.value
-        assertEquals("Enter all 6 digits.", state.error)
+        assertEquals(R.string.pairing_error_incomplete, state.errorRes)
         assertFalse(state.isSubmitting)
     }
 
@@ -57,9 +58,9 @@ class PairingViewModelTest {
     fun `editing clears a previous error`() {
         viewModel.onCodeChanged("12")
         viewModel.onSubmit()
-        assertEquals("Enter all 6 digits.", viewModel.uiState.value.error)
+        assertEquals(R.string.pairing_error_incomplete, viewModel.uiState.value.errorRes)
 
         viewModel.onCodeChanged("123")
-        assertNull(viewModel.uiState.value.error)
+        assertNull(viewModel.uiState.value.errorRes)
     }
 }

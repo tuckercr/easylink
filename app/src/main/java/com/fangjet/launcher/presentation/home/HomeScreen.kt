@@ -215,7 +215,7 @@ fun HomeScreen(
 
                     Spacer(Modifier.height(12.dp))
 
-                    // ── My Apps row (real apps, real icons, usage-ranked) ───
+                    // ── Apps Row (real apps, real icons, usage-ranked) ──────
                     val favoriteApps by viewModel.favoriteApps.collectAsStateWithLifecycle()
                     val badgedPackages by viewModel.badgedPackages.collectAsStateWithLifecycle()
                     if (favoriteApps.isNotEmpty()) {
@@ -750,7 +750,7 @@ private fun SingleHomeButton(
             val label = stringResource(R.string.apps)
             HomeActionButton(
                 label = label,
-                iconRes = R.drawable.ic_dashboard,
+                iconRes = R.drawable.ic_apps_grid,
                 color = ColorAllApps,
                 modifier = modifier,
                 onClick = onAllApps,

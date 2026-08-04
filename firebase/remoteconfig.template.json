@@ -6,9 +6,24 @@
       "description": "Show the full-width SOS button on a fresh install."
     },
     "voice_button_visible_by_default": {
-      "defaultValue": { "value": "false" },
+      "defaultValue": { "value": "true" },
       "valueType": "BOOLEAN",
       "description": "Show the 'Say a Command' voice bar on a fresh install."
+    },
+    "voice_commands_feature_enabled": {
+      "defaultValue": { "value": "true" },
+      "valueType": "BOOLEAN",
+      "description": "Kill switch: false removes voice commands entirely (Home bar + Settings toggle), overriding user preferences."
+    },
+    "apps_row_feature_enabled": {
+      "defaultValue": { "value": "true" },
+      "valueType": "BOOLEAN",
+      "description": "Kill switch: false removes the Apps Row entirely (Home row + Settings section), overriding user preferences."
+    },
+    "apps_row_curated_pool": {
+      "defaultValue": { "value": "com.whatsapp,com.google.android.apps.messaging,com.google.android.apps.photos,com.google.android.youtube,com.facebook.katana,com.android.chrome,com.google.android.gm,com.google.android.apps.maps,com.google.android.calendar,com.spotify.music,com.audible.application,com.netflix.mediaclient,com.amazon.kindle,com.instagram.android,com.google.android.contacts,com.google.android.deskclock" },
+      "valueType": "STRING",
+      "description": "Comma-separated package names filling the Apps Row before launch history exists. May be longer than apps_row shows - uninstalled packages are skipped."
     },
     "high_contrast_by_default": {
       "defaultValue": { "value": "false" },

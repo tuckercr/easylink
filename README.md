@@ -283,8 +283,9 @@ The launcher builds in two distribution flavors (`app/build.gradle.kts`):
 
 | | `standard` | `safety` |
 |---|---|---|
-| SOS button, fall detection, voice commands | — | ✅ |
-| `SEND_SMS`, `ACCESS_FINE_LOCATION`, `RECORD_AUDIO`, health foreground service | not in manifest | requested |
+| SOS button, fall detection | — | ✅ |
+| Voice commands, speed dial, meds, magnifier, My Apps row | ✅ | ✅ |
+| `SEND_SMS`, `ACCESS_FINE_LOCATION`, health foreground service | not in manifest | requested |
 | Distribution | Play Store | sideload (pending Play declarations) |
 
 `standard` exists because Google Play restricts SMS and scrutinizes health-service
@@ -292,7 +293,7 @@ permissions; shipping the launcher first without them keeps review simple. The s
 enforced at three levels: a flavor manifest (`app/src/safety/AndroidManifest.xml`), a
 compile-time `BuildConfig.SAFETY_FEATURES` flag gating every UI entry point, and an
 injected [`FeatureFlags`](app/src/main/java/com/fangjet/launcher/data/config/FeatureFlags.kt)
-that forces the SOS/voice preferences off so not even Remote Config or a caregiver
+that forces the SOS preference off so not even Remote Config or a caregiver
 can surface a feature whose permissions aren't in the manifest.
 
 Firebase is optional for building. Without `google-services.json` the apps compile and
@@ -344,9 +345,12 @@ SettingsDefaults.HARDCODED      compiled-in fallback, always works offline
 |---|---|---|---|
 | `sos_hold_duration_ms` | How long SOS must be held | 3000 | 1000–10000 |
 | `sos_countdown_seconds` | Cancel window before dispatch | 5 | 3–30 |
-| `favorite_apps_max_count` | Apps in the My Apps row | 12 | 4–24 |
+| `favorite_apps_max_count` | Apps shown in the Apps Row | 12 | 4–24 |
+| `voice_commands_feature_enabled` | Kill switch: voice commands exist at all | true | — |
+| `apps_row_feature_enabled` | Kill switch: the Apps Row exists at all | true | — |
+| `apps_row_curated_pool` | Comma-separated packages filling the row before usage history exists (may exceed the row cap — uninstalled entries are skipped) | 16 apps | validated |
 | `sos_button_visible_by_default` | SOS button on a fresh install | true | — |
-| `voice_button_visible_by_default` | Voice bar on a fresh install | false | — |
+| `voice_button_visible_by_default` | Voice bar on a fresh install | true | — |
 | `high_contrast_by_default` | Start in high contrast | false | — |
 | `fall_detection_enabled_by_default` | Fall detection on by default | false | — |
 | `fall_sensitivity_default` | LOW / MEDIUM / HIGH | MEDIUM | validated |
@@ -370,9 +374,9 @@ Changing a default never overrides a choice a user or caregiver already made.
 | `POST_NOTIFICATIONS` | Medication reminders, fall alerts, set-as-home reminder | both |
 | `RECEIVE_BOOT_COMPLETED` | Restore alarms and services after reboot | both |
 | `INTERNET` | Weather, Firebase sync | both |
+| `RECORD_AUDIO` | Voice commands | both |
 | `SEND_SMS` | SOS alert messages | safety |
 | `ACCESS_FINE_LOCATION` | GPS coordinates in the SOS SMS | safety |
-| `RECORD_AUDIO` | Voice commands | safety |
 | `FOREGROUND_SERVICE_HEALTH` | Fall detection service | safety |
 | `HIGH_SAMPLING_RATE_SENSORS` | Accelerometer for fall detection | safety |
 | `USE_FULL_SCREEN_INTENT` | Fall alert over the lock screen (Android 14+) | safety |

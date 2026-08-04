@@ -284,21 +284,45 @@
     <string name="customize_manage_emergency_contacts">  Manage Emergency Contacts</string>
 
     <!-- My Apps row (favorite apps + notification dots) -->
-    <string name="customize_my_apps_header">My Apps Row</string>
+    <string name="customize_my_apps_header">Apps Row</string>
     <string name="customize_my_apps_description">A row of your real apps on the Home screen — scroll sideways and tap to open.</string>
-    <string name="customize_my_apps_show">Show My Apps row</string>
+    <string name="customize_my_apps_show">Show Apps Row</string>
     <string name="customize_my_apps_auto">Choose automatically</string>
     <string name="customize_my_apps_auto_description">Shows the apps you open most often.</string>
-    <string name="customize_my_apps_choose">Choose My Apps</string>
+    <string name="customize_my_apps_choose">Choose Apps</string>
     <string name="customize_my_apps_badges">Notification dots</string>
     <string name="customize_my_apps_badges_description">Show a red dot on an app when it has a new notification.</string>
     <string name="customize_my_apps_grant_access">Allow Notification Access</string>
-    <string name="favorite_picker_title">My Apps (%1$d of %2$d)</string>
+
+    <!-- Fall detection sensitivity levels -->
+    <string name="fall_sensitivity_low">Low</string>
+    <string name="fall_sensitivity_medium">Medium</string>
+    <string name="fall_sensitivity_high">High</string>
+    <string name="fall_sensitivity_low_desc">Low (fewer alerts)</string>
+    <string name="fall_sensitivity_medium_desc">Medium (recommended)</string>
+    <string name="fall_sensitivity_high_desc">High (most sensitive)</string>
+
+    <!-- Voice "not understood" example commands -->
+    <string-array name="voice_hints">
+        <item>\"Call John\"</item>
+        <item>\"Open Camera\"</item>
+        <item>\"Text Mary\"</item>
+        <item>\"Flashlight on\"</item>
+        <item>\"Open YouTube\"</item>
+        <item>\"All apps\"</item>
+    </string-array>
+
+    <!-- Apps Row long-press menu -->
+    <string name="apps_row_app_info">App Info</string>
+    <string name="favorite_picker_title">Apps Row (%1$d of %2$d)</string>
 
     <!-- Home app (default launcher) -->
     <string name="customize_home_app_header">Home App</string>
     <string name="customize_home_app_description">EasyLink is currently your home screen. You can switch to a different home app at any time.</string>
+    <string name="customize_home_app_not_default">Your home screen is currently %1$s. Set EasyLink as your home app to get the simplified experience everywhere.</string>
+    <string name="customize_home_app_not_default_unknown">EasyLink isn\'t your home screen right now.</string>
     <string name="customize_change_home_app">Change Home App</string>
+    <string name="customize_make_home_app">Make EasyLink My Home App</string>
 
     <!-- Connect Family (pairing with EasyLink Care) -->
     <string name="customize_family_header">Family</string>
@@ -356,8 +380,7 @@
 
     <!-- Onboarding -->
     <string name="onboarding_phone_title">Phone &amp; Contacts</string>
-    <!-- Overridden in src/safety/res (mentions voice commands). -->
-    <string name="onboarding_phone_desc">EasyLink Launcher can call your contacts directly and powers Speed Dial, so favorite people are one tap away.</string>
+    <string name="onboarding_phone_desc">EasyLink Launcher can call your contacts directly and powers Speed Dial and voice commands like \"Call John\".</string>
     <string name="onboarding_sms_title">Text Messages</string>
     <string name="onboarding_sms_desc">Allows EasyLink Launcher to send SOS alert messages to your emergency contacts when you trigger an SOS.</string>
     <string name="onboarding_location_title">Location</string>

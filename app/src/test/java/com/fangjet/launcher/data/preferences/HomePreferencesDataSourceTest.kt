@@ -205,10 +205,10 @@ class HomePreferencesDataSourceTest {
     // ── Voice button ──────────────────────────────────────────────────────────
 
     @Test
-    fun `fresh prefs - voice button is disabled by default`() =
+    fun `fresh prefs - voice button is enabled by default`() =
         testScope.runTest {
             dataSource.voiceButtonEnabled.test {
-                assertFalse(awaitItem())
+                assertTrue(awaitItem())
             }
         }
 
@@ -311,7 +311,7 @@ class HomePreferencesDataSourceTest {
                 assertFalse("CALCULATOR should be hidden again", HomeButton.CALCULATOR in enabled)
             }
             dataSource.voiceButtonEnabled.test {
-                assertFalse(awaitItem())
+                assertTrue(awaitItem())
             }
             dataSource.sosButtonEnabled.test {
                 assertTrue(awaitItem())
@@ -363,9 +363,9 @@ class HomePreferencesDataSourceTest {
     // ── Standard flavor (safety features compiled out) ────────────────────────
 
     @Test
-    fun `standard flavor - sos and voice stay hidden even when stored and defaulted on`() =
+    fun `standard flavor - sos stays hidden even when stored and defaulted on`() =
         testScope.runTest {
-            // Remote Config says both buttons should be visible…
+            // Remote Config says the SOS button should be visible…
             val overridden = SettingsDefaults.HARDCODED.copy(
                 sosButtonVisible = true,
                 voiceButtonVisible = true,
@@ -377,13 +377,14 @@ class HomePreferencesDataSourceTest {
             val source =
                 HomePreferencesDataSource(store, FakeSettingsDefaultsProvider(overridden), STANDARD)
 
-            // …and the user has explicitly turned them on (e.g. prefs written by a
-            // previous safety-flavor install). The manifest has no SMS/mic
-            // permissions, so the buttons must stay hidden regardless.
+            // …and the user has explicitly turned it on (e.g. prefs written by a
+            // previous safety-flavor install). The manifest has no SMS permission,
+            // so the button must stay hidden regardless.
             source.setSosButtonEnabled(true)
-            source.setVoiceButtonEnabled(true)
-
             source.sosButtonEnabled.test { assertFalse(awaitItem()) }
-            source.voiceButtonEnabled.test { assertFalse(awaitItem()) }
+
+            // Voice is NOT safety-gated — it ships in both flavors.
+            source.setVoiceButtonEnabled(true)
+            source.voiceButtonEnabled.test { assertTrue(awaitItem()) }
         }
 }

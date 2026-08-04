@@ -39,6 +39,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -270,15 +271,6 @@ private fun SuccessCard(actionLabel: String) {
 
 // ── Not understood card ────────────────────────────────────────────────────────
 
-private val VOICE_HINTS = listOf(
-    "\"Call John\"",
-    "\"Open Camera\"",
-    "\"Text Mary\"",
-    "\"Flashlight on\"",
-    "\"Open YouTube\"",
-    "\"All apps\"",
-)
-
 @Composable
 private fun NotUnderstoodCard(
     text: String,
@@ -310,7 +302,7 @@ private fun NotUnderstoodCard(
         )
         Spacer(Modifier.height(8.dp))
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            VOICE_HINTS.forEach { hint ->
+            stringArrayResource(R.array.voice_hints).forEach { hint ->
                 Text(
                     text = "• $hint",
                     color = AccentBlue,

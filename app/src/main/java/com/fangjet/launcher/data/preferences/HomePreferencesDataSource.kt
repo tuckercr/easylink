@@ -62,13 +62,14 @@ class HomePreferencesDataSource @Inject constructor(
 
     /**
      * Whether the full-width voice command button is shown on the Home screen.
-     * Always false in the standard flavor — RECORD_AUDIO is not in its manifest,
-     * so neither stored preference nor Remote Config may surface the button.
+     * The Remote Config kill switch ([SettingsDefaults.voiceCommandsFeatureEnabled])
+     * overrides everything — including an explicit user preference — so the
+     * feature can be withdrawn server-side if it proves problematic.
      */
     val voiceButtonEnabled: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { prefs ->
-            featureFlags.safetyFeatures &&
+            defaults.current().voiceCommandsFeatureEnabled &&
                 (prefs[VOICE_BUTTON_ENABLED] ?: defaults.current().voiceButtonVisible)
         }
 

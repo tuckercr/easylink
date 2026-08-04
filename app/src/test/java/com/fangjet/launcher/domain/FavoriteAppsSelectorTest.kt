@@ -2,6 +2,7 @@ package com.fangjet.launcher.domain
 
 import com.fangjet.launcher.data.apps.FavoriteAppsMode
 import com.fangjet.launcher.domain.model.AppInfo
+import com.fangjet.shared.config.SettingsDefaults
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -19,6 +20,10 @@ class FavoriteAppsSelectorTest {
     private val chess = app("com.chess", "Chess")
     private val installed = listOf(audible, chess, maps, spotify)
 
+    // The production cold-start pool (Spotify + Audible are on it; Chess and the
+    // fake maps package are not).
+    private val pool = SettingsDefaults.HARDCODED.favoriteAppsCuratedPool
+
     // ── AUTOMATIC ────────────────────────────────────────────────────────────
 
     @Test
@@ -33,6 +38,7 @@ class FavoriteAppsSelectorTest {
             mode = FavoriteAppsMode.AUTOMATIC,
             customPackages = emptyList(),
             max = 3,
+            curatedPool = pool,
         )
         assertEquals(listOf(spotify, audible, maps), result)
     }
@@ -48,6 +54,7 @@ class FavoriteAppsSelectorTest {
             mode = FavoriteAppsMode.AUTOMATIC,
             customPackages = emptyList(),
             max = 2,
+            curatedPool = pool,
         )
         assertEquals(listOf(spotify, audible), result)
     }
@@ -60,6 +67,7 @@ class FavoriteAppsSelectorTest {
             mode = FavoriteAppsMode.AUTOMATIC,
             customPackages = emptyList(),
             max = 4,
+            curatedPool = pool,
         )
         assertEquals(listOf(spotify, audible, chess, maps), result)
     }
@@ -72,6 +80,7 @@ class FavoriteAppsSelectorTest {
             mode = FavoriteAppsMode.AUTOMATIC,
             customPackages = emptyList(),
             max = 3,
+            curatedPool = pool,
         )
         assertEquals(listOf(maps, spotify, audible), result)
     }
@@ -85,6 +94,7 @@ class FavoriteAppsSelectorTest {
             mode = FavoriteAppsMode.AUTOMATIC,
             customPackages = emptyList(),
             max = 12,
+            curatedPool = pool,
         )
         assertTrue(result.none { it.packageName.startsWith("com.fangjet.") })
     }
@@ -98,6 +108,7 @@ class FavoriteAppsSelectorTest {
             mode = FavoriteAppsMode.CUSTOM,
             customPackages = listOf(care.packageName),
             max = 12,
+            curatedPool = pool,
         )
         assertEquals(listOf(care), result)
     }
@@ -110,6 +121,7 @@ class FavoriteAppsSelectorTest {
             mode = FavoriteAppsMode.AUTOMATIC,
             customPackages = emptyList(),
             max = 2,
+            curatedPool = pool,
         )
         assertEquals(listOf(audible, spotify), result)
     }
@@ -124,6 +136,7 @@ class FavoriteAppsSelectorTest {
             mode = FavoriteAppsMode.CUSTOM,
             customPackages = listOf(maps.packageName, spotify.packageName),
             max = 12,
+            curatedPool = pool,
         )
         assertEquals(listOf(maps, spotify), result)
     }
@@ -136,8 +149,37 @@ class FavoriteAppsSelectorTest {
             mode = FavoriteAppsMode.CUSTOM,
             customPackages = listOf("com.gone.app", spotify.packageName),
             max = 12,
+            curatedPool = pool,
         )
         assertEquals(listOf(spotify), result)
+    }
+
+    // ── Curated pool (Remote Config-tunable) ─────────────────────────────────
+
+    @Test
+    fun `a server-supplied pool reorders the cold-start fill`() {
+        val result = FavoriteAppsSelector.select(
+            installed = installed,
+            launchCounts = emptyMap(),
+            mode = FavoriteAppsMode.AUTOMATIC,
+            customPackages = emptyList(),
+            max = 2,
+            curatedPool = listOf(chess.packageName, maps.packageName),
+        )
+        assertEquals(listOf(chess, maps), result)
+    }
+
+    @Test
+    fun `pool entries not installed on the device are skipped`() {
+        val result = FavoriteAppsSelector.select(
+            installed = installed,
+            launchCounts = emptyMap(),
+            mode = FavoriteAppsMode.AUTOMATIC,
+            customPackages = emptyList(),
+            max = 2,
+            curatedPool = listOf("com.not.installed", chess.packageName),
+        )
+        assertEquals(listOf(chess, audible), result)
     }
 
     @Test
@@ -149,6 +191,7 @@ class FavoriteAppsSelectorTest {
                 mode = mode,
                 customPackages = installed.map { it.packageName },
                 max = 2,
+                curatedPool = pool,
             )
             assertTrue("$mode should cap at 2", result.size <= 2)
         }

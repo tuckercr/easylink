@@ -20,6 +20,14 @@ object RemoteConfigKeys {
     const val SOS_COUNTDOWN_SECONDS = "sos_countdown_seconds"
     const val FAVORITE_APPS_MAX_COUNT = "favorite_apps_max_count"
 
+    // Feature kill switches — false removes the feature entirely (UI + settings),
+    // overriding any stored preference. See SettingsDefaults for semantics.
+    const val VOICE_COMMANDS_FEATURE_ENABLED = "voice_commands_feature_enabled"
+    const val FAVORITE_APPS_FEATURE_ENABLED = "apps_row_feature_enabled"
+
+    /** Comma-separated package names: the Apps Row's cold-start fill pool. */
+    const val FAVORITE_APPS_CURATED_POOL = "apps_row_curated_pool"
+
     /** Every key, so callers can seed in-app defaults and templates without repeating the list. */
     val ALL: List<String> = listOf(
         SOS_BUTTON_VISIBLE_BY_DEFAULT,
@@ -30,5 +38,8 @@ object RemoteConfigKeys {
         SOS_HOLD_DURATION_MS,
         SOS_COUNTDOWN_SECONDS,
         FAVORITE_APPS_MAX_COUNT,
+        VOICE_COMMANDS_FEATURE_ENABLED,
+        FAVORITE_APPS_FEATURE_ENABLED,
+        FAVORITE_APPS_CURATED_POOL,
     )
 }

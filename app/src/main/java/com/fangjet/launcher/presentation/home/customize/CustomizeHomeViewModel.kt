@@ -1,10 +1,13 @@
 package com.fangjet.launcher.presentation.home.customize
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fangjet.launcher.data.apps.FavoriteAppsMode
 import com.fangjet.launcher.data.apps.FavoriteAppsPreferences
+import com.fangjet.launcher.data.config.SettingsDefaultsProvider
 import com.fangjet.launcher.data.fall.FallDetectionManager
+import com.fangjet.launcher.data.home.DefaultHomeChecker
 import com.fangjet.launcher.data.notifications.NotificationBadgeRepository
 import com.fangjet.launcher.data.preferences.FallDetectionPreferences
 import com.fangjet.launcher.data.preferences.HomePreferencesDataSource
@@ -15,13 +18,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ButtonToggleItem(
     val button: HomeButton,
-    val label: String,
+    @param:StringRes val labelRes: Int,
     val isEnabled: Boolean,
 )
 
@@ -31,15 +35,26 @@ data class CustomizeUiState(
     val fallSensitivity: FallSensitivity = FallSensitivity.MEDIUM,
     val voiceButtonEnabled: Boolean = false,
     val sosButtonEnabled: Boolean = true,
+    /** Remote Config kill switch — false hides the voice toggle entirely. */
+    val voiceFeatureEnabled: Boolean = true,
 )
 
-/** Settings state for the My Apps row section. */
+/** Settings state for the Apps Row section. */
 data class FavoriteAppsSettingsState(
     val rowEnabled: Boolean = true,
     val isAutomatic: Boolean = true,
     val badgesEnabled: Boolean = false,
     /** False when the user still needs to grant Notification access. */
     val badgeAccessGranted: Boolean = false,
+    /** Remote Config kill switch — false hides the whole section. */
+    val featureEnabled: Boolean = true,
+)
+
+/** State for the Home App section (default-launcher status). */
+data class HomeAppState(
+    val isDefault: Boolean = true,
+    /** Label of the current default home app (e.g. "Pixel Launcher"), null if unknown. */
+    val currentHomeLabel: String? = null,
 )
 
 @HiltViewModel
@@ -49,22 +64,25 @@ class CustomizeHomeViewModel @Inject constructor(
     private val fallManager: FallDetectionManager,
     private val favoritePrefs: FavoriteAppsPreferences,
     private val badgeRepository: NotificationBadgeRepository,
+    private val defaultHomeChecker: DefaultHomeChecker,
+    private val settingsDefaults: SettingsDefaultsProvider,
 ) : ViewModel() {
 
-    /** Bumped on screen resume so the permission status re-reads after Settings. */
-    private val permissionRefresh = MutableStateFlow(0)
+    /** Bumped on screen resume so system-derived state re-reads after Settings. */
+    private val systemStatusRefresh = MutableStateFlow(0)
 
     val favoriteAppsState: StateFlow<FavoriteAppsSettingsState> = combine(
         favoritePrefs.rowEnabled,
         favoritePrefs.mode,
         favoritePrefs.badgesEnabled,
-        permissionRefresh,
+        systemStatusRefresh,
     ) { rowEnabled, mode, badges, _ ->
         FavoriteAppsSettingsState(
             rowEnabled = rowEnabled,
             isAutomatic = mode == FavoriteAppsMode.AUTOMATIC,
             badgesEnabled = badges,
             badgeAccessGranted = badgeRepository.isListenerPermissionGranted(),
+            featureEnabled = settingsDefaults.current().favoriteAppsFeatureEnabled,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -72,8 +90,25 @@ class CustomizeHomeViewModel @Inject constructor(
         initialValue = FavoriteAppsSettingsState(),
     )
 
-    fun refreshBadgePermission() {
-        permissionRefresh.value++
+    /** Default-launcher status; re-read on every [refreshSystemStatus]. */
+    val homeAppState: StateFlow<HomeAppState> = systemStatusRefresh
+        .map {
+            HomeAppState(
+                isDefault = defaultHomeChecker.isDefault(),
+                currentHomeLabel = defaultHomeChecker.defaultHomeLabel(),
+            )
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = HomeAppState(),
+        )
+
+    /**
+     * Re-reads state owned by the OS (notification access, default-home role)
+     * that can change while the user is away in system settings.
+     */
+    fun refreshSystemStatus() {
+        systemStatusRefresh.value++
     }
 
     fun setFavoriteRowEnabled(enabled: Boolean) {
@@ -101,12 +136,13 @@ class CustomizeHomeViewModel @Inject constructor(
     ) { enabled, voiceEnabled, sosEnabled, fallEnabled, sensitivity ->
         CustomizeUiState(
             buttons = HomeButton.entries.map { btn ->
-                ButtonToggleItem(btn, btn.defaultLabel, btn in enabled)
+                ButtonToggleItem(btn, btn.labelRes, btn in enabled)
             },
             voiceButtonEnabled = voiceEnabled,
             sosButtonEnabled = sosEnabled,
             fallDetectionEnabled = fallEnabled,
             fallSensitivity = sensitivity,
+            voiceFeatureEnabled = settingsDefaults.current().voiceCommandsFeatureEnabled,
         )
     }.stateIn(
         scope = viewModelScope,

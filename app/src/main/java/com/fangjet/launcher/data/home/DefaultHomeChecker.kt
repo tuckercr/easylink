@@ -29,4 +29,20 @@ class DefaultHomeChecker @Inject constructor(
                 ?.activityInfo
                 ?.packageName == context.packageName
         }
+
+    /**
+     * User-visible label of whichever app is currently the default home
+     * (e.g. "Pixel Launcher"), or null when no default is set — the system
+     * resolver stub ("android") answers in that case.
+     */
+    fun defaultHomeLabel(): String? {
+        val homeIntent = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_HOME)
+        }
+        val resolved = context.packageManager
+            .resolveActivity(homeIntent, PackageManager.MATCH_DEFAULT_ONLY)
+            ?: return null
+        if (resolved.activityInfo?.packageName == "android") return null
+        return resolved.loadLabel(context.packageManager)?.toString()
+    }
 }

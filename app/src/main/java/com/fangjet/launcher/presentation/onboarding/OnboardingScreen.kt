@@ -118,17 +118,14 @@ private val STEPS: List<OnboardingStep> = buildList {
             ),
         )
     }
-    // Microphone (voice commands) exists only in the safety flavor.
-    if (BuildConfig.SAFETY_FEATURES) {
-        add(
-            OnboardingStep(
-                emoji = "🎤",
-                titleRes = R.string.onboarding_microphone_title,
-                descRes = R.string.onboarding_microphone_desc,
-                permissions = listOf(Manifest.permission.RECORD_AUDIO),
-            ),
-        )
-    }
+    add(
+        OnboardingStep(
+            emoji = "🎤",
+            titleRes = R.string.onboarding_microphone_title,
+            descRes = R.string.onboarding_microphone_desc,
+            permissions = listOf(Manifest.permission.RECORD_AUDIO),
+        ),
+    )
 }
 
 // ── Screen ────────────────────────────────────────────────────────────────────

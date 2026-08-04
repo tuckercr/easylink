@@ -104,16 +104,16 @@ private fun PairingContent(
             onValueChange = onCodeChanged,
             label = { Text(stringResource(R.string.pairing_code_label)) },
             singleLine = true,
-            isError = state.error != null,
+            isError = state.errorRes != null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 34.dp),
         )
 
-        if (state.error != null) {
+        if (state.errorRes != null) {
             Text(
-                text = state.error,
+                text = stringResource(state.errorRes),
                 color = MaterialTheme.colorScheme.error,
                 fontSize = 14.sp,
                 modifier = Modifier

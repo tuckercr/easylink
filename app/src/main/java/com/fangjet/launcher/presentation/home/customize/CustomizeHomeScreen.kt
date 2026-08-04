@@ -1,7 +1,11 @@
 package com.fangjet.launcher.presentation.home.customize
 
+import android.app.role.RoleManager
 import android.content.Intent
+import android.os.Build
 import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -68,13 +72,21 @@ fun CustomizeHomeScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val highContrast by viewModel.highContrastEnabled.collectAsStateWithLifecycle()
     val favoriteState by viewModel.favoriteAppsState.collectAsStateWithLifecycle()
+    val homeAppState by viewModel.homeAppState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    // Re-check Notification access after the user returns from system settings.
+    // Re-check Notification access and default-home status after the user
+    // returns from system settings.
     LifecycleResumeEffect(Unit) {
-        viewModel.refreshBadgePermission()
+        viewModel.refreshSystemStatus()
         onPauseOrDispose { }
     }
+
+    // The system "set default home" sheet resolves without a lifecycle pause,
+    // so re-read the role when its result comes back.
+    val homeRoleLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { viewModel.refreshSystemStatus() }
 
     Scaffold(
         topBar = {
@@ -122,15 +134,16 @@ fun CustomizeHomeScreen(
 
             items(state.buttons, key = { it.button.name }) { item ->
                 ToggleRow(
-                    label = item.label,
+                    label = stringResource(item.labelRes),
                     checked = item.isEnabled,
                     onCheckedChange = { viewModel.toggle(item.button, it) },
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
             }
 
-            // ── Voice + SOS toggles (safety flavor only) ──────────────────────
-            if (BuildConfig.SAFETY_FEATURES) {
+            // ── Voice command button toggle (absent when the Remote Config
+            //    kill switch has withdrawn the feature) ──────────────────────
+            if (state.voiceFeatureEnabled) {
                 item {
                     ToggleRow(
                         label = stringResource(R.string.customize_voice_button_label),
@@ -140,7 +153,10 @@ fun CustomizeHomeScreen(
                     )
                     HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                 }
+            }
 
+            // ── SOS button toggle (safety flavor only) ────────────────────────
+            if (BuildConfig.SAFETY_FEATURES) {
                 item {
                     ToggleRow(
                         label = stringResource(R.string.customize_sos_button_label),
@@ -152,71 +168,74 @@ fun CustomizeHomeScreen(
                 }
             }
 
-            // ── Section: My Apps row ──────────────────────────────────────────
-            item {
-                Spacer(Modifier.height(28.dp))
-                SectionHeader(stringResource(R.string.customize_my_apps_header))
-                Text(
-                    stringResource(R.string.customize_my_apps_description),
-                    fontSize = DESC_SIZE,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 4.dp),
-                )
-                ToggleRow(
-                    label = stringResource(R.string.customize_my_apps_show),
-                    checked = favoriteState.rowEnabled,
-                    onCheckedChange = { viewModel.setFavoriteRowEnabled(it) },
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
-                if (favoriteState.rowEnabled) {
+            // ── Section: Apps Row (absent when the Remote Config kill switch
+            //    has withdrawn the feature) ──────────────────────────────────
+            if (favoriteState.featureEnabled) {
+                item {
+                    Spacer(Modifier.height(28.dp))
+                    SectionHeader(stringResource(R.string.customize_my_apps_header))
+                    Text(
+                        stringResource(R.string.customize_my_apps_description),
+                        fontSize = DESC_SIZE,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 4.dp),
+                    )
                     ToggleRow(
-                        label = stringResource(R.string.customize_my_apps_auto),
-                        description = stringResource(R.string.customize_my_apps_auto_description),
-                        checked = favoriteState.isAutomatic,
-                        onCheckedChange = { viewModel.setFavoriteAutomatic(it) },
+                        label = stringResource(R.string.customize_my_apps_show),
+                        checked = favoriteState.rowEnabled,
+                        onCheckedChange = { viewModel.setFavoriteRowEnabled(it) },
                     )
                     HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
-                    if (!favoriteState.isAutomatic) {
-                        Button(
-                            onClick = onNavigateToFavoritePicker,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 12.dp)
-                                .height(64.dp),
-                        ) {
-                            Text(
-                                stringResource(R.string.customize_my_apps_choose),
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
-                    }
-                    ToggleRow(
-                        label = stringResource(R.string.customize_my_apps_badges),
-                        description = stringResource(R.string.customize_my_apps_badges_description),
-                        checked = favoriteState.badgesEnabled,
-                        onCheckedChange = { viewModel.setBadgesEnabled(it) },
-                    )
-                    if (favoriteState.badgesEnabled && !favoriteState.badgeAccessGranted) {
-                        Button(
-                            onClick = {
-                                context.startActivity(
-                                    Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS),
+                    if (favoriteState.rowEnabled) {
+                        ToggleRow(
+                            label = stringResource(R.string.customize_my_apps_auto),
+                            description = stringResource(R.string.customize_my_apps_auto_description),
+                            checked = favoriteState.isAutomatic,
+                            onCheckedChange = { viewModel.setFavoriteAutomatic(it) },
+                        )
+                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                        if (!favoriteState.isAutomatic) {
+                            Button(
+                                onClick = onNavigateToFavoritePicker,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 12.dp)
+                                    .height(64.dp),
+                            ) {
+                                Text(
+                                    stringResource(R.string.customize_my_apps_choose),
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
                                 )
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 12.dp)
-                                .height(64.dp),
-                        ) {
-                            Text(
-                                stringResource(R.string.customize_my_apps_grant_access),
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
+                            }
                         }
+                        ToggleRow(
+                            label = stringResource(R.string.customize_my_apps_badges),
+                            description = stringResource(R.string.customize_my_apps_badges_description),
+                            checked = favoriteState.badgesEnabled,
+                            onCheckedChange = { viewModel.setBadgesEnabled(it) },
+                        )
+                        if (favoriteState.badgesEnabled && !favoriteState.badgeAccessGranted) {
+                            Button(
+                                onClick = {
+                                    context.startActivity(
+                                        Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS),
+                                    )
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 12.dp)
+                                    .height(64.dp),
+                            ) {
+                                Text(
+                                    stringResource(R.string.customize_my_apps_grant_access),
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                        }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                     }
-                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                 }
             }
 
@@ -303,29 +322,65 @@ fun CustomizeHomeScreen(
             }
 
             // ── Section: Home app ─────────────────────────────────────────────
-            // An always-available way out of EasyLink (Play launcher policy:
-            // never obstruct switching the default home app).
+            // Both directions of the default-home role: an always-available way
+            // out of EasyLink (Play launcher policy: never obstruct switching),
+            // and a way in when another launcher currently holds the role.
             item {
                 SectionHeader(stringResource(R.string.customize_home_app_header))
                 Text(
-                    stringResource(R.string.customize_home_app_description),
+                    when {
+                        homeAppState.isDefault ->
+                            stringResource(R.string.customize_home_app_description)
+
+                        homeAppState.currentHomeLabel != null ->
+                            stringResource(
+                                R.string.customize_home_app_not_default,
+                                homeAppState.currentHomeLabel!!,
+                            )
+
+                        else -> stringResource(R.string.customize_home_app_not_default_unknown)
+                    },
                     fontSize = DESC_SIZE,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 12.dp),
                 )
-                OutlinedButton(
-                    onClick = {
-                        context.startActivity(Intent(Settings.ACTION_HOME_SETTINGS))
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(72.dp),
-                ) {
-                    Text(
-                        stringResource(R.string.customize_change_home_app),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
+                if (homeAppState.isDefault) {
+                    OutlinedButton(
+                        onClick = {
+                            context.startActivity(Intent(Settings.ACTION_HOME_SETTINGS))
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(72.dp),
+                    ) {
+                        Text(
+                            stringResource(R.string.customize_change_home_app),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                } else {
+                    Button(
+                        onClick = {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                val roleManager = context.getSystemService(RoleManager::class.java)
+                                homeRoleLauncher.launch(
+                                    roleManager.createRequestRoleIntent(RoleManager.ROLE_HOME),
+                                )
+                            } else {
+                                context.startActivity(Intent(Settings.ACTION_HOME_SETTINGS))
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(72.dp),
+                    ) {
+                        Text(
+                            stringResource(R.string.customize_make_home_app),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
                 }
                 Spacer(Modifier.height(28.dp))
             }
@@ -455,7 +510,7 @@ private fun FallDetectionCard(
                             .height(52.dp),
                     ) {
                         Text(
-                            level.name.lowercase().replaceFirstChar { it.uppercase() },
+                            stringResource(level.shortLabelRes),
                             fontSize = 17.sp,
                             color = if (selected) {
                                 MaterialTheme.colorScheme.onPrimary
@@ -469,7 +524,7 @@ private fun FallDetectionCard(
 
             Spacer(Modifier.height(6.dp))
             Text(
-                sensitivity.label,
+                stringResource(sensitivity.labelRes),
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

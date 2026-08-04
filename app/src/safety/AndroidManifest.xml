@@ -15,9 +15,6 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
-    <!-- ── Voice commands ─────────────────────────────────────────────────── -->
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-
     <!-- ── Fall detection ─────────────────────────────────────────────────── -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <!-- Required on API 34+ for foregroundServiceType="health" -->

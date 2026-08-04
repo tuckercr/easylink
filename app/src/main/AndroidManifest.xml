@@ -25,6 +25,9 @@
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
+    <!-- ── Voice commands ("Call John", "Flashlight on") ──────────────────── -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
     <!-- ── Weather (city-level fix is enough; FINE is safety-flavor only) ──── -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
@@ -35,7 +38,7 @@
         android:name="android.permission.SCHEDULE_EXACT_ALARM"
         tools:ignore="ExactAlarm" />
 
-    <!-- SOS, fall detection, and voice permissions live in
+    <!-- SOS and fall detection permissions live in
          src/safety/AndroidManifest.xml — the Play Store (standard) build
          must not request them. -->
 

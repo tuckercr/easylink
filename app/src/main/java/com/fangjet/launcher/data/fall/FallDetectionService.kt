@@ -76,6 +76,7 @@ class FallDetectionService : Service() {
         super.onStartCommand(intent, flags, startId)
 
         // Promote to foreground immediately to satisfy Android's 5-second rule
+        // Note: when running the standarrd build variant there is a lint error here, using safety fixes that
         startForeground(NOTIF_ID_FALL_SERVICE, notifHelper.buildServiceNotification())
 
         // Sync sensitivity from DataStore whenever it changes

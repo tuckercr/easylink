@@ -139,6 +139,69 @@ class SettingsDefaultsTest {
     fun `every key is covered by the ALL list`() {
         // Guards against adding a key but forgetting to register it for seeding.
         assertEquals(RemoteConfigKeys.ALL.size, RemoteConfigKeys.ALL.toSet().size)
-        assertEquals(8, RemoteConfigKeys.ALL.size)
+        assertEquals(11, RemoteConfigKeys.ALL.size)
+    }
+
+    // ── Feature kill switches ────────────────────────────────────────────────
+
+    @Test
+    fun `feature switches default on and can be turned off from the console`() {
+        assertEquals(true, SettingsDefaults.HARDCODED.voiceCommandsFeatureEnabled)
+        assertEquals(true, SettingsDefaults.HARDCODED.favoriteAppsFeatureEnabled)
+
+        val reader = MapReader(
+            mapOf(
+                RemoteConfigKeys.VOICE_COMMANDS_FEATURE_ENABLED to false,
+                RemoteConfigKeys.FAVORITE_APPS_FEATURE_ENABLED to false,
+            ),
+        )
+        val result = SettingsDefaults.from(reader)
+        assertEquals(false, result.voiceCommandsFeatureEnabled)
+        assertEquals(false, result.favoriteAppsFeatureEnabled)
+    }
+
+    // ── Curated pool CSV parsing ─────────────────────────────────────────────
+
+    @Test
+    fun `curated pool parses a comma-separated list, trimming whitespace`() {
+        val reader = MapReader(
+            mapOf(
+                RemoteConfigKeys.FAVORITE_APPS_CURATED_POOL to
+                    "com.whatsapp, com.spotify.music ,com.android.chrome",
+            ),
+        )
+        assertEquals(
+            listOf("com.whatsapp", "com.spotify.music", "com.android.chrome"),
+            SettingsDefaults.from(reader).favoriteAppsCuratedPool,
+        )
+    }
+
+    @Test
+    fun `curated pool drops invalid entries and de-duplicates`() {
+        assertEquals(
+            listOf("com.whatsapp", "com.spotify.music"),
+            SettingsDefaults.parseCuratedPool(
+                "com.whatsapp,not a package!,nodots,com.whatsapp,com.spotify.music,",
+            ),
+        )
+    }
+
+    @Test
+    fun `a curated pool with nothing valid falls back to the hardcoded pool`() {
+        val reader = MapReader(
+            mapOf(RemoteConfigKeys.FAVORITE_APPS_CURATED_POOL to ", , garbage !!, ,"),
+        )
+        assertEquals(
+            SettingsDefaults.HARDCODED.favoriteAppsCuratedPool,
+            SettingsDefaults.from(reader).favoriteAppsCuratedPool,
+        )
+    }
+
+    @Test
+    fun `an absent curated pool falls back to the hardcoded pool`() {
+        assertEquals(
+            SettingsDefaults.HARDCODED.favoriteAppsCuratedPool,
+            SettingsDefaults.from(MapReader(emptyMap())).favoriteAppsCuratedPool,
+        )
     }
 }

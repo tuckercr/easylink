@@ -39,8 +39,23 @@ data class SettingsDefaults(
     val sosHoldDurationMs: Long,
     /** Seconds the SOS countdown screen ticks before actually dispatching. */
     val sosCountdownSeconds: Int,
-    /** How many apps the Home screen's My Apps row shows. */
+    /** How many apps the Home screen's Apps Row shows. */
     val favoriteAppsMaxCount: Int,
+    /**
+     * Feature kill switch: voice commands. Unlike [voiceButtonVisible] (a
+     * *default* the user can override), false here removes the feature —
+     * no Home button, no Settings toggle — regardless of stored preferences.
+     */
+    val voiceCommandsFeatureEnabled: Boolean,
+    /** Feature kill switch: the Apps Row. Same semantics as the voice switch. */
+    val favoriteAppsFeatureEnabled: Boolean,
+    /**
+     * Cold-start fill order for the Apps Row before any launch history exists:
+     * package names, most-likely-used first. May be longer than
+     * [favoriteAppsMaxCount] — packages not installed on a device are skipped,
+     * so a bigger pool just improves the odds of a sensible row.
+     */
+    val favoriteAppsCuratedPool: List<String>,
 ) {
     companion object {
         /**
@@ -50,13 +65,33 @@ data class SettingsDefaults(
          */
         val HARDCODED = SettingsDefaults(
             sosButtonVisible = true,
-            voiceButtonVisible = false,
+            voiceButtonVisible = true,
             highContrast = false,
             fallDetectionEnabled = false,
             fallSensitivity = "MEDIUM",
             sosHoldDurationMs = 3_000L,
             sosCountdownSeconds = 5,
             favoriteAppsMaxCount = 12,
+            voiceCommandsFeatureEnabled = true,
+            favoriteAppsFeatureEnabled = true,
+            favoriteAppsCuratedPool = listOf(
+                "com.whatsapp",
+                "com.google.android.apps.messaging",
+                "com.google.android.apps.photos",
+                "com.google.android.youtube",
+                "com.facebook.katana",
+                "com.android.chrome",
+                "com.google.android.gm",
+                "com.google.android.apps.maps",
+                "com.google.android.calendar",
+                "com.spotify.music",
+                "com.audible.application",
+                "com.netflix.mediaclient",
+                "com.amazon.kindle",
+                "com.instagram.android",
+                "com.google.android.contacts",
+                "com.google.android.deskclock",
+            ),
         )
 
         /** Lower bound for [sosHoldDurationMs]; a too-short hold defeats the accidental-press guard. */
@@ -72,6 +107,28 @@ data class SettingsDefaults(
 
         /** Row length: enough to be useful, not a second app drawer. */
         private val FAVORITE_APPS_RANGE = 4..24
+
+        /** Storage sanity cap for the curated pool — a pool needs no more. */
+        private const val MAX_CURATED_POOL = 50
+
+        /** Loose Android package-name shape: dot-separated java-ish identifiers. */
+        private val PACKAGE_NAME_REGEX =
+            Regex("^[a-zA-Z][a-zA-Z0-9_]*(\\.[a-zA-Z][a-zA-Z0-9_]*)+$")
+
+        /**
+         * Parses a comma-separated package list from the console. Entries are
+         * trimmed, validated against [PACKAGE_NAME_REGEX], and de-duplicated in
+         * order. Returns null when nothing valid remains, so a broken console
+         * value falls back to the hardcoded pool instead of emptying the row.
+         */
+        fun parseCuratedPool(csv: String?): List<String>? =
+            csv
+                ?.split(',')
+                ?.map { it.trim() }
+                ?.filter { it.matches(PACKAGE_NAME_REGEX) }
+                ?.distinct()
+                ?.take(MAX_CURATED_POOL)
+                ?.takeIf { it.isNotEmpty() }
 
         /**
          * Builds a [SettingsDefaults] from a Remote Config accessor, falling back
@@ -118,6 +175,13 @@ data class SettingsDefaults(
                 sosHoldDurationMs = holdMs,
                 sosCountdownSeconds = countdown,
                 favoriteAppsMaxCount = favoriteMax,
+                voiceCommandsFeatureEnabled = reader.boolean(RemoteConfigKeys.VOICE_COMMANDS_FEATURE_ENABLED)
+                    ?: HARDCODED.voiceCommandsFeatureEnabled,
+                favoriteAppsFeatureEnabled = reader.boolean(RemoteConfigKeys.FAVORITE_APPS_FEATURE_ENABLED)
+                    ?: HARDCODED.favoriteAppsFeatureEnabled,
+                favoriteAppsCuratedPool = parseCuratedPool(
+                    reader.string(RemoteConfigKeys.FAVORITE_APPS_CURATED_POOL),
+                ) ?: HARDCODED.favoriteAppsCuratedPool,
             )
         }
     }

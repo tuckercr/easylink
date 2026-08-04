@@ -67,9 +67,12 @@ class HomeViewModel @Inject constructor(
         initialValue = HomeUiState.Loading,
     )
 
-    // ── My Apps row ───────────────────────────────────────────────────────────
+    // ── Apps Row ──────────────────────────────────────────────────────────────
 
-    /** Apps for the scrollable row; empty when the row is disabled in Settings. */
+    /**
+     * Apps for the scrollable row; empty when the row is disabled in Settings
+     * or the Remote Config kill switch has withdrawn the feature.
+     */
     val favoriteApps: StateFlow<List<AppInfo>> = combine(
         favoritePrefs.rowEnabled,
         appRepository.getInstalledApps(),
@@ -77,7 +80,9 @@ class HomeViewModel @Inject constructor(
         favoritePrefs.mode,
         favoritePrefs.customPackages,
     ) { enabled, installed, counts, mode, custom ->
-        if (!enabled) {
+        // Remote Config-tunable values; snapshot per emission is current enough.
+        val defaults = settingsDefaults.current()
+        if (!enabled || !defaults.favoriteAppsFeatureEnabled) {
             emptyList()
         } else {
             FavoriteAppsSelector.select(
@@ -85,8 +90,8 @@ class HomeViewModel @Inject constructor(
                 launchCounts = counts,
                 mode = mode,
                 customPackages = custom,
-                // Remote Config-tunable; snapshot per emission is current enough.
-                max = settingsDefaults.current().favoriteAppsMaxCount,
+                max = defaults.favoriteAppsMaxCount,
+                curatedPool = defaults.favoriteAppsCuratedPool,
             )
         }
     }.stateIn(

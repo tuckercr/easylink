@@ -1,3 +1,4 @@
+<!-- Meds: a 45° capsule split into two solid halves. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
@@ -5,5 +6,6 @@
     android:viewportHeight="24">
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M4.22,11.29l6.07,-6.07c1.58,-1.58 4.14,-1.58 5.72,0l2.78,2.78c1.58,1.58 1.58,4.14 0,5.72l-6.07,6.07c-1.58,1.58 -4.14,1.58 -5.72,0L4.22,17.01c-1.58,-1.58 -1.58,-4.14 0,-5.72zM10.18,6.63L6.63,10.18l7.19,7.19 3.55,-3.55 -7.19,-7.19z" />
+        android:fillType="evenOdd"
+        android:pathData="M5.29,10.23 A3.5,3.5 0 0 1 10.23,5.29 L18.71,13.76 A3.5,3.5 0 0 1 13.76,18.71 Z M8.96,13.9 L13.9,8.96 L15.04,10.1 L10.1,15.04 Z" />
 </vector>

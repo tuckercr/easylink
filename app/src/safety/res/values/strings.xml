@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Safety-flavor overrides: these onboarding descriptions may mention SOS and
-     voice commands, which only exist in this flavor. -->
+<!-- Safety-flavor overrides: these onboarding descriptions may mention SOS,
+     which only exists in this flavor. -->
 <resources>
-    <string name="onboarding_phone_desc">EasyLink Launcher can call your contacts directly and powers Speed Dial and voice commands like \"Call John\".</string>
     <string name="onboarding_location_desc">Your location is included in SOS messages so emergency contacts know where to find you. Also powers the weather widget.</string>
 </resources>

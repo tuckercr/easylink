@@ -1,7 +1,9 @@
 package com.fangjet.care.presentation.pairing
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fangjet.care.R
 import com.fangjet.care.data.pairing.CarePairingRepository
 import com.fangjet.care.data.pairing.RedeemResult
 import com.fangjet.shared.PairingCode
@@ -16,7 +18,7 @@ import javax.inject.Inject
 data class PairingUiState(
     val code: String = "",
     val isSubmitting: Boolean = false,
-    val error: String? = null,
+    @param:StringRes val errorRes: Int? = null,
     /** Non-null once pairing succeeded; the elder's display name. */
     val pairedTo: String? = null,
 ) {
@@ -42,18 +44,18 @@ class PairingViewModel
          */
         fun onCodeChanged(input: String) {
             val digits = input.filter { it.isDigit() }.take(PairingCode.LENGTH)
-            _uiState.update { it.copy(code = digits, error = null) }
+            _uiState.update { it.copy(code = digits, errorRes = null) }
         }
 
         fun onSubmit() {
             val state = _uiState.value
             if (!PairingCode.isValidFormat(state.code)) {
-                _uiState.update { it.copy(error = "Enter all 6 digits.") }
+                _uiState.update { it.copy(errorRes = R.string.pairing_error_incomplete) }
                 return
             }
             if (state.isSubmitting) return
 
-            _uiState.update { it.copy(isSubmitting = true, error = null) }
+            _uiState.update { it.copy(isSubmitting = true, errorRes = null) }
             viewModelScope.launch {
                 when (val result = repository.redeem(state.code)) {
                     is RedeemResult.Success ->
@@ -65,7 +67,7 @@ class PairingViewModel
                         _uiState.update {
                             it.copy(
                                 isSubmitting = false,
-                                error = "That code isn't right. Double-check and try again.",
+                                errorRes = R.string.pairing_error_wrong_code,
                             )
                         }
 
@@ -73,7 +75,7 @@ class PairingViewModel
                         _uiState.update {
                             it.copy(
                                 isSubmitting = false,
-                                error = "That code has expired or was already used. Ask for a new one.",
+                                errorRes = R.string.pairing_error_expired,
                             )
                         }
 
@@ -81,7 +83,7 @@ class PairingViewModel
                         _uiState.update {
                             it.copy(
                                 isSubmitting = false,
-                                error = "Couldn't connect. Check your internet and try again.",
+                                errorRes = R.string.pairing_error_network,
                             )
                         }
                 }

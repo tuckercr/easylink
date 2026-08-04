@@ -9,9 +9,9 @@ package com.fangjet.launcher.data.config
  */
 data class FeatureFlags(
     /**
-     * SOS, fall detection, and voice commands — the permission-heavy features
-     * (SMS, fine location, microphone, health foreground service) that only
-     * the `safety` flavor may request. When false, every entry point to these
+     * SOS and fall detection — the features whose permissions (SMS, fine
+     * location, health foreground service) are Play-restricted and only the
+     * `safety` flavor may request. When false, every entry point to these
      * features must be hidden or a no-op, regardless of stored preferences or
      * Remote Config, because the permissions are not even in the manifest.
      */
