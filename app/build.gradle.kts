@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.google.services) // reads app/google-services.json
+    alias(libs.plugins.crashlytics) // uploads R8 mapping files for readable release stack traces
 }
 
 val localProps = Properties().also { props ->
@@ -17,6 +18,10 @@ val localProps = Properties().also { props ->
         ?.inputStream()
         ?.use { props.load(it) }
 }
+
+// Signing credentials come from local.properties on dev machines, or from
+// environment variables in CI (.github/workflows/release.yml exports them).
+fun signingProp(name: String): String? = localProps[name] as String? ?: System.getenv(name)
 
 android {
     namespace = "com.fangjet.launcher"
@@ -57,12 +62,14 @@ android {
 
     signingConfigs {
         create("release") {
-            val path = localProps["KEYSTORE_PATH"] as String?
+            val path = signingProp("KEYSTORE_PATH")
             if (path != null) {
-                storeFile = file(path)
-                storePassword = localProps["KEYSTORE_PASSWORD"] as String? ?: ""
-                keyAlias = localProps["KEY_ALIAS"] as String? ?: ""
-                keyPassword = localProps["KEY_PASSWORD"] as String? ?: ""
+                // rootProject.file resolves CI's repo-relative path the same way
+                // from every module (plain file() would resolve against app/).
+                storeFile = rootProject.file(path)
+                storePassword = signingProp("KEYSTORE_PASSWORD") ?: ""
+                keyAlias = signingProp("KEY_ALIAS") ?: ""
+                keyPassword = signingProp("KEY_PASSWORD") ?: ""
             }
         }
     }
@@ -137,6 +144,7 @@ dependencies {
     implementation(libs.firebase.config)
     implementation(libs.firebase.auth) // anonymous identity for pairing
     implementation(libs.firebase.firestore) // links/pairingCodes documents
+    implementation(libs.firebase.crashlytics) // crash reporting — no code needed, auto-initialises
     implementation(libs.kotlinx.coroutines.play.services) // Task.await()
 
     // Core

@@ -7,11 +7,12 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.google.services) // reads care/google-services.json
+    alias(libs.plugins.crashlytics) // uploads R8 mapping files for readable release stack traces
 }
 
-// Release signing credentials live in local.properties (git-ignored) or, in CI,
-// are written there before the build. Same keystore as :app — one signing
-// identity for both EasyLink apps.
+// Release signing credentials live in local.properties (git-ignored) on dev
+// machines, or in environment variables in CI. Same keystore as :app — one
+// signing identity for both EasyLink apps.
 val localProps = Properties().also { props ->
     rootProject
         .file("local.properties")
@@ -19,6 +20,8 @@ val localProps = Properties().also { props ->
         ?.inputStream()
         ?.use { props.load(it) }
 }
+
+fun signingProp(name: String): String? = localProps[name] as String? ?: System.getenv(name)
 
 android {
     namespace = "com.fangjet.care"
@@ -36,12 +39,12 @@ android {
 
     signingConfigs {
         create("release") {
-            val path = localProps["KEYSTORE_PATH"] as String?
+            val path = signingProp("KEYSTORE_PATH")
             if (path != null) {
-                storeFile = file(path)
-                storePassword = localProps["KEYSTORE_PASSWORD"] as String? ?: ""
-                keyAlias = localProps["KEY_ALIAS"] as String? ?: ""
-                keyPassword = localProps["KEY_PASSWORD"] as String? ?: ""
+                storeFile = rootProject.file(path)
+                storePassword = signingProp("KEYSTORE_PASSWORD") ?: ""
+                keyAlias = signingProp("KEY_ALIAS") ?: ""
+                keyPassword = signingProp("KEY_PASSWORD") ?: ""
             }
         }
     }
@@ -133,6 +136,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
+    implementation(libs.firebase.crashlytics) // crash reporting — no code needed, auto-initialises
     implementation(libs.kotlinx.coroutines.play.services) // Task.await()
 
     // DataStore — persists the redeemed linkId

@@ -56,6 +56,7 @@ startup                 = "1.1.1"
 # Firebase — Auth / Firestore / FCM for the Care companion app
 firebase-bom            = "33.7.0"
 google-services         = "4.4.2"
+crashlytics-plugin      = "3.0.6"
 
 [libraries]
 android-desugar-jdk              = { group = "com.android.tools",           name = "desugar_jdk_libs",             version.ref = "desugar-jdk" }
@@ -119,6 +120,7 @@ startup-runtime                  = { group = "androidx.startup",            name
 
 # Firebase (versions come from BOM — no version.ref on individual artifacts)
 firebase-bom                     = { group = "com.google.firebase",         name = "firebase-bom",                 version.ref = "firebase-bom" }
+firebase-crashlytics             = { group = "com.google.firebase",         name = "firebase-crashlytics" }
 firebase-auth                    = { group = "com.google.firebase",         name = "firebase-auth-ktx" }
 firebase-firestore               = { group = "com.google.firebase",         name = "firebase-firestore-ktx" }
 firebase-messaging               = { group = "com.google.firebase",         name = "firebase-messaging-ktx" }
@@ -128,6 +130,7 @@ firebase-config                  = { group = "com.google.firebase",         name
 android-application  = { id = "com.android.application",              version.ref = "agp" }
 android-library      = { id = "com.android.library",                  version.ref = "agp" }
 google-services      = { id = "com.google.gms.google-services",        version.ref = "google-services" }
+crashlytics          = { id = "com.google.firebase.crashlytics",       version.ref = "crashlytics-plugin" }
 kotlin-parcelize     = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 kotlin-compose       = { id = "org.jetbrains.kotlin.plugin.compose",   version.ref = "kotlin" }
 hilt                 = { id = "com.google.dagger.hilt.android",        version.ref = "hilt" }

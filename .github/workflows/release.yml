@@ -93,18 +93,13 @@ jobs:
             app/build/outputs/apk/standard/release/app-standard-release.apk
             app/build/outputs/apk/safety/release/app-safety-release.apk
 
-      # ── Upload to Play Store internal track ────────────────────────────────
-      # Requires the Google Play Android Developer API service account JSON
-      # stored in PLAY_SERVICE_ACCOUNT_JSON secret.
-      # Remove or comment this step until you have Play Console access.
-      # - name: Upload to Play Store (internal testing)
-      #   uses: r0adkll/upload-google-play@v1
-      #   with:
-      #     serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
-      #     packageName: com.fangjet.launcher
-      #     releaseFiles: app/build/outputs/bundle/standardRelease/app-standard-release.aab
-      #     track: internal
-      #     status: completed
+      # ── Play Store upload: deliberately manual ─────────────────────────────
+      # Policy decision: CI builds and publishes the signed artifacts to the
+      # GitHub Release only. Uploading to the Play Console (and promoting
+      # between tracks) is done by a human, so no tag push can ever ship to
+      # users on its own. If this is ever automated, use the Play Developer
+      # API with a service-account secret and target the *internal* track —
+      # never production.
 
       # ── Cleanup keystore from runner ───────────────────────────────────────
       - name: Clean up keystore
