@@ -7,6 +7,7 @@ import com.fangjet.launcher.data.local.EasyLinkDatabase
 import com.fangjet.launcher.data.local.EmergencyContactDao
 import com.fangjet.launcher.data.local.MIGRATION_1_2
 import com.fangjet.launcher.data.local.MIGRATION_2_3
+import com.fangjet.launcher.data.local.MIGRATION_3_4
 import com.fangjet.launcher.data.local.MedicationDao
 import com.fangjet.launcher.data.local.ReminderLogDao
 import com.fangjet.launcher.data.local.SpeedDialDao
@@ -51,7 +52,7 @@ object DatabaseModule {
                 context,
                 EasyLinkDatabase::class.java,
                 "easylink.db",
-            ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
             // TRUNCATE journal mode writes directly to the .db file instead of
             // WAL side-car files (.db-wal / .db-shm).  This keeps the database
             // as a single consistent file, which Android Auto Backup can capture

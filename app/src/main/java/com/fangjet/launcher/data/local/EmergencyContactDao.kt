@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -43,15 +44,44 @@ interface EmergencyContactDao {
     suspend fun deleteAll()
 
     @Insert
-    suspend fun insertAll(entities: List<EmergencyContactEntity>)
+    suspend fun insertAll(entities: List<EmergencyContactEntity>): List<Long>
+
+    @Update
+    suspend fun updateAll(entities: List<EmergencyContactEntity>)
+
+    @Query("DELETE FROM emergency_contacts WHERE id NOT IN (:keepIds)")
+    suspend fun deleteAllExcept(keepIds: List<Long>)
 
     /**
-     * Atomically swaps the whole table for [entities] — used by remote config
-     * sync, where the caregiver's list is authoritative.
+     * Applies the caregiver's authoritative list while keeping local row ids
+     * stable: incoming entities are matched to existing rows by [EmergencyContactEntity.remoteId]
+     * and updated in place; unmatched ones are inserted; everything else —
+     * including local-only rows, per the documented one-way sync — is deleted.
+     * Stable ids mean the contacts list keeps item identity (scroll position,
+     * animations) across caregiver saves instead of re-keying every row.
      */
     @Transaction
-    suspend fun replaceAll(entities: List<EmergencyContactEntity>) {
-        deleteAll()
-        insertAll(entities)
+    suspend fun syncFromRemote(entities: List<EmergencyContactEntity>) {
+        val existingByRemoteId = getAll()
+            .filter { it.remoteId != null }
+            .associateBy { it.remoteId }
+
+        val toUpdate = mutableListOf<EmergencyContactEntity>()
+        val toInsert = mutableListOf<EmergencyContactEntity>()
+        val keepIds = mutableListOf<Long>()
+
+        entities.forEach { incoming ->
+            val match = incoming.remoteId?.let { existingByRemoteId[it] }
+            if (match != null) {
+                toUpdate += incoming.copy(id = match.id)
+                keepIds += match.id
+            } else {
+                toInsert += incoming
+            }
+        }
+
+        updateAll(toUpdate)
+        keepIds += insertAll(toInsert)
+        deleteAllExcept(keepIds)
     }
 }

@@ -33,8 +33,9 @@ object ContactConfigMapper {
 
     /**
      * Converts to Room entities. Position 0 is the primary contact (SOS calls
-     * them; everyone else gets SMS only). Ids are fresh (0 = autogenerate) since
-     * the caregiver list wholesale-replaces the local table.
+     * them; everyone else gets SMS only). Local ids stay 0 — the DAO's
+     * syncFromRemote matches rows by [EmergencyContactEntity.remoteId] and
+     * preserves existing ids, so a caregiver save updates rows in place.
      */
     fun toEntities(contacts: List<ContactConfig>): List<EmergencyContactEntity> =
         contacts
@@ -45,6 +46,7 @@ object ContactConfigMapper {
                     name = c.name,
                     phoneNumber = c.phoneNumber,
                     isPrimary = index == 0,
+                    remoteId = c.id.takeIf { it.isNotBlank() },
                 )
             }
 }

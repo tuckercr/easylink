@@ -13,6 +13,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  *  - v1: emergency_contacts
  *  - v2: + medications, reminder_logs
  *  - v3: + speed_dial_contacts
+ *  - v4: emergency_contacts + remoteId (stable identity for Care-synced rows)
  *
  * ## Migration policy
  * Always provide an explicit [Migration] rather than using
@@ -27,7 +28,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ReminderLogEntity::class,
         SpeedDialEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = false,
 )
 @TypeConverters(MedicationConverters::class)
@@ -112,5 +113,17 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
             "CREATE UNIQUE INDEX IF NOT EXISTS `index_speed_dial_contacts_contactId` " +
                 "ON `speed_dial_contacts` (`contactId`)",
         )
+    }
+}
+
+/**
+ * Migration from v3 → v4: adds `remoteId` to emergency_contacts so contacts
+ * synced from EasyLink Care keep a stable local row across caregiver saves.
+ * Existing rows get NULL — they are treated as locally-created until the next
+ * sync re-establishes their remote identity.
+ */
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `emergency_contacts` ADD COLUMN `remoteId` TEXT")
     }
 }

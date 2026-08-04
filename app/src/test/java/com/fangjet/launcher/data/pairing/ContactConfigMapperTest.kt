@@ -88,6 +88,20 @@ class ContactConfigMapperTest {
     }
 
     @Test
+    fun `the firestore id is carried as remoteId for stable sync identity`() {
+        val entities = ContactConfigMapper.toEntities(
+            listOf(
+                ContactConfig(id = "cloud-id", name = "A", phoneNumber = "1"),
+                ContactConfig(id = "", name = "B", phoneNumber = "2", position = 1),
+            ),
+        )
+        assertEquals("cloud-id", entities[0].remoteId)
+        // A blank wire id (old Care builds) must become null, not an empty-string
+        // key that every such contact would collide on.
+        assertEquals(null, entities[1].remoteId)
+    }
+
+    @Test
     fun `empty list maps to empty list`() {
         assertTrue(ContactConfigMapper.toEntities(emptyList()).isEmpty())
     }

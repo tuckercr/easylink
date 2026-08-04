@@ -17,6 +17,13 @@ data class EmergencyContactEntity(
     val name: String,
     val phoneNumber: String,
     val isPrimary: Boolean,
+    /**
+     * Firestore document id for contacts synced from EasyLink Care; null for
+     * contacts added locally. Sync matches on this so a caregiver edit updates
+     * the existing row in place instead of churning primary keys (which would
+     * reset LazyColumn item identity on every save).
+     */
+    val remoteId: String? = null,
 ) {
     fun toDomain() =
         EmergencyContact(

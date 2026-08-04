@@ -64,14 +64,27 @@ class ConfigSyncManager @Inject constructor(
                 .distinctUntilChanged()
                 .collectLatest { linkId ->
                     if (linkId == null) return@collectLatest
-                    if (FirebaseAuth.getInstance().currentUser == null) {
-                        Log.w(TAG, "Paired but not signed in — skipping config sync")
-                        return@collectLatest
-                    }
+                    // Wait rather than bail: on a cold start Firebase may not have
+                    // restored the persisted anonymous session yet, and since the
+                    // linkId flow never re-emits, an early return here would leave
+                    // sync dead for the entire process lifetime.
+                    awaitSignedIn()
                     Log.d(TAG, "Watching config for link $linkId")
                     watchConfig(linkId)
                 }
         }
+    }
+
+    /** Suspends until Firebase has a signed-in user (returns at once if it already does). */
+    private suspend fun awaitSignedIn() {
+        val auth = FirebaseAuth.getInstance()
+        if (auth.currentUser != null) return
+        Log.d(TAG, "Paired but session not restored yet — waiting for sign-in")
+        callbackFlow {
+            val listener = FirebaseAuth.AuthStateListener { trySend(it.currentUser != null) }
+            auth.addAuthStateListener(listener)
+            awaitClose { auth.removeAuthStateListener(listener) }
+        }.first { it }
     }
 
     private suspend fun watchConfig(linkId: String) {
@@ -106,7 +119,7 @@ class ConfigSyncManager @Inject constructor(
         if (updatedAt <= appliedAt) return
 
         val contacts = ContactConfigMapper.parse(snapshot.get("emergencyContacts"))
-        emergencyContactDao.replaceAll(ContactConfigMapper.toEntities(contacts))
+        emergencyContactDao.syncFromRemote(ContactConfigMapper.toEntities(contacts))
         dataStore.edit { it[KEY_APPLIED_AT] = updatedAt }
         Log.i(TAG, "Applied caregiver config rev $updatedAt: ${contacts.size} emergency contacts")
     }
