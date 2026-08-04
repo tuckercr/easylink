@@ -302,7 +302,7 @@ private fun SectionLabel(
         if (error != null) {
             Text(
                 text = error,
-                fontSize = 12.sp,
+                fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.error,
             )
         }
@@ -331,8 +331,8 @@ private fun TimeChip(
         )
         Box(
             modifier = Modifier
-                .size(20.dp)
-                .clip(RoundedCornerShape(10.dp))
+                .size(48.dp)
+                .clip(RoundedCornerShape(24.dp))
                 .clickable(onClick = onRemove),
             contentAlignment = Alignment.Center,
         ) {

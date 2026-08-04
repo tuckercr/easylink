@@ -171,7 +171,7 @@ fun ForecastScreen(
                     ) {
                         Text(
                             text = stringResource(R.string.forecast_saved_location),
-                            fontSize = 12.sp,
+                            fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                         )
                     }

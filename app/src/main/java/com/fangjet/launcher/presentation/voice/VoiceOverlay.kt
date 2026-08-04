@@ -291,7 +291,7 @@ private fun NotUnderstoodCard(
         Text(
             text = "\"$text\"",
             color = Color.White.copy(alpha = 0.5f),
-            fontSize = 13.sp,
+            fontSize = 14.sp,
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(16.dp))

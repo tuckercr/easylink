@@ -566,7 +566,7 @@ private fun WeatherCard(
                     Text(
                         stringResource(R.string.weather_tap_location_settings),
                         color = Color.White.copy(alpha = 0.55f),
-                        fontSize = 12.sp,
+                        fontSize = 14.sp,
                     )
                 }
             }

@@ -303,7 +303,7 @@ private fun ReminderCard(
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .background(Color.Black.copy(alpha = 0.25f))
                     .clickable(onClick = onDelete),

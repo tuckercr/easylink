@@ -360,7 +360,7 @@ private fun ContactCard(
                     ) {
                         Text(
                             text = stringResource(R.string.emergency_contacts_primary_badge),
-                            fontSize = 11.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
                             letterSpacing = 1.sp,
@@ -376,8 +376,8 @@ private fun ContactCard(
             )
             Text(
                 text = stringResource(R.string.emergency_contacts_tap_to_edit),
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
@@ -385,7 +385,7 @@ private fun ContactCard(
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
-                .size(36.dp)
+                .size(48.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.errorContainer)
                 .clickable(onClick = onDelete),
@@ -464,7 +464,7 @@ private fun ContactEditDialog(
                         )
                         Text(
                             text = stringResource(R.string.emergency_contacts_primary_body),
-                            fontSize = 12.sp,
+                            fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -477,7 +477,7 @@ private fun ContactEditDialog(
                     Text(
                         text = validationError,
                         color = MaterialTheme.colorScheme.error,
-                        fontSize = 13.sp,
+                        fontSize = 14.sp,
                     )
                 }
             }
