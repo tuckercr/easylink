@@ -77,6 +77,11 @@
 
     <!-- Magnifier -->
     <string name="ez_magnifier">EasyLink Magnifier</string>
+    <string name="magnifier_permission_title">The Magnifier needs the camera</string>
+    <string name="magnifier_permission_body">The Magnifier works like a magnifying glass — it uses the phone\'s camera to make small print big. The camera is only on while this screen is open, and nothing is recorded.</string>
+    <string name="magnifier_permission_allow">Allow Camera</string>
+    <string name="magnifier_permission_denied_body">Camera access is turned off, so the Magnifier can\'t work. Tap below, then choose Permissions → Camera → Allow.</string>
+    <string name="magnifier_permission_open_settings">Open App Settings</string>
 
     <!-- Bottom navigation -->
     <string name="nav_meds">Meds</string>

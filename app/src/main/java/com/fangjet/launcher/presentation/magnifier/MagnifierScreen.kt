@@ -1,5 +1,12 @@
 package com.fangjet.launcher.presentation.magnifier
 
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
@@ -31,11 +38,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fangjet.launcher.R
@@ -49,6 +60,62 @@ fun MagnifierScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    // ── Camera permission gate ────────────────────────────────────────────────
+    // Onboarding asks for CAMERA but every step is skippable, so this screen
+    // must be able to obtain the permission itself — without it CameraX binds
+    // to nothing and the elder just sees a black screen.
+    var hasCameraPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                PackageManager.PERMISSION_GRANTED,
+        )
+    }
+    var permanentlyDenied by remember { mutableStateOf(false) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        hasCameraPermission = granted
+        if (!granted) {
+            // Denied with "don't ask again" (or repeated denials): the system
+            // dialog will no longer appear, so the only path is app settings.
+            val activity = context as? Activity
+            permanentlyDenied = activity != null &&
+                !ActivityCompat.shouldShowRequestPermissionRationale(
+                    activity,
+                    Manifest.permission.CAMERA,
+                )
+        }
+    }
+
+    // Re-check when returning from system settings so a grant there flips
+    // straight into the magnifier.
+    LifecycleResumeEffect(Unit) {
+        hasCameraPermission =
+            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED
+        onPauseOrDispose { }
+    }
+
+    if (!hasCameraPermission) {
+        CameraPermissionContent(
+            permanentlyDenied = permanentlyDenied,
+            onAllow = { permissionLauncher.launch(Manifest.permission.CAMERA) },
+            onOpenSettings = {
+                runCatching {
+                    context.startActivity(
+                        Intent(
+                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            "package:${context.packageName}".toUri(),
+                        ),
+                    )
+                }
+            },
+            onBack = onBack,
+        )
+        return
+    }
 
     // Camera instance — shared between the preview and the controls
     var camera by remember { mutableStateOf<Camera?>(null) }
@@ -152,6 +219,75 @@ fun MagnifierScreen(
         }
 
         // ── Large full-width Back button ──────────────────────────────────────
+        BigBackButton(onClick = onBack)
+    }
+}
+
+// ── Camera permission explainer ───────────────────────────────────────────────
+
+@Composable
+private fun CameraPermissionContent(
+    permanentlyDenied: Boolean,
+    onAllow: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onBack: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(32.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(text = "🔍", fontSize = 64.sp)
+            Text(
+                text = stringResource(R.string.magnifier_permission_title),
+                fontSize = 26.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 20.dp),
+            )
+            Text(
+                text = stringResource(
+                    if (permanentlyDenied) {
+                        R.string.magnifier_permission_denied_body
+                    } else {
+                        R.string.magnifier_permission_body
+                    },
+                ),
+                fontSize = 18.sp,
+                color = Color.White.copy(alpha = 0.8f),
+                textAlign = TextAlign.Center,
+                lineHeight = 26.sp,
+                modifier = Modifier.padding(top = 14.dp),
+            )
+            Button(
+                onClick = if (permanentlyDenied) onOpenSettings else onAllow,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 32.dp),
+            ) {
+                Text(
+                    text = stringResource(
+                        if (permanentlyDenied) {
+                            R.string.magnifier_permission_open_settings
+                        } else {
+                            R.string.magnifier_permission_allow
+                        },
+                    ),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(vertical = 10.dp),
+                )
+            }
+        }
         BigBackButton(onClick = onBack)
     }
 }
