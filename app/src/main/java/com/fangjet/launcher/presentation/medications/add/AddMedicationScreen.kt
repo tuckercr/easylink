@@ -23,8 +23,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -151,13 +153,15 @@ fun AddMedicationScreen(
             OutlinedTextField(
                 value = state.name,
                 onValueChange = { viewModel.onNameChanged(it) },
+                textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
                 label = { Text(stringResource(R.string.add_medication_name_label)) },
-                placeholder = { Text(stringResource(R.string.add_medication_name_placeholder)) },
+                placeholder = { Text(stringResource(R.string.add_medication_name_placeholder), fontSize = 18.sp) },
                 isError = state.nameError != null,
                 supportingText = state.nameError?.let {
                     {
                         Text(
                             it,
+                            fontSize = 16.sp,
                             color = MaterialTheme.colorScheme.error,
                         )
                     }
@@ -170,8 +174,9 @@ fun AddMedicationScreen(
             OutlinedTextField(
                 value = state.dosage,
                 onValueChange = { viewModel.onDosageChanged(it) },
+                textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
                 label = { Text(stringResource(R.string.add_medication_dosage_label)) },
-                placeholder = { Text(stringResource(R.string.add_medication_dosage_placeholder)) },
+                placeholder = { Text(stringResource(R.string.add_medication_dosage_placeholder), fontSize = 18.sp) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -180,8 +185,9 @@ fun AddMedicationScreen(
             OutlinedTextField(
                 value = state.notes,
                 onValueChange = { viewModel.onNotesChanged(it) },
+                textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
                 label = { Text(stringResource(R.string.add_medication_notes_label)) },
-                placeholder = { Text(stringResource(R.string.add_medication_notes_placeholder)) },
+                placeholder = { Text(stringResource(R.string.add_medication_notes_placeholder), fontSize = 18.sp) },
                 maxLines = 3,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -202,7 +208,7 @@ fun AddMedicationScreen(
                     )
                 }
                 TextButton(onClick = { showTimePicker = true }) {
-                    Text(stringResource(R.string.add_medication_add_time), fontSize = 16.sp)
+                    Text(stringResource(R.string.add_medication_add_time), fontSize = 20.sp)
                 }
             }
 
@@ -220,8 +226,13 @@ fun AddMedicationScreen(
                         selected = day in state.activeDays,
                         onClick = { viewModel.onDayToggled(day) },
                         // Material chips default to 32dp — too small a target
-                        // and label for this audience.
+                        // and label for this audience. Selected = the same blue
+                        // as the reminder-time chips so "on" is unmistakable.
                         modifier = Modifier.height(48.dp),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        ),
                         label = {
                             Text(
                                 text = day.getDisplayName(
@@ -294,7 +305,7 @@ private fun SectionLabel(
     Column {
         Text(
             text = text,
-            fontSize = 16.sp,
+            fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
             color = if (error != null) {
                 MaterialTheme.colorScheme.error
@@ -305,7 +316,7 @@ private fun SectionLabel(
         if (error != null) {
             Text(
                 text = error,
-                fontSize = 14.sp,
+                fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.error,
             )
         }
