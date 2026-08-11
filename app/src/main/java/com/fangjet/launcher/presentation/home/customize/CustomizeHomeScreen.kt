@@ -298,28 +298,31 @@ fun CustomizeHomeScreen(
                 }
             }
 
-            // ── Section: Family ───────────────────────────────────────────────
-            item {
-                SectionHeader(stringResource(R.string.customize_family_header))
-                Text(
-                    stringResource(R.string.customize_family_description),
-                    fontSize = DESC_SIZE,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 12.dp),
-                )
-                Button(
-                    onClick = onNavigateToConnectFamily,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(72.dp),
-                ) {
+            // ── Section: Family (safety flavor only for the initial Play
+            //    release — caregiver pairing ships alongside SOS) ──────────
+            if (BuildConfig.SAFETY_FEATURES) {
+                item {
+                    SectionHeader(stringResource(R.string.customize_family_header))
                     Text(
-                        stringResource(R.string.customize_connect_family),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
+                        stringResource(R.string.customize_family_description),
+                        fontSize = DESC_SIZE,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 12.dp),
                     )
+                    Button(
+                        onClick = onNavigateToConnectFamily,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(72.dp),
+                    ) {
+                        Text(
+                            stringResource(R.string.customize_connect_family),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    Spacer(Modifier.height(28.dp))
                 }
-                Spacer(Modifier.height(28.dp))
             }
 
             // ── Section: Home app ─────────────────────────────────────────────
