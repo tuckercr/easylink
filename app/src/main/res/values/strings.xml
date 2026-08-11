@@ -122,6 +122,11 @@
     <string name="add_speed_dial_search_placeholder">Type a name…</string>
     <string name="add_speed_dial_no_results">No contacts found for \"%1$s\"</string>
     <string name="add_speed_dial_search_hint">Start typing to search your contacts</string>
+    <string name="contacts_permission_title">Find people from your contacts</string>
+    <string name="contacts_permission_body">To search your contacts, EasyLink needs permission to read them. Your contact list stays on this phone — it is never uploaded.</string>
+    <string name="contacts_permission_allow">Allow Contacts</string>
+    <string name="contacts_permission_denied_body">Contacts access is turned off. Tap below, then choose Permissions → Contacts → Allow. You can also add someone by typing their number in the Enter Manually tab.</string>
+    <string name="permission_open_settings">Open App Settings</string>
 
     <!-- Medications -->
     <string name="medications_title">Medications</string>

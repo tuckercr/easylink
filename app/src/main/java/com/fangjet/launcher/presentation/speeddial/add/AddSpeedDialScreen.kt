@@ -1,6 +1,11 @@
 package com.fangjet.launcher.presentation.speeddial.add
 
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -52,14 +57,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.fangjet.launcher.R
@@ -382,6 +393,55 @@ private fun SearchPanel(
     state: AddSpeedDialUiState,
     viewModel: AddSpeedDialViewModel,
 ) {
+    // Contacts permission gate: onboarding asks for READ_CONTACTS but is
+    // skippable, and without it the search silently returns nothing — which
+    // reads as "broken", not "locked". Ask here, at the point of use.
+    val context = LocalContext.current
+    var hasPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS) ==
+                PackageManager.PERMISSION_GRANTED,
+        )
+    }
+    var permanentlyDenied by remember { mutableStateOf(false) }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        hasPermission = granted
+        if (!granted) {
+            val activity = context as? Activity
+            permanentlyDenied = activity != null &&
+                !ActivityCompat.shouldShowRequestPermissionRationale(
+                    activity,
+                    Manifest.permission.READ_CONTACTS,
+                )
+        }
+    }
+    LifecycleResumeEffect(Unit) {
+        hasPermission =
+            ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS) ==
+            PackageManager.PERMISSION_GRANTED
+        onPauseOrDispose { }
+    }
+
+    if (!hasPermission) {
+        ContactsPermissionPanel(
+            permanentlyDenied = permanentlyDenied,
+            onAllow = { permissionLauncher.launch(Manifest.permission.READ_CONTACTS) },
+            onOpenSettings = {
+                runCatching {
+                    context.startActivity(
+                        Intent(
+                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            "package:${context.packageName}".toUri(),
+                        ),
+                    )
+                }
+            },
+        )
+        return
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         OutlinedTextField(
             value = state.searchQuery,
@@ -440,6 +500,66 @@ private fun SearchPanel(
                     }
                 }
             }
+        }
+    }
+}
+
+// ── Contacts permission explainer ─────────────────────────────────────────────
+
+@Composable
+private fun ContactsPermissionPanel(
+    permanentlyDenied: Boolean,
+    onAllow: () -> Unit,
+    onOpenSettings: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(text = "📖", fontSize = 56.sp)
+        Text(
+            text = stringResource(R.string.contacts_permission_title),
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 18.dp),
+        )
+        Text(
+            text = stringResource(
+                if (permanentlyDenied) {
+                    R.string.contacts_permission_denied_body
+                } else {
+                    R.string.contacts_permission_body
+                },
+            ),
+            fontSize = 18.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            lineHeight = 26.sp,
+            modifier = Modifier.padding(top = 12.dp),
+        )
+        Button(
+            onClick = if (permanentlyDenied) onOpenSettings else onAllow,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 28.dp),
+        ) {
+            Text(
+                text = stringResource(
+                    if (permanentlyDenied) {
+                        R.string.permission_open_settings
+                    } else {
+                        R.string.contacts_permission_allow
+                    },
+                ),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(vertical = 8.dp),
+            )
         }
     }
 }
