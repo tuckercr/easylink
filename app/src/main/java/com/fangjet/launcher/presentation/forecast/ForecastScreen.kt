@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -135,6 +136,9 @@ fun ForecastScreen(
     ) {
         Scaffold(
             bottomBar = { BigBackButton(onClick = onBack) },
+            // The NavHost's outer Scaffold already consumes the system bars —
+            // letting this one do it too double-pads the top.
+            contentWindowInsets = WindowInsets(0),
         ) { innerPadding ->
             Column(
                 modifier = Modifier
