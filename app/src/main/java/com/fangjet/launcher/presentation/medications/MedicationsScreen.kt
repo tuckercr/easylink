@@ -341,22 +341,27 @@ private fun ReminderCard(
                         color = Color.White,
                     )
                 }
-                // Snooze — secondary
-                OutlinedButton(
-                    onClick = onSnooze,
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_snooze),
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                        tint = Color.White,
-                    )
-                    Text(
-                        text = stringResource(R.string.medications_snooze),
-                        fontSize = 19.sp,
-                        color = Color.White,
-                    )
+                // Snooze — secondary. Only once the dose is due: snoozing a
+                // reminder that hasn't fired yet has no effect (the original
+                // alarm still goes off) and just logs a misleading SNOOZED
+                // entry, so upcoming doses show a full-width Taken instead.
+                if (reminder.status != TodayReminder.Status.UPCOMING) {
+                    OutlinedButton(
+                        onClick = onSnooze,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_snooze),
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = Color.White,
+                        )
+                        Text(
+                            text = stringResource(R.string.medications_snooze),
+                            fontSize = 19.sp,
+                            color = Color.White,
+                        )
+                    }
                 }
             }
         }
