@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fangjet.care.R
+import com.fangjet.care.presentation.common.PrivacyPolicyLink
 import com.fangjet.care.presentation.theme.EasyLinkCareTheme
 
 @Composable
@@ -132,6 +133,8 @@ private fun PairingContent(
         ) {
             Text(stringResource(R.string.pairing_connect), fontSize = 17.sp)
         }
+
+        PrivacyPolicyLink(modifier = Modifier.padding(top = 12.dp))
     }
 }
 

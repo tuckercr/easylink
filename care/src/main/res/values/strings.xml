@@ -47,4 +47,6 @@
     <string name="pairing_error_wrong_code">That code isn\'t right. Double-check and try again.</string>
     <string name="pairing_error_expired">That code has expired or was already used. Ask for a new one.</string>
     <string name="pairing_error_network">Couldn\'t connect. Check your internet and try again.</string>
+
+    <string name="privacy_policy">Privacy Policy</string>
 </resources>

@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fangjet.care.R
+import com.fangjet.care.presentation.common.PrivacyPolicyLink
 import com.fangjet.care.presentation.theme.Good
 import com.fangjet.care.presentation.theme.Teal
 
@@ -167,6 +168,9 @@ fun DashboardScreen(
                 enabled = false,
                 onClick = {},
             )
+
+            Spacer(Modifier.weight(1f))
+            PrivacyPolicyLink(modifier = Modifier.align(Alignment.CenterHorizontally))
         }
     }
 }
