@@ -12,16 +12,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -31,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -43,6 +40,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.fangjet.launcher.R
+import com.fangjet.launcher.presentation.common.BigBackButton
 import com.fangjet.weather.WeatherService
 import com.fangjet.weather.model.ForecastDay
 import com.fangjet.weather.model.ForecastResult
@@ -135,110 +133,100 @@ fun ForecastScreen(
             fontScale = density.fontScale.coerceAtMost(1.3f),
         ),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
-        ) {
-            // ── Header ────────────────────────────────────────────────────────────
-            Row(
+        Scaffold(
+            bottomBar = { BigBackButton(onClick = onBack) },
+        ) { innerPadding ->
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 4.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .background(MaterialTheme.colorScheme.background),
             ) {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_home),
-                        contentDescription = stringResource(R.string.cd_back),
-                        tint = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.size(28.dp),
-                    )
-                }
-                Column {
+                // ── Header ────────────────────────────────────────────────────────────
+                Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
                     Text(
                         text = when (val s = state) {
                             is ForecastUiState.Success -> s.city ?: stringResource(R.string.forecast_title)
                             else -> stringResource(R.string.forecast_title)
                         },
                         fontWeight = FontWeight.Bold,
-                        fontSize = 22.sp,
+                        fontSize = 30.sp,
                         color = MaterialTheme.colorScheme.onBackground,
                     )
-                    // Subtle "saved location" note when using cached coords
+                    // "Saved location" note when using cached coords
                     if (state is ForecastUiState.Success &&
                         (state as ForecastUiState.Success).usingCachedLocation
                     ) {
                         Text(
                             text = stringResource(R.string.forecast_saved_location),
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                         )
                     }
                 }
-            }
 
-            // ── Content ───────────────────────────────────────────────────────────
-            when (val s = state) {
-                is ForecastUiState.Loading -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                }
-
-                is ForecastUiState.Success -> {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(s.days) { day ->
-                            ForecastRow(day = day)
-                            HorizontalDivider(
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.08f),
-                                thickness = 1.dp,
-                            )
+                // ── Content ───────────────────────────────────────────────────────────
+                when (val s = state) {
+                    is ForecastUiState.Loading -> {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
                         }
                     }
-                }
 
-                is ForecastUiState.LocationDisabled -> {
-                    ForecastInfoBox(
-                        emoji = "📍",
-                        title = stringResource(R.string.forecast_location_off_title),
-                        body = stringResource(R.string.forecast_location_off_body),
-                        actionLabel = stringResource(R.string.forecast_open_location_settings),
-                        onAction = {
-                            context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-                        },
-                    )
-                }
+                    is ForecastUiState.Success -> {
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            items(s.days) { day ->
+                                ForecastRow(day = day)
+                                HorizontalDivider(
+                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.08f),
+                                    thickness = 1.dp,
+                                )
+                            }
+                        }
+                    }
 
-                is ForecastUiState.PermissionNeeded -> {
-                    ForecastInfoBox(
-                        emoji = "🌤️",
-                        title = stringResource(R.string.forecast_permission_title),
-                        body = stringResource(R.string.forecast_permission_body),
-                        actionLabel = stringResource(R.string.forecast_open_app_settings),
-                        onAction = {
-                            context.startActivity(
-                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                    data =
-                                        android.net.Uri.fromParts(
-                                            "package",
-                                            context.packageName,
-                                            null,
-                                        )
-                                },
-                            )
-                        },
-                    )
-                }
+                    is ForecastUiState.LocationDisabled -> {
+                        ForecastInfoBox(
+                            emoji = "📍",
+                            title = stringResource(R.string.forecast_location_off_title),
+                            body = stringResource(R.string.forecast_location_off_body),
+                            actionLabel = stringResource(R.string.forecast_open_location_settings),
+                            onAction = {
+                                context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                            },
+                        )
+                    }
 
-                is ForecastUiState.Error -> {
-                    ForecastInfoBox(
-                        emoji = "🌡️",
-                        title = stringResource(R.string.forecast_unavailable_title),
-                        body = s.message,
-                        actionLabel = stringResource(R.string.forecast_retry),
-                        onAction = { viewModel.retry() },
-                    )
+                    is ForecastUiState.PermissionNeeded -> {
+                        ForecastInfoBox(
+                            emoji = "🌤️",
+                            title = stringResource(R.string.forecast_permission_title),
+                            body = stringResource(R.string.forecast_permission_body),
+                            actionLabel = stringResource(R.string.forecast_open_app_settings),
+                            onAction = {
+                                context.startActivity(
+                                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                        data =
+                                            android.net.Uri.fromParts(
+                                                "package",
+                                                context.packageName,
+                                                null,
+                                            )
+                                    },
+                                )
+                            },
+                        )
+                    }
+
+                    is ForecastUiState.Error -> {
+                        ForecastInfoBox(
+                            emoji = "🌡️",
+                            title = stringResource(R.string.forecast_unavailable_title),
+                            body = s.message,
+                            actionLabel = stringResource(R.string.forecast_retry),
+                            onAction = { viewModel.retry() },
+                        )
+                    }
                 }
             }
         }
@@ -264,20 +252,20 @@ private fun ForecastInfoBox(
             Text(emoji, fontSize = 52.sp)
             Text(
                 text = title,
-                fontSize = 20.sp,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center,
             )
             Text(
                 text = body,
-                fontSize = 15.sp,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f),
+                fontSize = 18.sp,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f),
                 textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(4.dp))
             Button(onClick = onAction) {
-                Text(actionLabel, fontSize = 16.sp)
+                Text(actionLabel, fontSize = 20.sp)
             }
         }
     }
@@ -290,24 +278,24 @@ private fun ForecastRow(day: ForecastDay) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 14.dp),
+            .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = day.emoji, fontSize = 34.sp)
+        Text(text = day.emoji, fontSize = 44.sp)
 
         Spacer(Modifier.width(14.dp))
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = day.dayLabel,
-                fontSize = 17.sp,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
             )
             Text(
                 text = day.description,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f),
+                fontSize = 18.sp,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f),
             )
         }
 
@@ -317,29 +305,29 @@ private fun ForecastRow(day: ForecastDay) {
                 horizontalArrangement = Arrangement.spacedBy(2.dp),
                 modifier = Modifier.padding(end = 14.dp),
             ) {
-                Text("💧", fontSize = 13.sp)
+                Text("💧", fontSize = 18.sp)
                 Text(
                     text = "${day.precipitationChance}%",
-                    fontSize = 14.sp,
+                    fontSize = 18.sp,
                     color = RainBlue,
                     fontWeight = FontWeight.Medium,
                 )
             }
         } else {
-            Spacer(Modifier.width(52.dp))
+            Spacer(Modifier.width(64.dp))
         }
 
         Column(horizontalAlignment = Alignment.End) {
             Text(
                 text = day.displayMax,
-                fontSize = 17.sp,
+                fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
             )
             Text(
                 text = day.displayMin,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                fontSize = 18.sp,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
             )
         }
     }
