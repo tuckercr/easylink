@@ -219,13 +219,16 @@ fun AddMedicationScreen(
                     FilterChip(
                         selected = day in state.activeDays,
                         onClick = { viewModel.onDayToggled(day) },
+                        // Material chips default to 32dp — too small a target
+                        // and label for this audience.
+                        modifier = Modifier.height(48.dp),
                         label = {
                             Text(
                                 text = day.getDisplayName(
                                     TextStyle.SHORT,
                                     LocalLocale.current.platformLocale,
                                 ),
-                                fontSize = 14.sp,
+                                fontSize = 18.sp,
                             )
                         },
                     )
@@ -326,7 +329,7 @@ private fun TimeChip(
     ) {
         Text(
             text = time.format(timeFormatter),
-            fontSize = 15.sp,
+            fontSize = 18.sp,
             color = MaterialTheme.colorScheme.onPrimaryContainer,
         )
         Box(
@@ -338,7 +341,7 @@ private fun TimeChip(
         ) {
             Text(
                 text = "×",
-                fontSize = 16.sp,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
