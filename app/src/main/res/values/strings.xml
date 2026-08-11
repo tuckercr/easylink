@@ -324,6 +324,12 @@
     <string name="customize_change_home_app">Change Home App</string>
     <string name="customize_make_home_app">Make EasyLink My Home App</string>
 
+    <!-- About (Settings) -->
+    <string name="customize_about_header">About</string>
+    <string name="customize_privacy_policy">Privacy Policy</string>
+    <string name="customize_privacy_policy_description">Read how EasyLink handles your information.</string>
+    <string name="customize_app_version">EasyLink version %1$s</string>
+
     <!-- Connect Family (pairing with EasyLink Care) -->
     <string name="customize_family_header">Family</string>
     <string name="customize_family_description">Let a family member set up this phone and get alerts from their own phone using the EasyLink Care app.</string>

@@ -44,6 +44,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -383,6 +384,45 @@ fun CustomizeHomeScreen(
                     }
                 }
                 Spacer(Modifier.height(28.dp))
+            }
+
+            // ── Section: About ────────────────────────────────────────────────
+            // Google Play's User Data policy requires a privacy policy link
+            // inside the app, not just on the store listing.
+            item {
+                SectionHeader(stringResource(R.string.customize_about_header))
+                Text(
+                    stringResource(R.string.customize_privacy_policy_description),
+                    fontSize = DESC_SIZE,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 12.dp),
+                )
+                OutlinedButton(
+                    onClick = {
+                        // No browser on the device is survivable; the URL is
+                        // also on the store listing.
+                        runCatching {
+                            context.startActivity(
+                                Intent(Intent.ACTION_VIEW, "https://easylinkcare.com/privacy".toUri()),
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(72.dp),
+                ) {
+                    Text(
+                        stringResource(R.string.customize_privacy_policy),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Text(
+                    stringResource(R.string.customize_app_version, BuildConfig.VERSION_NAME),
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 28.dp),
+                )
             }
         }
     }
