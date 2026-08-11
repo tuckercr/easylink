@@ -20,9 +20,11 @@
     <include
         domain="file"
         path="datastore/home_prefs.preferences_pb" />
-    <include
-        domain="file"
-        path="datastore/onboarding_prefs.preferences_pb" />
+    <!-- onboarding_prefs is deliberately NOT backed up: restoring the
+         "onboarding complete" flag to a fresh install skips the permission
+         wizard, but permissions are never restored with it - leaving the
+         app with no permissions and no way to ask. Onboarding must re-run
+         on every fresh install. -->
     <include
         domain="file"
         path="datastore/fall_prefs.preferences_pb" />
