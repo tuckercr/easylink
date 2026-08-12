@@ -227,7 +227,7 @@ fun CustomizeHomeScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 12.dp)
-                                    .height(64.dp),
+                                    .heightIn(min = 64.dp),
                             ) {
                                 Text(
                                     stringResource(R.string.customize_my_apps_grant_access),
@@ -322,7 +322,7 @@ fun CustomizeHomeScreen(
                             fontWeight = FontWeight.Bold,
                         )
                     }
-                    Spacer(Modifier.height(28.dp))
+                    Spacer(Modifier.heightIn(min = 28.dp))
                 }
             }
 
@@ -378,7 +378,7 @@ fun CustomizeHomeScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(72.dp),
+                            .heightIn(min = 72.dp),
                     ) {
                         Text(
                             stringResource(R.string.customize_make_home_app),
@@ -413,7 +413,7 @@ fun CustomizeHomeScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(72.dp),
+                        .heightIn(min = 72.dp),
                 ) {
                     Text(
                         stringResource(R.string.customize_privacy_policy),
@@ -551,7 +551,7 @@ private fun FallDetectionCard(
                         ),
                         modifier = Modifier
                             .weight(1f)
-                            .height(52.dp),
+                            .heightIn(min = 52.dp),
                     ) {
                         Text(
                             stringResource(level.shortLabelRes),
