@@ -167,6 +167,11 @@ fun MagnifierScreen(
             AndroidView(
                 factory = { ctx ->
                     PreviewView(ctx).also { previewView ->
+                        // TextureView-backed mode: a SurfaceView's video layer
+                        // ignores view-level color filters, so the high-contrast
+                        // matrix below would silently do nothing.
+                        previewView.implementationMode =
+                            PreviewView.ImplementationMode.COMPATIBLE
                         cameraProviderFuture.addListener({
                             val provider = cameraProviderFuture.get()
                             provider.unbindAll()
@@ -181,18 +186,50 @@ fun MagnifierScreen(
                         }, ContextCompat.getMainExecutor(ctx))
                     }
                 },
+                update = { previewView ->
+                    // High contrast for reading small print (pill bottles):
+                    // grayscale + strong contrast so dark text goes black and
+                    // paper goes white.
+                    if (state.isHighContrast) {
+                        val matrix = android.graphics.ColorMatrix().apply {
+                            setSaturation(0f)
+                            postConcat(
+                                android.graphics.ColorMatrix(
+                                    floatArrayOf(
+                                        2.5f,
+                                        0f,
+                                        0f,
+                                        0f,
+                                        -192f,
+                                        0f,
+                                        2.5f,
+                                        0f,
+                                        0f,
+                                        -192f,
+                                        0f,
+                                        0f,
+                                        2.5f,
+                                        0f,
+                                        -192f,
+                                        0f,
+                                        0f,
+                                        0f,
+                                        1f,
+                                        0f,
+                                    ),
+                                ),
+                            )
+                        }
+                        val paint = android.graphics.Paint().apply {
+                            colorFilter = android.graphics.ColorMatrixColorFilter(matrix)
+                        }
+                        previewView.setLayerType(android.view.View.LAYER_TYPE_HARDWARE, paint)
+                    } else {
+                        previewView.setLayerType(android.view.View.LAYER_TYPE_NONE, null)
+                    }
+                },
                 modifier = Modifier.fillMaxSize(),
             )
-
-            // High-contrast overlay — a semi-transparent dark overlay that boosts contrast
-            // Real high-contrast would need a custom shader; this provides a simpler approximation
-            if (state.isHighContrast) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.15f)),
-                )
-            }
 
             // Zoom info chip
             Box(
