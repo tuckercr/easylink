@@ -328,14 +328,14 @@ private fun ControlPanel(
                 enabled = state.zoomLevel > MagnifierUiState.MIN_ZOOM,
                 modifier = Modifier.weight(1f),
             ) {
-                Text(stringResource(R.string.magnifier_zoom_out), fontSize = 16.sp)
+                Text(stringResource(R.string.magnifier_zoom_out), fontSize = 18.sp)
             }
             Button(
                 onClick = onZoomIn,
                 enabled = state.zoomLevel < MagnifierUiState.MAX_ZOOM,
                 modifier = Modifier.weight(1f),
             ) {
-                Text(stringResource(R.string.magnifier_zoom_in), fontSize = 16.sp)
+                Text(stringResource(R.string.magnifier_zoom_in), fontSize = 18.sp)
             }
         }
 
@@ -350,10 +350,11 @@ private fun ControlPanel(
                     containerColor = if (state.isFlashlightOn) {
                         Color(0xFFDAB129)
                     } else {
-                        Color(
-                            0xFF444444,
-                        )
+                        Color(0xFF444444)
                     },
+                    // The theme's default button text is dark navy — invisible
+                    // on these dark containers.
+                    contentColor = if (state.isFlashlightOn) Color.Black else Color.White,
                 ),
                 modifier = Modifier.weight(1f),
             ) {
@@ -363,7 +364,7 @@ private fun ControlPanel(
                     } else {
                         stringResource(R.string.magnifier_light_off)
                     },
-                    fontSize = 16.sp,
+                    fontSize = 18.sp,
                 )
             }
             Button(
@@ -372,10 +373,9 @@ private fun ControlPanel(
                     containerColor = if (state.isHighContrast) {
                         Color(0xFF555599)
                     } else {
-                        Color(
-                            0xFF444444,
-                        )
+                        Color(0xFF444444)
                     },
+                    contentColor = Color.White,
                 ),
                 modifier = Modifier.weight(1f),
             ) {
@@ -385,7 +385,7 @@ private fun ControlPanel(
                     } else {
                         stringResource(R.string.magnifier_hi_con_off)
                     },
-                    fontSize = 16.sp,
+                    fontSize = 18.sp,
                 )
             }
         }
@@ -393,10 +393,13 @@ private fun ControlPanel(
         // Reset
         Button(
             onClick = onReset,
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF444444)),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF444444),
+                contentColor = Color.White,
+            ),
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(stringResource(R.string.clock_timer_reset), fontSize = 16.sp)
+            Text(stringResource(R.string.clock_timer_reset), fontSize = 18.sp)
         }
     }
 }
