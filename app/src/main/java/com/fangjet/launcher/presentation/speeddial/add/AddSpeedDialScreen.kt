@@ -515,6 +515,9 @@ private fun ContactsPermissionPanel(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            // Scrollable so the message and Allow button stay reachable at
+            // large accessibility font scales.
+            .verticalScroll(rememberScrollState())
             .padding(32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
