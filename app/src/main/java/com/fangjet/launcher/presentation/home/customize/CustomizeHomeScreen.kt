@@ -111,16 +111,19 @@ fun CustomizeHomeScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp),
         ) {
-            // ── Section: Appearance ───────────────────────────────────────────
-            item {
-                SectionHeader(stringResource(R.string.customize_appearance_header))
-                ToggleRow(
-                    label = stringResource(R.string.customize_high_contrast_label),
-                    description = stringResource(R.string.customize_high_contrast_description),
-                    checked = highContrast,
-                    onCheckedChange = { viewModel.setHighContrastEnabled(it) },
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+            // ── Section: Appearance (Remote Config kill switch — the
+            //    high-contrast toggle is its only row) ──────────────────────
+            if (state.highContrastFeatureEnabled) {
+                item {
+                    SectionHeader(stringResource(R.string.customize_appearance_header))
+                    ToggleRow(
+                        label = stringResource(R.string.customize_high_contrast_label),
+                        description = stringResource(R.string.customize_high_contrast_description),
+                        checked = highContrast,
+                        onCheckedChange = { viewModel.setHighContrastEnabled(it) },
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                }
             }
 
             // ── Section: Home buttons ─────────────────────────────────────────

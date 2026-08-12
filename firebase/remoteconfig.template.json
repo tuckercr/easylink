@@ -15,6 +15,11 @@
       "valueType": "BOOLEAN",
       "description": "Kill switch: false removes voice commands entirely (Home bar + Settings toggle), overriding user preferences."
     },
+    "high_contrast_feature_enabled": {
+      "defaultValue": { "value": "false" },
+      "valueType": "BOOLEAN",
+      "description": "Kill switch: the high-contrast theme toggle. OFF by default - feature parked pending a design pass; flip to true to restore it without an app update."
+    },
     "apps_row_feature_enabled": {
       "defaultValue": { "value": "true" },
       "valueType": "BOOLEAN",

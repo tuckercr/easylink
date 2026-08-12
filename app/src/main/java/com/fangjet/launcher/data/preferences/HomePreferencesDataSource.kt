@@ -93,10 +93,17 @@ class HomePreferencesDataSource @Inject constructor(
         dataStore.edit { prefs -> prefs[SOS_BUTTON_ENABLED] = enabled }
     }
 
-    /** Whether the high-contrast theme is active. */
+    /**
+     * Whether the high-contrast theme is active. The Remote Config kill switch
+     * overrides everything, including a stored preference — the feature is
+     * parked and defaults to hidden.
+     */
     val highContrastEnabled: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
-        .map { prefs -> prefs[HIGH_CONTRAST_ENABLED] ?: defaults.current().highContrast }
+        .map { prefs ->
+            defaults.current().highContrastFeatureEnabled &&
+                (prefs[HIGH_CONTRAST_ENABLED] ?: defaults.current().highContrast)
+        }
 
     suspend fun setHighContrastEnabled(enabled: Boolean) {
         dataStore.edit { prefs -> prefs[HIGH_CONTRAST_ENABLED] = enabled }

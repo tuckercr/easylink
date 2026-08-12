@@ -24,6 +24,7 @@ object RemoteConfigKeys {
     // overriding any stored preference. See SettingsDefaults for semantics.
     const val VOICE_COMMANDS_FEATURE_ENABLED = "voice_commands_feature_enabled"
     const val FAVORITE_APPS_FEATURE_ENABLED = "apps_row_feature_enabled"
+    const val HIGH_CONTRAST_FEATURE_ENABLED = "high_contrast_feature_enabled"
 
     /** Comma-separated package names: the Apps Row's cold-start fill pool. */
     const val FAVORITE_APPS_CURATED_POOL = "apps_row_curated_pool"
@@ -40,6 +41,7 @@ object RemoteConfigKeys {
         FAVORITE_APPS_MAX_COUNT,
         VOICE_COMMANDS_FEATURE_ENABLED,
         FAVORITE_APPS_FEATURE_ENABLED,
+        HIGH_CONTRAST_FEATURE_ENABLED,
         FAVORITE_APPS_CURATED_POOL,
     )
 }

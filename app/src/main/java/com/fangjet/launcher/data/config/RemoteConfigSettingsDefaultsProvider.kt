@@ -120,6 +120,8 @@ class RemoteConfigSettingsDefaultsProvider
                     SettingsDefaults.HARDCODED.voiceCommandsFeatureEnabled,
                 RemoteConfigKeys.FAVORITE_APPS_FEATURE_ENABLED to
                     SettingsDefaults.HARDCODED.favoriteAppsFeatureEnabled,
+                RemoteConfigKeys.HIGH_CONTRAST_FEATURE_ENABLED to
+                    SettingsDefaults.HARDCODED.highContrastFeatureEnabled,
                 RemoteConfigKeys.FAVORITE_APPS_CURATED_POOL to
                     SettingsDefaults.HARDCODED.favoriteAppsCuratedPool.joinToString(","),
             )

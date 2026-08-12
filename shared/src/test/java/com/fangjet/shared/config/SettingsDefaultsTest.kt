@@ -139,7 +139,7 @@ class SettingsDefaultsTest {
     fun `every key is covered by the ALL list`() {
         // Guards against adding a key but forgetting to register it for seeding.
         assertEquals(RemoteConfigKeys.ALL.size, RemoteConfigKeys.ALL.toSet().size)
-        assertEquals(11, RemoteConfigKeys.ALL.size)
+        assertEquals(12, RemoteConfigKeys.ALL.size)
     }
 
     // ── Feature kill switches ────────────────────────────────────────────────
@@ -148,6 +148,14 @@ class SettingsDefaultsTest {
     fun `feature switches default on and can be turned off from the console`() {
         assertEquals(true, SettingsDefaults.HARDCODED.voiceCommandsFeatureEnabled)
         assertEquals(true, SettingsDefaults.HARDCODED.favoriteAppsFeatureEnabled)
+        // High contrast is parked: hidden by default, resurrectable from the console.
+        assertEquals(false, SettingsDefaults.HARDCODED.highContrastFeatureEnabled)
+        assertEquals(
+            true,
+            SettingsDefaults
+                .from(MapReader(mapOf(RemoteConfigKeys.HIGH_CONTRAST_FEATURE_ENABLED to true)))
+                .highContrastFeatureEnabled,
+        )
 
         val reader = MapReader(
             mapOf(

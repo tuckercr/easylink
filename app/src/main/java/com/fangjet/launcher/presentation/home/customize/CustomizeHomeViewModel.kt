@@ -37,6 +37,8 @@ data class CustomizeUiState(
     val sosButtonEnabled: Boolean = true,
     /** Remote Config kill switch — false hides the voice toggle entirely. */
     val voiceFeatureEnabled: Boolean = true,
+    /** Remote Config kill switch — false hides the high-contrast toggle entirely. */
+    val highContrastFeatureEnabled: Boolean = false,
 )
 
 /** Settings state for the Apps Row section. */
@@ -143,6 +145,7 @@ class CustomizeHomeViewModel @Inject constructor(
             fallDetectionEnabled = fallEnabled,
             fallSensitivity = sensitivity,
             voiceFeatureEnabled = settingsDefaults.current().voiceCommandsFeatureEnabled,
+            highContrastFeatureEnabled = settingsDefaults.current().highContrastFeatureEnabled,
         )
     }.stateIn(
         scope = viewModelScope,

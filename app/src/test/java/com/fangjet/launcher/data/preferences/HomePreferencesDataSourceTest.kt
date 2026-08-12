@@ -273,10 +273,30 @@ class HomePreferencesDataSourceTest {
         }
 
     @Test
-    fun `enabling high contrast updates the preference`() =
+    fun `high contrast stays hidden while the kill switch is off, even when stored on`() =
         testScope.runTest {
+            // The feature is parked: highContrastFeatureEnabled defaults false,
+            // so a stored preference must not resurface it.
             dataSource.setHighContrastEnabled(true)
             dataSource.highContrastEnabled.test {
+                assertFalse(awaitItem())
+            }
+        }
+
+    @Test
+    fun `enabling high contrast updates the preference when the feature is enabled`() =
+        testScope.runTest {
+            val store = PreferenceDataStoreFactory.create(
+                scope = testScope,
+                produceFile = { tmpFolder.newFile("home_prefs_hc.preferences_pb") },
+            )
+            val enabledDefaults =
+                SettingsDefaults.HARDCODED.copy(highContrastFeatureEnabled = true)
+            val source =
+                HomePreferencesDataSource(store, FakeSettingsDefaultsProvider(enabledDefaults), SAFETY)
+
+            source.setHighContrastEnabled(true)
+            source.highContrastEnabled.test {
                 assertTrue(awaitItem())
             }
         }
@@ -333,6 +353,8 @@ class HomePreferencesDataSourceTest {
                 sosButtonVisible = false,
                 voiceButtonVisible = true,
                 highContrast = true,
+                // The default-on theme only surfaces if the kill switch allows it.
+                highContrastFeatureEnabled = true,
             )
             val store = PreferenceDataStoreFactory.create(
                 scope = testScope,

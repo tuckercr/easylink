@@ -50,6 +50,12 @@ data class SettingsDefaults(
     /** Feature kill switch: the Apps Row. Same semantics as the voice switch. */
     val favoriteAppsFeatureEnabled: Boolean,
     /**
+     * Feature kill switch: the high-contrast theme. Defaults OFF — the feature
+     * is parked pending a design pass, but stays resurrectable from the
+     * console without shipping an update.
+     */
+    val highContrastFeatureEnabled: Boolean,
+    /**
      * Cold-start fill order for the Apps Row before any launch history exists:
      * package names, most-likely-used first. May be longer than
      * [favoriteAppsMaxCount] — packages not installed on a device are skipped,
@@ -74,6 +80,7 @@ data class SettingsDefaults(
             favoriteAppsMaxCount = 12,
             voiceCommandsFeatureEnabled = true,
             favoriteAppsFeatureEnabled = true,
+            highContrastFeatureEnabled = false,
             favoriteAppsCuratedPool = listOf(
                 "com.whatsapp",
                 "com.google.android.apps.messaging",
@@ -179,6 +186,8 @@ data class SettingsDefaults(
                     ?: HARDCODED.voiceCommandsFeatureEnabled,
                 favoriteAppsFeatureEnabled = reader.boolean(RemoteConfigKeys.FAVORITE_APPS_FEATURE_ENABLED)
                     ?: HARDCODED.favoriteAppsFeatureEnabled,
+                highContrastFeatureEnabled = reader.boolean(RemoteConfigKeys.HIGH_CONTRAST_FEATURE_ENABLED)
+                    ?: HARDCODED.highContrastFeatureEnabled,
                 favoriteAppsCuratedPool = parseCuratedPool(
                     reader.string(RemoteConfigKeys.FAVORITE_APPS_CURATED_POOL),
                 ) ?: HARDCODED.favoriteAppsCuratedPool,
