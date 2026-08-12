@@ -122,16 +122,20 @@ fun MagnifierScreen(
     // Camera instance — shared between the preview and the controls
     var camera by remember { mutableStateOf<Camera?>(null) }
 
-    // Bind CameraX once; reuse for zoom + torch
+    // One provider future shared by the AndroidView factory (which binds) and
+    // the dispose hook (which unbinds). A second listener calling unbindAll()
+    // here raced the factory's bind and detached the fresh preview — the
+    // "Surfaces closed" black screen.
+    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+
+    // bindToLifecycle only auto-unbinds when the *activity* dies; leaving this
+    // screen must release the camera explicitly.
     DisposableEffect(Unit) {
-        var provider: ProcessCameraProvider? = null
-        val future = ProcessCameraProvider.getInstance(context)
-        future.addListener({
-            provider = future.get()
-            provider?.unbindAll()
-            // camera is bound in AndroidView's update callback
-        }, ContextCompat.getMainExecutor(context))
-        onDispose { provider?.unbindAll() }
+        onDispose {
+            if (cameraProviderFuture.isDone) {
+                runCatching { cameraProviderFuture.get().unbindAll() }
+            }
+        }
     }
 
     // Apply zoom whenever zoomLevel changes
@@ -163,9 +167,8 @@ fun MagnifierScreen(
             AndroidView(
                 factory = { ctx ->
                     PreviewView(ctx).also { previewView ->
-                        val pvFuture = ProcessCameraProvider.getInstance(ctx)
-                        pvFuture.addListener({
-                            val provider = pvFuture.get()
+                        cameraProviderFuture.addListener({
+                            val provider = cameraProviderFuture.get()
                             provider.unbindAll()
                             val preview = Preview.Builder().build().also {
                                 it.surfaceProvider = previewView.surfaceProvider
