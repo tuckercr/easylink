@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -201,7 +202,7 @@ fun CustomizeHomeScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 12.dp)
-                                    .height(64.dp),
+                                    .heightIn(min = 64.dp),
                             ) {
                                 Text(
                                     stringResource(R.string.customize_my_apps_choose),
@@ -277,7 +278,7 @@ fun CustomizeHomeScreen(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(72.dp),
+                            .heightIn(min = 72.dp),
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_call),
@@ -313,7 +314,7 @@ fun CustomizeHomeScreen(
                         onClick = onNavigateToConnectFamily,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(72.dp),
+                            .heightIn(min = 72.dp),
                     ) {
                         Text(
                             stringResource(R.string.customize_connect_family),
@@ -355,7 +356,7 @@ fun CustomizeHomeScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(72.dp),
+                            .heightIn(min = 72.dp),
                     ) {
                         Text(
                             stringResource(R.string.customize_change_home_app),

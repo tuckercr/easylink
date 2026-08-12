@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -183,7 +184,7 @@ fun EmergencyContactsScreen(
                                 ),
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(56.dp),
+                                    .heightIn(min = 56.dp),
                             ) {
                                 Text(
                                     stringResource(R.string.emergency_contacts_add_another),
@@ -258,7 +259,7 @@ private fun SosPermissionBanner() {
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp),
+                .heightIn(min = 52.dp),
         ) {
             Text(
                 stringResource(R.string.sos_perm_grant),
@@ -311,7 +312,7 @@ private fun EmptyContactsState(
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(60.dp),
+                .heightIn(min = 60.dp),
         ) {
             Text(
                 stringResource(R.string.emergency_contacts_add),
