@@ -3,9 +3,9 @@ package com.fangjet.launcher.presentation.common
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
@@ -39,7 +39,12 @@ fun BigBackButton(
             .heightIn(min = 88.dp),
     ) {
         Row(
-            modifier = Modifier.fillMaxSize(),
+            // Wrap content (min height comes from the Surface): fillMaxSize here
+            // would stretch to the parent's max constraint, which in a Scaffold
+            // bottomBar is the whole screen.
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
