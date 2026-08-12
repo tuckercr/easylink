@@ -325,6 +325,7 @@ private fun ReminderCard(
                     onClick = onTaken,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF2E7D32),
+                        contentColor = Color.White,
                     ),
                     modifier = Modifier.weight(1f),
                 ) {

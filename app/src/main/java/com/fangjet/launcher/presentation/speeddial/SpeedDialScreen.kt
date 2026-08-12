@@ -95,7 +95,7 @@ fun SpeedDialScreen(
             )
             Button(
                 onClick = onNavigateToAddContact,
-                colors = ButtonDefaults.buttonColors(containerColor = ColorSpeedDial),
+                colors = ButtonDefaults.buttonColors(containerColor = ColorSpeedDial, contentColor = Color.White),
             ) {
                 Text(stringResource(R.string.add), fontSize = 18.sp, color = Color.White)
             }
@@ -235,7 +235,7 @@ private fun EmptySpeedDial(onAdd: () -> Unit) {
         Spacer(Modifier.height(24.dp))
         Button(
             onClick = onAdd,
-            colors = ButtonDefaults.buttonColors(containerColor = ColorSpeedDial),
+            colors = ButtonDefaults.buttonColors(containerColor = ColorSpeedDial, contentColor = Color.White),
         ) {
             Text(stringResource(R.string.speed_dial_add_favorite), fontSize = 18.sp, color = Color.White)
         }

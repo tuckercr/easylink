@@ -275,6 +275,7 @@ fun CustomizeHomeScreen(
                         onClick = onNavigateToEmergencyContacts,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFB71C1C),
+                            contentColor = Color.White,
                         ),
                         modifier = Modifier
                             .fillMaxWidth()

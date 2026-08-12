@@ -381,7 +381,7 @@ private fun ActionButtons(
         }
         Button(
             onClick = onRetry,
-            colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
+            colors = ButtonDefaults.buttonColors(containerColor = AccentBlue, contentColor = Color(0xFF00315F)),
         ) {
             Icon(
                 painter = painterResource(R.drawable.ic_mic),

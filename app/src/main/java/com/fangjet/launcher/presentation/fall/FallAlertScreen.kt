@@ -153,7 +153,7 @@ fun FallAlertScreen(
                     Spacer(Modifier.height(10.dp))
                     Button(
                         onClick = onNavigateToSettings,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = ColorAlertBg),
                         shape = RoundedCornerShape(12.dp),
                     ) {
                         Text(
@@ -177,7 +177,7 @@ fun FallAlertScreen(
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = 72.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = ColorOkButton),
+                    colors = ButtonDefaults.buttonColors(containerColor = ColorOkButton, contentColor = Color.White),
                     shape = RoundedCornerShape(16.dp),
                 ) {
                     Text(
@@ -195,7 +195,7 @@ fun FallAlertScreen(
                         .weight(1f)
                         .heightIn(min = 72.dp),
                     enabled = contact != null,
-                    colors = ButtonDefaults.buttonColors(containerColor = ColorCallButton),
+                    colors = ButtonDefaults.buttonColors(containerColor = ColorCallButton, contentColor = Color.White),
                     shape = RoundedCornerShape(16.dp),
                 ) {
                     Text(
