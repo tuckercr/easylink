@@ -42,14 +42,6 @@ class HomePreferencesDataSource @Inject constructor(
         // Default ON — SOS is a core safety feature that should be visible by default.
         private val SOS_BUTTON_ENABLED = booleanPreferencesKey("sos_button_enabled")
         private val HIGH_CONTRAST_ENABLED = booleanPreferencesKey("high_contrast_enabled")
-
-        // Whether the voice bar has ever launched a RECORD_AUDIO request. Needed
-        // to tell "never asked" from "permanently denied": both report
-        // shouldShowRequestPermissionRationale == false, and a permanently
-        // denied request is swallowed by the system without ever invoking the
-        // result callback — so the tap handler must recognise the dead end
-        // itself, before launching.
-        private val MIC_PERMISSION_REQUESTED = booleanPreferencesKey("mic_permission_requested")
     }
 
     /** Emits the current set of enabled buttons whenever it changes. */
@@ -83,14 +75,6 @@ class HomePreferencesDataSource @Inject constructor(
 
     suspend fun setVoiceButtonEnabled(enabled: Boolean) {
         dataStore.edit { prefs -> prefs[VOICE_BUTTON_ENABLED] = enabled }
-    }
-
-    /** True once the voice bar has launched at least one RECORD_AUDIO request. */
-    val micPermissionRequested: Flow<Boolean> = dataStore.data
-        .map { prefs -> prefs[MIC_PERMISSION_REQUESTED] ?: false }
-
-    suspend fun markMicPermissionRequested() {
-        dataStore.edit { prefs -> prefs[MIC_PERMISSION_REQUESTED] = true }
     }
 
     /**

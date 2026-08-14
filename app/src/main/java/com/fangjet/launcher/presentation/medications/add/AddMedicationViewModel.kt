@@ -1,10 +1,12 @@
 package com.fangjet.launcher.presentation.medications.add
 
+import android.Manifest
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fangjet.launcher.R
+import com.fangjet.launcher.data.preferences.PermissionAskPreferences
 import com.fangjet.launcher.domain.model.Medication
 import com.fangjet.launcher.domain.model.MedicationColor
 import com.fangjet.launcher.domain.repository.MedicationRepository
@@ -12,8 +14,10 @@ import com.fangjet.launcher.domain.usecase.AddMedicationUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
@@ -33,8 +37,19 @@ class AddMedicationViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val addMedication: AddMedicationUseCase,
     private val repository: MedicationRepository,
+    private val permissionAsks: PermissionAskPreferences,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+
+    /** See [PermissionAskPreferences]: tells "never asked" from "permanently denied". */
+    val notifPermissionRequested: StateFlow<Boolean> =
+        permissionAsks
+            .asked(Manifest.permission.POST_NOTIFICATIONS)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    fun markNotifPermissionRequested() {
+        viewModelScope.launch { permissionAsks.markAsked(Manifest.permission.POST_NOTIFICATIONS) }
+    }
 
     private val medicationId: Long =
         savedStateHandle.get<Long>("medicationId") ?: 0L

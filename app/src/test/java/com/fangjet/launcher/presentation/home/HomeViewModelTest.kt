@@ -7,6 +7,7 @@ import com.fangjet.launcher.data.apps.FavoriteAppsPreferences
 import com.fangjet.launcher.data.config.FakeSettingsDefaultsProvider
 import com.fangjet.launcher.data.notifications.NotificationBadgeRepository
 import com.fangjet.launcher.data.preferences.HomePreferencesDataSource
+import com.fangjet.launcher.data.preferences.PermissionAskPreferences
 import com.fangjet.launcher.domain.model.HomeButton
 import com.fangjet.launcher.domain.repository.AppRepository
 import com.fangjet.launcher.domain.usecase.LaunchAppUseCase
@@ -39,6 +40,7 @@ class HomeViewModelTest {
 
     private lateinit var launchAppUseCase: LaunchAppUseCase
     private lateinit var homePrefs: HomePreferencesDataSource
+    private lateinit var permissionAsks: PermissionAskPreferences
     private lateinit var weatherService: WeatherService
     private var settingsDefaults = FakeSettingsDefaultsProvider()
     private lateinit var appRepository: AppRepository
@@ -64,6 +66,9 @@ class HomeViewModelTest {
         every { homePrefs.sosButtonEnabled } returns sosEnabledFlow
         coEvery { weatherService.fetch() } returns WeatherInfo.Unavailable("Network error")
 
+        permissionAsks = mockk(relaxed = true)
+        every { permissionAsks.asked(any()) } returns flowOf(false)
+
         appRepository = mockk(relaxed = true)
         usageTracker = mockk(relaxed = true)
         favoritePrefs = mockk(relaxed = true)
@@ -79,6 +84,7 @@ class HomeViewModelTest {
         viewModel = HomeViewModel(
             launchAppUseCase,
             homePrefs,
+            permissionAsks,
             weatherService,
             settingsDefaults,
             appRepository,
@@ -136,6 +142,7 @@ class HomeViewModelTest {
             viewModel = HomeViewModel(
                 launchAppUseCase,
                 homePrefs,
+                permissionAsks,
                 weatherService,
                 settingsDefaults,
                 appRepository,

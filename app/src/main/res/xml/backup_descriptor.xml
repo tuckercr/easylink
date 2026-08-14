@@ -24,7 +24,8 @@
          "onboarding complete" flag to a fresh install skips the permission
          wizard, but permissions are never restored with it - leaving the
          app with no permissions and no way to ask. Onboarding must re-run
-         on every fresh install. -->
+         on every fresh install. permission_prefs (asked-before flags) is
+         excluded for the same reason: permissions reset on reinstall. -->
     <include
         domain="file"
         path="datastore/fall_prefs.preferences_pb" />

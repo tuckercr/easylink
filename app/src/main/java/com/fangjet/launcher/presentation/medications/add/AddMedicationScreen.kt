@@ -1,6 +1,7 @@
 package com.fangjet.launcher.presentation.medications.add
 
 import android.Manifest
+import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -60,6 +61,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -92,6 +94,8 @@ fun AddMedicationScreen(
     // proceeds whatever the answer — alarms still fire; only the banner is
     // suppressed when denied.
     val context = LocalContext.current
+    val activity = context as? Activity
+    val notifAskedBefore by viewModel.notifPermissionRequested.collectAsStateWithLifecycle()
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { viewModel.onSaveTapped() }
@@ -100,12 +104,24 @@ fun AddMedicationScreen(
         // the permission prompt (whose resume-chain can navigate away and
         // silently lose the form).
         if (viewModel.validateForSave()) {
-            val needsAsk = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            val notGranted = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 ContextCompat.checkSelfPermission(
                     context,
                     Manifest.permission.POST_NOTIFICATIONS,
                 ) != PackageManager.PERMISSION_GRANTED
-            if (needsAsk) {
+            // Permanently denied requests are silently swallowed by the system
+            // WITHOUT invoking the result callback — launching one here would
+            // make Save a dead button and the medication unsaveable. Ask only
+            // while a dialog can actually appear; otherwise save without
+            // reminders rather than not at all.
+            val rationaleAvailable = activity != null &&
+                ActivityCompat.shouldShowRequestPermissionRationale(
+                    activity,
+                    Manifest.permission.POST_NOTIFICATIONS,
+                )
+            val canAsk = !notifAskedBefore || rationaleAvailable
+            if (notGranted && canAsk) {
+                viewModel.markNotifPermissionRequested()
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             } else {
                 viewModel.onSaveTapped()

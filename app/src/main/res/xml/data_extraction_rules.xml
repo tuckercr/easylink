@@ -15,7 +15,8 @@
         <!-- DataStore preference stores -->
         <!-- onboarding_prefs is deliberately excluded: permissions never
              restore with a backup, so restoring the "onboarding complete"
-             flag would skip the wizard that asks for them. -->
+             flag would skip the wizard that asks for them. permission_prefs
+             (asked-before flags) is excluded for the same reason. -->
         <include domain="file" path="datastore/home_prefs.preferences_pb" />
         <include domain="file" path="datastore/fall_prefs.preferences_pb" />
         <include domain="file" path="datastore/weather_prefs.preferences_pb" />

@@ -1,5 +1,6 @@
 package com.fangjet.launcher.presentation.home
 
+import android.Manifest
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fangjet.launcher.data.apps.AppUsageTracker
@@ -7,6 +8,7 @@ import com.fangjet.launcher.data.apps.FavoriteAppsPreferences
 import com.fangjet.launcher.data.config.SettingsDefaultsProvider
 import com.fangjet.launcher.data.notifications.NotificationBadgeRepository
 import com.fangjet.launcher.data.preferences.HomePreferencesDataSource
+import com.fangjet.launcher.data.preferences.PermissionAskPreferences
 import com.fangjet.launcher.domain.FavoriteAppsSelector
 import com.fangjet.launcher.domain.model.AppInfo
 import com.fangjet.launcher.domain.model.HomeButton
@@ -28,6 +30,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val launchAppUseCase: LaunchAppUseCase,
     private val homePrefs: HomePreferencesDataSource,
+    private val permissionAsks: PermissionAskPreferences,
     private val weatherService: WeatherService,
     private val settingsDefaults: SettingsDefaultsProvider,
     appRepository: AppRepository,
@@ -155,16 +158,23 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch { homePrefs.setVoiceButtonEnabled(false) }
     }
 
-    /** See [HomePreferencesDataSource.micPermissionRequested] for why this exists. */
-    val micPermissionRequested: StateFlow<Boolean> = homePrefs.micPermissionRequested
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = false,
-        )
+    /** See [PermissionAskPreferences] for why asked-before flags exist. */
+    val micPermissionRequested: StateFlow<Boolean> =
+        permissionAsks
+            .asked(Manifest.permission.RECORD_AUDIO)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     fun markMicPermissionRequested() {
-        viewModelScope.launch { homePrefs.markMicPermissionRequested() }
+        viewModelScope.launch { permissionAsks.markAsked(Manifest.permission.RECORD_AUDIO) }
+    }
+
+    val locationPermissionRequested: StateFlow<Boolean> =
+        permissionAsks
+            .asked(Manifest.permission.ACCESS_COARSE_LOCATION)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    fun markLocationPermissionRequested() {
+        viewModelScope.launch { permissionAsks.markAsked(Manifest.permission.ACCESS_COARSE_LOCATION) }
     }
 
     fun setButtonEnabled(

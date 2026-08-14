@@ -134,6 +134,10 @@
     <string name="voice_mic_hide_button">Hide Voice Button</string>
     <string name="voice_mic_not_now">Not Now</string>
 
+    <!-- Weather card: location permanently denied -->
+    <string name="weather_location_denied_title">Location is turned off</string>
+    <string name="weather_location_denied_body">Weather uses your general location to show the conditions where you are. To turn on weather, allow the Location permission in Settings.</string>
+
     <!-- Medications -->
     <string name="medications_title">Medications</string>
     <string name="medications_empty_title">No medications today</string>

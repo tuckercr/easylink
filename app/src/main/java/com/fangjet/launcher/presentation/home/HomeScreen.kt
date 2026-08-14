@@ -162,6 +162,8 @@ fun HomeScreen(
     }
 
     // Location permission launcher — called when user taps the weather card
+    var showLocationDeniedDialog by remember { mutableStateOf(false) }
+    val locationAskedBefore by viewModel.locationPermissionRequested.collectAsStateWithLifecycle()
     val locationLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted -> if (granted) viewModel.refreshWeather() }
@@ -237,24 +239,43 @@ fun HomeScreen(
         }
     }
 
+    val openAppSettings: () -> Unit = {
+        runCatching {
+            context.startActivity(
+                Intent(
+                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    "package:${context.packageName}".toUri(),
+                ),
+            )
+        }
+    }
+
     if (showMicDeniedDialog) {
-        MicPermanentlyDeniedDialog(
+        PermissionDeniedDialog(
+            title = stringResource(R.string.voice_mic_denied_title),
+            body = stringResource(R.string.voice_mic_denied_body),
             onOpenSettings = {
                 showMicDeniedDialog = false
-                runCatching {
-                    context.startActivity(
-                        Intent(
-                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                            "package:${context.packageName}".toUri(),
-                        ),
-                    )
-                }
+                openAppSettings()
             },
-            onHideVoiceButton = {
+            onDismiss = { showMicDeniedDialog = false },
+            secondaryActionLabel = stringResource(R.string.voice_mic_hide_button),
+            onSecondaryAction = {
                 showMicDeniedDialog = false
                 viewModel.hideVoiceButton()
             },
-            onDismiss = { showMicDeniedDialog = false },
+        )
+    }
+
+    if (showLocationDeniedDialog) {
+        PermissionDeniedDialog(
+            title = stringResource(R.string.weather_location_denied_title),
+            body = stringResource(R.string.weather_location_denied_body),
+            onOpenSettings = {
+                showLocationDeniedDialog = false
+                openAppSettings()
+            },
+            onDismiss = { showLocationDeniedDialog = false },
         )
     }
 
@@ -304,7 +325,22 @@ fun HomeScreen(
                             WeatherCard(
                                 weather = s.weather,
                                 onRequestPermission = {
-                                    locationLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+                                    val rationaleAvailable = activity != null &&
+                                        ActivityCompat.shouldShowRequestPermissionRationale(
+                                            activity,
+                                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                                        )
+                                    // Permanently denied: the system swallows
+                                    // the request without a callback — the card
+                                    // would be a dead button. Offer Settings;
+                                    // the resume-recovery effect refreshes
+                                    // automatically once granted there.
+                                    if (locationAskedBefore && !rationaleAvailable) {
+                                        showLocationDeniedDialog = true
+                                    } else {
+                                        viewModel.markLocationPermissionRequested()
+                                        locationLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+                                    }
                                 },
                                 onRefresh = { viewModel.refreshWeather() },
                                 onNavigateToForecast = onNavigateToForecast,
@@ -1052,25 +1088,28 @@ private fun HomeActionButton(
     }
 }
 
-// ── Mic permanently-denied dialog ─────────────────────────────────────────────
+// ── Permanently-denied permission dialog ──────────────────────────────────────
 
 /**
- * Shown when the microphone permission is permanently denied and the voice bar
- * would otherwise be a dead button: offers the app's Settings page (to allow
- * the permission) or hiding the voice bar entirely (restorable in Settings).
- * Elder-facing: large text, tall full-width buttons, no side-by-side actions.
+ * Shown when a permission is permanently denied and its feature would
+ * otherwise be a dead button: offers the app's Settings page, an optional
+ * secondary action (e.g. hiding the voice bar), and Not Now. Elder-facing:
+ * large text, tall full-width buttons, no side-by-side actions.
  */
 @Composable
-private fun MicPermanentlyDeniedDialog(
+private fun PermissionDeniedDialog(
+    title: String,
+    body: String,
     onOpenSettings: () -> Unit,
-    onHideVoiceButton: () -> Unit,
     onDismiss: () -> Unit,
+    secondaryActionLabel: String? = null,
+    onSecondaryAction: () -> Unit = {},
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = stringResource(R.string.voice_mic_denied_title),
+                text = title,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
             )
@@ -1078,7 +1117,7 @@ private fun MicPermanentlyDeniedDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    text = stringResource(R.string.voice_mic_denied_body),
+                    text = body,
                     fontSize = 18.sp,
                     lineHeight = 26.sp,
                 )
@@ -1096,17 +1135,16 @@ private fun MicPermanentlyDeniedDialog(
                         fontWeight = FontWeight.SemiBold,
                     )
                 }
-                OutlinedButton(
-                    onClick = onHideVoiceButton,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 56.dp),
-                ) {
-                    Text(
-                        stringResource(R.string.voice_mic_hide_button),
-                        fontSize = 18.sp,
-                    )
+                if (secondaryActionLabel != null) {
+                    OutlinedButton(
+                        onClick = onSecondaryAction,
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 56.dp),
+                    ) {
+                        Text(secondaryActionLabel, fontSize = 18.sp)
+                    }
                 }
                 TextButton(
                     onClick = onDismiss,
