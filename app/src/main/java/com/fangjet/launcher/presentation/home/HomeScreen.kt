@@ -92,8 +92,6 @@ import com.fangjet.launcher.ui.theme.LocalHighContrast
 import com.fangjet.weather.model.WeatherInfo
 import kotlinx.coroutines.launch
 
-private const val BUTTONS_PER_ROW = 3
-
 private val ColorVoice = Color(0xFF5C6BC0) // indigo
 
 /**
@@ -627,44 +625,50 @@ private fun ButtonGrid(
         // modifier carries weight(1f) from the parent Column so the grid expands
         // to fill all available vertical space between the weather card and the
         // voice/SOS buttons. Each row then takes an equal share of that space.
-        Column(
-            modifier = modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            enabledButtons.chunked(BUTTONS_PER_ROW).forEach { rowButtons ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    rowButtons.forEach { button ->
-                        SingleHomeButton(
-                            button = button,
-                            isFlashlightOn = isFlashlightOn,
-                            onPhone = onPhone,
-                            onText = onText,
-                            onCamera = onCamera,
-                            onMagnifier = onMagnifier,
-                            onAllApps = onAllApps,
-                            onSpeedDial = onSpeedDial,
-                            onMedications = onMedications,
-                            onFlashlight = onFlashlight,
-                            onWeb = onWeb,
-                            onMaps = onMaps,
-                            onEmail = onEmail,
-                            onPhotos = onPhotos,
-                            onYouTube = onYouTube,
-                            onCalculator = onCalculator,
-                            onLongPress = onLongPress,
-                            flashlightOnText = flashlightOnText,
-                            flashlightOffText = flashlightOffText,
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                    // Fill empty slots so partial rows keep consistent button widths
-                    repeat(BUTTONS_PER_ROW - rowButtons.size) {
-                        Spacer(Modifier.weight(1f))
+        BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+            // Adaptive column count: 3 on phones, up to 5 on wide/landscape
+            // tablets, so buttons stay button-sized instead of stretching into
+            // panels when the launcher fills a large screen.
+            val buttonsPerRow = (maxWidth / 200.dp).toInt().coerceIn(3, 5)
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                enabledButtons.chunked(buttonsPerRow).forEach { rowButtons ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        rowButtons.forEach { button ->
+                            SingleHomeButton(
+                                button = button,
+                                isFlashlightOn = isFlashlightOn,
+                                onPhone = onPhone,
+                                onText = onText,
+                                onCamera = onCamera,
+                                onMagnifier = onMagnifier,
+                                onAllApps = onAllApps,
+                                onSpeedDial = onSpeedDial,
+                                onMedications = onMedications,
+                                onFlashlight = onFlashlight,
+                                onWeb = onWeb,
+                                onMaps = onMaps,
+                                onEmail = onEmail,
+                                onPhotos = onPhotos,
+                                onYouTube = onYouTube,
+                                onCalculator = onCalculator,
+                                onLongPress = onLongPress,
+                                flashlightOnText = flashlightOnText,
+                                flashlightOffText = flashlightOffText,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                        // Fill empty slots so partial rows keep consistent button widths
+                        repeat(buttonsPerRow - rowButtons.size) {
+                            Spacer(Modifier.weight(1f))
+                        }
                     }
                 }
             }
