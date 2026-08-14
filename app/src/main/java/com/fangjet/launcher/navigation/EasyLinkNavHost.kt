@@ -17,11 +17,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -95,6 +97,26 @@ class StartupViewModel @Inject constructor(
             started = SharingStarted.Eagerly,
             initialValue = null,
         )
+}
+
+// ── Tremor-safe navigation ────────────────────────────────────────────────────
+//
+// Shaky hands double-tap. The second tap of a rapid pair used to push the same
+// route twice (People over People) or pop two levels on a Back button. While a
+// navigation is in flight the current back-stack entry has not yet reached
+// RESUMED, so gating on that drops exactly the duplicate taps — and stays safe
+// for programmatic calls from a settled screen (e.g. navigate-back after a
+// save), where the current entry is RESUMED.
+
+private val NavHostController.isSettled: Boolean
+    get() = currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED
+
+private fun NavHostController.navigateIfSettled(route: String) {
+    if (isSettled) navigate(route)
+}
+
+private fun NavHostController.popIfSettled() {
+    if (isSettled) popBackStack()
 }
 
 // ── Nav host ──────────────────────────────────────────────────────────────────
@@ -211,37 +233,37 @@ fun EasyLinkNavHost(
                     onPauseOrDispose { }
                 }
                 HomeScreen(
-                    onNavigateToApps = { navController.navigate(Routes.APPS) },
-                    onNavigateToMagnifier = { navController.navigate(Routes.MAGNIFIER) },
-                    onNavigateToSos = { navController.navigate(Routes.SOS_COUNTDOWN) },
-                    onNavigateToForecast = { navController.navigate(Routes.FORECAST) },
-                    onNavigateToSpeedDial = { navController.navigate(Routes.SPEED_DIAL) },
-                    onNavigateToMedications = { navController.navigate(Routes.MEDICATIONS) },
-                    onNavigateToSettings = { navController.navigate(Routes.CUSTOMIZE_HOME) },
+                    onNavigateToApps = { navController.navigateIfSettled(Routes.APPS) },
+                    onNavigateToMagnifier = { navController.navigateIfSettled(Routes.MAGNIFIER) },
+                    onNavigateToSos = { navController.navigateIfSettled(Routes.SOS_COUNTDOWN) },
+                    onNavigateToForecast = { navController.navigateIfSettled(Routes.FORECAST) },
+                    onNavigateToSpeedDial = { navController.navigateIfSettled(Routes.SPEED_DIAL) },
+                    onNavigateToMedications = { navController.navigateIfSettled(Routes.MEDICATIONS) },
+                    onNavigateToSettings = { navController.navigateIfSettled(Routes.CUSTOMIZE_HOME) },
                 )
             }
             composable(Routes.CUSTOMIZE_HOME) {
                 CustomizeHomeScreen(
-                    onBack = { navController.popBackStack() },
+                    onBack = { navController.popIfSettled() },
                     onNavigateToEmergencyContacts = {
-                        navController.navigate(Routes.EMERGENCY_CONTACTS)
+                        navController.navigateIfSettled(Routes.EMERGENCY_CONTACTS)
                     },
                     onNavigateToConnectFamily = {
-                        navController.navigate(Routes.CONNECT_FAMILY)
+                        navController.navigateIfSettled(Routes.CONNECT_FAMILY)
                     },
                     onNavigateToFavoritePicker = {
-                        navController.navigate(Routes.FAVORITE_APPS_PICKER)
+                        navController.navigateIfSettled(Routes.FAVORITE_APPS_PICKER)
                     },
                 )
             }
             composable(Routes.FAVORITE_APPS_PICKER) {
-                FavoriteAppsPickerScreen(onBack = { navController.popBackStack() })
+                FavoriteAppsPickerScreen(onBack = { navController.popIfSettled() })
             }
             composable(Routes.EMERGENCY_CONTACTS) {
-                EmergencyContactsScreen(onBack = { navController.popBackStack() })
+                EmergencyContactsScreen(onBack = { navController.popIfSettled() })
             }
             composable(Routes.CONNECT_FAMILY) {
-                ConnectFamilyScreen(onBack = { navController.popBackStack() })
+                ConnectFamilyScreen(onBack = { navController.popIfSettled() })
             }
             composable(
                 route = Routes.APPS,
@@ -260,13 +282,13 @@ fun EasyLinkNavHost(
                     )
                 },
             ) {
-                AppsScreen(onBack = { navController.popBackStack() })
+                AppsScreen(onBack = { navController.popIfSettled() })
             }
             composable(Routes.SPEED_DIAL) {
                 SpeedDialScreen(
-                    onBack = { navController.popBackStack() },
-                    onNavigateToAddContact = { navController.navigate(Routes.ADD_SPEED_DIAL) },
-                    onNavigateToEdit = { id -> navController.navigate(Routes.editSpeedDial(id)) },
+                    onBack = { navController.popIfSettled() },
+                    onNavigateToAddContact = { navController.navigateIfSettled(Routes.ADD_SPEED_DIAL) },
+                    onNavigateToEdit = { id -> navController.navigateIfSettled(Routes.editSpeedDial(id)) },
                 )
             }
             composable(
@@ -275,31 +297,32 @@ fun EasyLinkNavHost(
                     navArgument("speedDialId") { type = NavType.LongType },
                 ),
             ) {
-                AddSpeedDialScreen(onBack = { navController.popBackStack() })
+                AddSpeedDialScreen(onBack = { navController.popIfSettled() })
             }
             composable(Routes.MEDICATIONS) {
                 MedicationsScreen(
-                    onBack = { navController.popBackStack() },
-                    onNavigateToAddMedication = { navController.navigate(Routes.ADD_MEDICATION) },
+                    onBack = { navController.popIfSettled() },
+                    onNavigateToAddMedication = { navController.navigateIfSettled(Routes.ADD_MEDICATION) },
                     onNavigateToEditMedication = { id ->
-                        navController.navigate(Routes.editMedication(id))
+                        navController.navigateIfSettled(Routes.editMedication(id))
                     },
                 )
             }
             composable(Routes.MAGNIFIER) {
-                MagnifierScreen(onBack = { navController.popBackStack() })
+                MagnifierScreen(onBack = { navController.popIfSettled() })
             }
             composable(Routes.SOS_COUNTDOWN) {
+                // Programmatic (countdown finished), not a tap — never drop it.
                 SosCountdownScreen(onFinished = { navController.popBackStack() })
             }
             composable(Routes.ADD_SPEED_DIAL) {
-                AddSpeedDialScreen(onBack = { navController.popBackStack() })
+                AddSpeedDialScreen(onBack = { navController.popIfSettled() })
             }
             composable(Routes.ADD_MEDICATION) {
-                AddMedicationScreen(onBack = { navController.popBackStack() })
+                AddMedicationScreen(onBack = { navController.popIfSettled() })
             }
             composable(Routes.FORECAST) {
-                ForecastScreen(onBack = { navController.popBackStack() })
+                ForecastScreen(onBack = { navController.popIfSettled() })
             }
             composable(
                 route = Routes.EDIT_MEDICATION,
@@ -307,7 +330,7 @@ fun EasyLinkNavHost(
                     navArgument("medicationId") { type = NavType.LongType },
                 ),
             ) {
-                AddMedicationScreen(onBack = { navController.popBackStack() })
+                AddMedicationScreen(onBack = { navController.popIfSettled() })
             }
         }
     }
