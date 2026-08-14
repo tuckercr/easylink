@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.fangjet.launcher.data.apps.AppUsageTracker
 import com.fangjet.launcher.data.apps.FavoriteAppsMode
 import com.fangjet.launcher.data.apps.FavoriteAppsPreferences
+import com.fangjet.launcher.data.apps.InstalledAppChecker
 import com.fangjet.launcher.data.config.FakeSettingsDefaultsProvider
 import com.fangjet.launcher.data.notifications.NotificationBadgeRepository
 import com.fangjet.launcher.data.preferences.HomePreferencesDataSource
@@ -41,6 +42,7 @@ class HomeViewModelTest {
     private lateinit var launchAppUseCase: LaunchAppUseCase
     private lateinit var homePrefs: HomePreferencesDataSource
     private lateinit var permissionAsks: PermissionAskPreferences
+    private lateinit var installedAppChecker: InstalledAppChecker
     private lateinit var weatherService: WeatherService
     private var settingsDefaults = FakeSettingsDefaultsProvider()
     private lateinit var appRepository: AppRepository
@@ -69,6 +71,9 @@ class HomeViewModelTest {
         permissionAsks = mockk(relaxed = true)
         every { permissionAsks.asked(any()) } returns flowOf(false)
 
+        installedAppChecker = mockk(relaxed = true)
+        every { installedAppChecker.isInstalled(any()) } returns false
+
         appRepository = mockk(relaxed = true)
         usageTracker = mockk(relaxed = true)
         favoritePrefs = mockk(relaxed = true)
@@ -85,6 +90,7 @@ class HomeViewModelTest {
             launchAppUseCase,
             homePrefs,
             permissionAsks,
+            installedAppChecker,
             weatherService,
             settingsDefaults,
             appRepository,
@@ -128,7 +134,10 @@ class HomeViewModelTest {
                     finalSuccess = awaitItem() as HomeUiState.Success
                 }
 
-                assertEquals(listOf(HomeButton.PHONE, HomeButton.CAMERA), finalSuccess.enabledButtons)
+                assertEquals(
+                    listOf(HomeButton.PHONE, HomeButton.CAMERA),
+                    finalSuccess.enabledButtons,
+                )
                 assertTrue(finalSuccess.voiceButtonEnabled)
             }
         }
@@ -143,6 +152,7 @@ class HomeViewModelTest {
                 launchAppUseCase,
                 homePrefs,
                 permissionAsks,
+                installedAppChecker,
                 weatherService,
                 settingsDefaults,
                 appRepository,

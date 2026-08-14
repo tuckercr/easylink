@@ -90,6 +90,7 @@ import com.fangjet.launcher.ui.theme.ColorAllApps
 import com.fangjet.launcher.ui.theme.ColorCalculator
 import com.fangjet.launcher.ui.theme.ColorCamera
 import com.fangjet.launcher.ui.theme.ColorEmail
+import com.fangjet.launcher.ui.theme.ColorFacebook
 import com.fangjet.launcher.ui.theme.ColorFlashlight
 import com.fangjet.launcher.ui.theme.ColorMagnifier
 import com.fangjet.launcher.ui.theme.ColorMaps
@@ -405,6 +406,11 @@ fun HomeScreen(
                                         ?: context.packageManager.getLaunchIntentForPackage("com.chrome.dev")
                                         ?: Intent(Intent.ACTION_VIEW, "https://www.google.com".toUri())
                                 launchIntent(intent)
+                            },
+                            onFacebook = {
+                                context.packageManager
+                                    .getLaunchIntentForPackage("com.facebook.katana")
+                                    ?.let { launchIntent(it) }
                             },
                             onMaps = { launchIntent(Intent(Intent.ACTION_VIEW, "geo:0,0".toUri())) },
                             onEmail = {
@@ -741,6 +747,7 @@ private fun ButtonGrid(
     onMedications: () -> Unit,
     onFlashlight: () -> Unit,
     onWeb: () -> Unit,
+    onFacebook: () -> Unit,
     onMaps: () -> Unit,
     onEmail: () -> Unit,
     onPhotos: () -> Unit,
@@ -793,6 +800,7 @@ private fun ButtonGrid(
                                 onMedications = onMedications,
                                 onFlashlight = onFlashlight,
                                 onWeb = onWeb,
+                                onFacebook = onFacebook,
                                 onMaps = onMaps,
                                 onEmail = onEmail,
                                 onPhotos = onPhotos,
@@ -828,6 +836,7 @@ private fun SingleHomeButton(
     onMedications: () -> Unit,
     onFlashlight: () -> Unit,
     onWeb: () -> Unit,
+    onFacebook: () -> Unit,
     onMaps: () -> Unit,
     onEmail: () -> Unit,
     onPhotos: () -> Unit,
@@ -950,6 +959,18 @@ private fun SingleHomeButton(
                 modifier = modifier,
                 onClick = onWeb,
                 onLongClick = { onLongPress(ttsText) },
+            )
+        }
+
+        HomeButton.FACEBOOK -> {
+            val label = stringResource(R.string.facebook)
+            HomeActionButton(
+                label = label,
+                iconRes = R.drawable.ic_facebook,
+                color = ColorFacebook,
+                modifier = modifier,
+                onClick = onFacebook,
+                onLongClick = { onLongPress(label) },
             )
         }
 

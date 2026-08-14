@@ -4,7 +4,9 @@ import android.Manifest
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fangjet.launcher.data.apps.AppUsageTracker
+import com.fangjet.launcher.data.apps.FACEBOOK_PACKAGE
 import com.fangjet.launcher.data.apps.FavoriteAppsPreferences
+import com.fangjet.launcher.data.apps.InstalledAppChecker
 import com.fangjet.launcher.data.config.SettingsDefaultsProvider
 import com.fangjet.launcher.data.notifications.NotificationBadgeRepository
 import com.fangjet.launcher.data.preferences.HomePreferencesDataSource
@@ -31,6 +33,7 @@ class HomeViewModel @Inject constructor(
     private val launchAppUseCase: LaunchAppUseCase,
     private val homePrefs: HomePreferencesDataSource,
     private val permissionAsks: PermissionAskPreferences,
+    private val installedAppChecker: InstalledAppChecker,
     private val weatherService: WeatherService,
     private val settingsDefaults: SettingsDefaultsProvider,
     appRepository: AppRepository,
@@ -55,8 +58,12 @@ class HomeViewModel @Inject constructor(
     ) { flashlight, buttons, voiceEnabled, sosEnabled, weather ->
         HomeUiState.Success(
             isFlashlightOn = flashlight,
-            // Preserve the canonical enum order so the grid is stable
-            enabledButtons = HomeButton.entries.filter { it in buttons },
+            // Preserve the canonical enum order so the grid is stable. The
+            // Facebook button only exists on devices that have the app.
+            enabledButtons = HomeButton.entries.filter { button ->
+                button in buttons &&
+                    (button != HomeButton.FACEBOOK || installedAppChecker.isInstalled(FACEBOOK_PACKAGE))
+            },
             weather = weather,
             voiceButtonEnabled = voiceEnabled,
             sosButtonEnabled = sosEnabled,
@@ -150,10 +157,6 @@ class HomeViewModel @Inject constructor(
 
     /** Toggle a home button on/off; persisted to DataStore. */
 
-    /**
-     * Hides the "Say a Command" bar — offered when the microphone permission
-     * is permanently denied. Re-enableable any time from Settings.
-     */
     fun hideVoiceButton() {
         viewModelScope.launch { homePrefs.setVoiceButtonEnabled(false) }
     }

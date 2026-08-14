@@ -5,9 +5,10 @@
     <string name="apps">All Apps</string>
     <string name="maps">Maps</string>
     <string name="camera">Camera</string>
+    <string name="facebook">Facebook</string>
     <string name="settings">Settings</string>
     <string name="phone">Phone</string>
-    <string name="people">People</string>
+    <string name="people">Favorites</string>
     <string name="gallery">Gallery</string>
     <string name="calendar">Calendar</string>
     <string name="email">Email</string>
@@ -96,12 +97,12 @@
     <string name="home_voice_command_button">Say a Command</string>
 
     <!-- Speed Dial -->
-    <string name="speed_dial_title">People</string>
-    <string name="speed_dial_empty_title">No people yet</string>
+    <string name="speed_dial_title">Favorites</string>
+    <string name="speed_dial_empty_title">No favorites yet</string>
     <string name="speed_dial_empty_body">Add the people you call most — one tap to call them</string>
     <string name="speed_dial_add_favorite">Add Person</string>
     <string name="speed_dial_remove_title">Delete this person?</string>
-    <string name="speed_dial_remove_body">Remove \"%1$s\" from People? You can add them again any time.</string>
+    <string name="speed_dial_remove_body">Remove \"%1$s\" from Favorites? You can add them again any time.</string>
     <string name="speed_dial_remove_confirm">Delete</string>
     <string name="people_context_edit">Edit</string>
     <string name="people_delete_button">Delete Person</string>
@@ -109,11 +110,11 @@
     <!-- Add / Edit Person -->
     <string name="add_speed_dial_title">Add Person</string>
     <string name="edit_person_title">Edit Person</string>
-    <string name="add_speed_dial_already_added">Already in People</string>
+    <string name="add_speed_dial_already_added">Already in Favorites</string>
     <string name="add_speed_dial_invalid_contact">Invalid contact — missing name or number</string>
     <string name="add_speed_dial_tab_search">Search Contacts</string>
     <string name="add_speed_dial_tab_manual">Enter Manually</string>
-    <string name="add_speed_dial_manual_body">Type a name and phone number to add them to People.</string>
+    <string name="add_speed_dial_manual_body">Type a name and phone number to add them to Favorites.</string>
     <string name="add_speed_dial_name_placeholder">e.g. Dr. Smith</string>
     <string name="add_speed_dial_save_button">Add Person</string>
     <string name="person_photo_add">Add Photo</string>
@@ -231,8 +232,8 @@
     <!-- Shared -->
     <string name="action_back">Back</string>
     <string name="home_settings_desc">Settings</string>
-    <string name="home_button_people">People</string>
-    <string name="home_tts_people">People you can call</string>
+    <string name="home_button_people">Favorites</string>
+    <string name="home_tts_people">Your favorite people to call</string>
     <string name="sos_perm_banner_title">SOS isn\'t ready yet</string>
     <string name="sos_perm_banner_body">Allow EasyLink to send texts and make calls so an SOS can alert your emergency contacts.</string>
     <string name="sos_perm_grant">Grant permissions</string>

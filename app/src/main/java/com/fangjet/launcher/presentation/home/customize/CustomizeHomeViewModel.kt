@@ -3,8 +3,10 @@ package com.fangjet.launcher.presentation.home.customize
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fangjet.launcher.data.apps.FACEBOOK_PACKAGE
 import com.fangjet.launcher.data.apps.FavoriteAppsMode
 import com.fangjet.launcher.data.apps.FavoriteAppsPreferences
+import com.fangjet.launcher.data.apps.InstalledAppChecker
 import com.fangjet.launcher.data.config.SettingsDefaultsProvider
 import com.fangjet.launcher.data.fall.FallDetectionManager
 import com.fangjet.launcher.data.home.DefaultHomeChecker
@@ -62,6 +64,7 @@ data class HomeAppState(
 @HiltViewModel
 class CustomizeHomeViewModel @Inject constructor(
     private val homePrefs: HomePreferencesDataSource,
+    private val installedAppChecker: InstalledAppChecker,
     private val fallPrefs: FallDetectionPreferences,
     private val fallManager: FallDetectionManager,
     private val favoritePrefs: FavoriteAppsPreferences,
@@ -137,9 +140,12 @@ class CustomizeHomeViewModel @Inject constructor(
         fallPrefs.sensitivity,
     ) { enabled, voiceEnabled, sosEnabled, fallEnabled, sensitivity ->
         CustomizeUiState(
-            buttons = HomeButton.entries.map { btn ->
-                ButtonToggleItem(btn, btn.labelRes, btn in enabled)
-            },
+            buttons = HomeButton.entries
+                // No Facebook app on the device -> no Facebook option to offer.
+                .filter { it != HomeButton.FACEBOOK || installedAppChecker.isInstalled(FACEBOOK_PACKAGE) }
+                .map { btn ->
+                    ButtonToggleItem(btn, btn.labelRes, btn in enabled)
+                },
             voiceButtonEnabled = voiceEnabled,
             sosButtonEnabled = sosEnabled,
             fallDetectionEnabled = fallEnabled,
