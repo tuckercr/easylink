@@ -81,6 +81,8 @@ import com.fangjet.launcher.ui.theme.ColorSpeedDial
 @Composable
 fun AddSpeedDialScreen(
     onBack: () -> Unit,
+    /** Fired on successful save — wire to an UNGUARDED pop (see AddMedicationScreen.onSaved). */
+    onSaved: () -> Unit = onBack,
     viewModel: AddSpeedDialViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -91,7 +93,7 @@ fun AddSpeedDialScreen(
 
     LaunchedEffect(state.saveResult) {
         when (val result = state.saveResult) {
-            is AddSpeedDialUiState.SaveResult.Success -> onBack()
+            is AddSpeedDialUiState.SaveResult.Success -> onSaved()
             is AddSpeedDialUiState.SaveResult.AlreadyAdded -> {
                 snackbarHostState.showSnackbar(strAlreadyAdded)
                 viewModel.onSaveResultConsumed()

@@ -351,6 +351,9 @@ fun OnboardingScreen(
 
             Spacer(Modifier.height(8.dp))
 
+            // Secondary actions stay visually quieter than the big button via
+            // color alone — NOT size or contrast. 18sp and 70% alpha keep them
+            // readable for elderly eyes; 48dp is the accessibility touch floor.
             if (step.isWelcomeStep) {
                 // ── Privacy policy link (welcome step only) ───────────────────
                 TextButton(
@@ -361,16 +364,20 @@ fun OnboardingScreen(
                             )
                         }
                     },
+                    modifier = Modifier.heightIn(min = 48.dp),
                 ) {
                     Text(
                         text = stringResource(R.string.customize_privacy_policy),
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                     )
                 }
             } else {
                 // ── Skip link ─────────────────────────────────────────────────
-                TextButton(onClick = guarded(advance)) {
+                TextButton(
+                    onClick = guarded(advance),
+                    modifier = Modifier.heightIn(min = 48.dp),
+                ) {
                     Text(
                         text = if (isLastStep) {
                             stringResource(R.string.onboarding_skip)
@@ -379,8 +386,8 @@ fun OnboardingScreen(
                                 R.string.onboarding_skip_for_now,
                             )
                         },
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                     )
                 }
             }

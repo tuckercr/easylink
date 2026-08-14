@@ -297,7 +297,10 @@ fun EasyLinkNavHost(
                     navArgument("speedDialId") { type = NavType.LongType },
                 ),
             ) {
-                AddSpeedDialScreen(onBack = { navController.popIfSettled() })
+                AddSpeedDialScreen(
+                    onBack = { navController.popIfSettled() },
+                    onSaved = { navController.popBackStack() },
+                )
             }
             composable(Routes.MEDICATIONS) {
                 MedicationsScreen(
@@ -316,10 +319,18 @@ fun EasyLinkNavHost(
                 SosCountdownScreen(onFinished = { navController.popBackStack() })
             }
             composable(Routes.ADD_SPEED_DIAL) {
-                AddSpeedDialScreen(onBack = { navController.popIfSettled() })
+                AddSpeedDialScreen(
+                    onBack = { navController.popIfSettled() },
+                    onSaved = { navController.popBackStack() },
+                )
             }
             composable(Routes.ADD_MEDICATION) {
-                AddMedicationScreen(onBack = { navController.popIfSettled() })
+                AddMedicationScreen(
+                    onBack = { navController.popIfSettled() },
+                    // Post-save pop is programmatic and may fire before the entry
+                    // re-reaches RESUMED (permission-dialog resume) — never drop it.
+                    onSaved = { navController.popBackStack() },
+                )
             }
             composable(Routes.FORECAST) {
                 ForecastScreen(onBack = { navController.popIfSettled() })
@@ -330,7 +341,12 @@ fun EasyLinkNavHost(
                     navArgument("medicationId") { type = NavType.LongType },
                 ),
             ) {
-                AddMedicationScreen(onBack = { navController.popIfSettled() })
+                AddMedicationScreen(
+                    onBack = { navController.popIfSettled() },
+                    // Post-save pop is programmatic and may fire before the entry
+                    // re-reaches RESUMED (permission-dialog resume) — never drop it.
+                    onSaved = { navController.popBackStack() },
+                )
             }
         }
     }

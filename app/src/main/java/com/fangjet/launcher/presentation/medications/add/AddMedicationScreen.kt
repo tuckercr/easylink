@@ -73,6 +73,14 @@ import java.time.format.TextStyle
 @Composable
 fun AddMedicationScreen(
     onBack: () -> Unit,
+    /**
+     * Fired on successful save. Separate from [onBack]: the save can complete
+     * while the activity is still resuming from the notification-permission
+     * dialog, and the nav host's tremor guard would drop a not-yet-RESUMED
+     * pop — stranding the user on a form whose medication already saved.
+     * This callback must be wired to an unguarded pop.
+     */
+    onSaved: () -> Unit = onBack,
     viewModel: AddMedicationViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -107,7 +115,7 @@ fun AddMedicationScreen(
 
     // Navigate back on success
     LaunchedEffect(state.saveSuccess) {
-        if (state.saveSuccess) onBack()
+        if (state.saveSuccess) onSaved()
     }
 
     // Show save errors
