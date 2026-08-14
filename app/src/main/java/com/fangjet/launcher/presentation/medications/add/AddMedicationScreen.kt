@@ -88,15 +88,20 @@ fun AddMedicationScreen(
         ActivityResultContracts.RequestPermission(),
     ) { viewModel.onSaveTapped() }
     val saveWithNotificationAsk: () -> Unit = {
-        val needsAsk = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS,
-            ) != PackageManager.PERMISSION_GRANTED
-        if (needsAsk) {
-            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-        } else {
-            viewModel.onSaveTapped()
+        // Validate first: an invalid form must show its errors here, not fire
+        // the permission prompt (whose resume-chain can navigate away and
+        // silently lose the form).
+        if (viewModel.validateForSave()) {
+            val needsAsk = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS,
+                ) != PackageManager.PERMISSION_GRANTED
+            if (needsAsk) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                viewModel.onSaveTapped()
+            }
         }
     }
 
@@ -112,10 +117,13 @@ fun AddMedicationScreen(
 
     // Compose-native time picker dialog — inherits the dark Material3 theme
     if (showTimePicker) {
-        val now = LocalTime.now()
+        // Pre-fill the next full hour (6:22 → 7:00): medication times are
+        // round-hour schedules, and zeroed minutes save the elder fiddling
+        // with the minute dial.
+        val nextFullHour = LocalTime.now().plusHours(1).withMinute(0)
         val timePickerState = rememberTimePickerState(
-            initialHour = now.hour,
-            initialMinute = now.minute,
+            initialHour = nextFullHour.hour,
+            initialMinute = nextFullHour.minute,
             is24Hour = false,
         )
         AlertDialog(

@@ -61,6 +61,11 @@ class MainActivity : ComponentActivity() {
      */
     private var promptEligibleThisLaunch: Boolean? = null
 
+    /** The prompt shows at most once per session — every pause/resume (even a
+     *  permission dialog closing) re-runs onResume, and re-prompting mid-task
+     *  interrupted users on inner screens. */
+    private var homePromptShownThisLaunch = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // This app is always dark — force light (white) status bar icons unconditionally.
@@ -107,7 +112,8 @@ class MainActivity : ComponentActivity() {
                 if (promptEligibleThisLaunch == null) {
                     promptEligibleThisLaunch = onboardingComplete
                 }
-                if (onboardingComplete && promptEligibleThisLaunch == true) {
+                if (onboardingComplete && promptEligibleThisLaunch == true && !homePromptShownThisLaunch) {
+                    homePromptShownThisLaunch = true
                     promptSetAsHome()
                 }
             }

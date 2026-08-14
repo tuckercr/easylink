@@ -103,6 +103,35 @@ class AddMedicationViewModel @Inject constructor(
 
     // ── Save (add or update) ──────────────────────────────────────────────
 
+    /**
+     * Runs the same checks AddMedicationUseCase enforces and surfaces the same
+     * error messages, without saving. The screen calls this BEFORE asking for
+     * the notification permission — otherwise an invalid form triggered the
+     * system prompt (and the resume-chain behind it) and the user never saw
+     * why nothing was saved.
+     */
+    fun validateForSave(): Boolean {
+        val state = _uiState.value
+        var valid = true
+        if (state.name.isBlank()) {
+            _uiState.update { it.copy(nameError = context.getString(R.string.error_name_required)) }
+            valid = false
+        }
+        if (state.reminderTimes.isEmpty()) {
+            _uiState.update {
+                it.copy(reminderTimesError = context.getString(R.string.error_reminder_time_required))
+            }
+            valid = false
+        }
+        if (state.activeDays.isEmpty()) {
+            _uiState.update {
+                it.copy(activeDaysError = context.getString(R.string.error_active_day_required))
+            }
+            valid = false
+        }
+        return valid
+    }
+
     fun onSaveTapped() {
         val state = _uiState.value
         if (state.isSaving || state.isLoadingExisting) return
