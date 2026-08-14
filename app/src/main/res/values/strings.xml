@@ -408,6 +408,9 @@
     <string name="onboarding_notifications_desc">Required to deliver medication reminders and fall detection alerts reliably.</string>
     <string name="onboarding_microphone_title">Microphone</string>
     <string name="onboarding_microphone_desc">Enables voice commands like \"Call John\", \"Open Camera\", or \"Flashlight on\". The microphone is only active when you tap the voice button.</string>
+    <string name="onboarding_home_title">Make This the Home Screen</string>
+    <string name="onboarding_home_desc">Set EasyLink as the home app so the phone always opens to these big, easy buttons. You can switch back any time in Settings.</string>
+    <string name="onboarding_home_button">Set as Home Screen</string>
     <string name="onboarding_allow_access">Allow Access</string>
     <string name="onboarding_allow_and_start">Allow &amp; Get Started</string>
     <string name="onboarding_skip">Skip</string>

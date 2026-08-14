@@ -1,7 +1,10 @@
 package com.fangjet.launcher.presentation.onboarding
 
 import android.Manifest
+import android.app.role.RoleManager
+import android.content.Intent
 import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
@@ -31,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -65,6 +69,8 @@ private data class OnboardingStep(
     @StringRes val descRes: Int,
     /** Dangerous permissions to request. Empty = auto-granted / no prompt needed. */
     val permissions: List<String>,
+    /** True for the final step, which requests the HOME role instead of a permission. */
+    val isHomeRoleStep: Boolean = false,
 )
 
 private val STEPS: List<OnboardingStep> = buildList {
@@ -127,6 +133,17 @@ private val STEPS: List<OnboardingStep> = buildList {
             permissions = listOf(Manifest.permission.RECORD_AUDIO),
         ),
     )
+    // Finale: become the home screen. Not a permission — the HOME role, via
+    // the system's "set default home app" sheet.
+    add(
+        OnboardingStep(
+            emoji = "🏠",
+            titleRes = R.string.onboarding_home_title,
+            descRes = R.string.onboarding_home_desc,
+            permissions = emptyList(),
+            isHomeRoleStep = true,
+        ),
+    )
 }
 
 // ── Screen ────────────────────────────────────────────────────────────────────
@@ -165,6 +182,30 @@ fun OnboardingScreen(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) {
         advance()
+    }
+
+    // The home-role step: advance whatever the outcome — like permissions,
+    // every step is skippable and the launcher works without the role.
+    val context = LocalContext.current
+    val homeRoleLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) {
+        advance()
+    }
+    val requestHomeRole: () -> Unit = {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val roleManager = context.getSystemService(RoleManager::class.java)
+            if (roleManager?.isRoleHeld(RoleManager.ROLE_HOME) == true) {
+                advance()
+            } else {
+                homeRoleLauncher.launch(roleManager.createRequestRoleIntent(RoleManager.ROLE_HOME))
+            }
+        } else {
+            runCatching {
+                context.startActivity(Intent(Settings.ACTION_HOME_SETTINGS))
+            }
+            advance()
+        }
     }
 
     val step = STEPS[currentStep]
@@ -219,10 +260,10 @@ fun OnboardingScreen(
             val isLastStep = currentStep == STEPS.lastIndex
             Button(
                 onClick = {
-                    if (step.permissions.isEmpty()) {
-                        advance()
-                    } else {
-                        permissionLauncher.launch(step.permissions.toTypedArray())
+                    when {
+                        step.isHomeRoleStep -> requestHomeRole()
+                        step.permissions.isEmpty() -> advance()
+                        else -> permissionLauncher.launch(step.permissions.toTypedArray())
                     }
                 },
                 shape = RoundedCornerShape(16.dp),
@@ -231,12 +272,10 @@ fun OnboardingScreen(
                     .heightIn(min = 64.dp),
             ) {
                 Text(
-                    text = if (isLastStep) {
-                        stringResource(R.string.onboarding_allow_and_start)
-                    } else {
-                        stringResource(
-                            R.string.onboarding_allow_access,
-                        )
+                    text = when {
+                        step.isHomeRoleStep -> stringResource(R.string.onboarding_home_button)
+                        isLastStep -> stringResource(R.string.onboarding_allow_and_start)
+                        else -> stringResource(R.string.onboarding_allow_access)
                     },
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
