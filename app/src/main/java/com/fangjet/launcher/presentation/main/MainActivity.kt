@@ -18,12 +18,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.fangjet.launcher.R
 import com.fangjet.launcher.data.home.DefaultHomeChecker
 import com.fangjet.launcher.data.home.HomeScreenNotificationHelper
+import com.fangjet.launcher.data.preferences.OnboardingPreferences
 import com.fangjet.launcher.navigation.EasyLinkNavHost
 import com.fangjet.launcher.ui.theme.EasyLinkTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -34,6 +38,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var defaultHomeChecker: DefaultHomeChecker
+
+    @Inject
+    lateinit var onboardingPreferences: OnboardingPreferences
 
     private val requestHomeRole = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
@@ -93,7 +100,11 @@ class MainActivity : ComponentActivity() {
             // Dismiss any pending reminder notification — the user already set us as home
             homeScreenNotifHelper.cancel()
         } else {
-            promptSetAsHome()
+            lifecycleScope.launch {
+                // Onboarding has its own "set as home" step — prompting on top
+                // of the wizard would ask twice on first run.
+                if (onboardingPreferences.isComplete.first()) promptSetAsHome()
+            }
         }
     }
 
@@ -114,7 +125,7 @@ class MainActivity : ComponentActivity() {
     private fun promptSetAsHome() {
         if (homeDialog?.isShowing == true) return
         val dialog = AlertDialog
-            .Builder(this)
+            .Builder(this, R.style.AppTheme_AlertDialog)
             .setTitle(getString(R.string.home_dialog_title))
             .setMessage(getString(R.string.home_dialog_message))
             .setPositiveButton(getString(R.string.home_dialog_positive)) { _, _ -> requestDefaultHome() }

@@ -12,6 +12,12 @@
         <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
     </style>
 
+    <!-- Always-dark alert dialogs. The activity theme is DayNight, so on a
+         light-mode device the default dialog window turns white while AppTheme
+         forces textColorPrimary to white — a blank white box. The app is
+         always dark; its dialogs must be too. -->
+    <style name="AppTheme.AlertDialog" parent="Theme.AppCompat.Dialog.Alert" />
+
     <!-- Alias used in manifest — same as AppTheme since NoActionBar is already in parent -->
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
