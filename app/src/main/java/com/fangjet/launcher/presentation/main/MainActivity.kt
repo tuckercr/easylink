@@ -61,9 +61,7 @@ class MainActivity : ComponentActivity() {
      */
     private var promptEligibleThisLaunch: Boolean? = null
 
-    /** The prompt shows at most once per session — every pause/resume (even a
-     *  permission dialog closing) re-runs onResume, and re-prompting mid-task
-     *  interrupted users on inner screens. */
+    /** The prompt shows at most once per session. */
     private var homePromptShownThisLaunch = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,6 +79,7 @@ class MainActivity : ComponentActivity() {
                 EasyLinkNavHost(
                     pendingNavTarget = pendingNavTarget,
                     onNavTargetConsumed = { pendingNavTarget = null },
+                    onHomeScreenResumed = ::maybePromptSetAsHome,
                 )
             }
         }
@@ -106,16 +105,35 @@ class MainActivity : ComponentActivity() {
         if (defaultHomeChecker.isDefault()) {
             // Dismiss any pending reminder notification — the user already set us as home
             homeScreenNotifHelper.cancel()
-        } else {
+        } else if (promptEligibleThisLaunch == null) {
+            // Decide eligibility at first resume, before any navigation can
+            // happen — the prompt itself waits until the Home screen shows.
             lifecycleScope.launch {
-                val onboardingComplete = onboardingPreferences.isComplete.first()
                 if (promptEligibleThisLaunch == null) {
-                    promptEligibleThisLaunch = onboardingComplete
+                    promptEligibleThisLaunch = onboardingPreferences.isComplete.first()
                 }
-                if (onboardingComplete && promptEligibleThisLaunch == true && !homePromptShownThisLaunch) {
-                    homePromptShownThisLaunch = true
-                    promptSetAsHome()
-                }
+            }
+        }
+    }
+
+    /**
+     * Called by the nav host each time the HOME route is shown/resumed — the
+     * ONLY trigger for the set-as-home prompt. Triggering from onResume was a
+     * bug: every closing system dialog (e.g. the notification-permission ask
+     * on saving a medication) resumes the activity, and the prompt would
+     * interrupt the user mid-task on an inner screen — accepting it even
+     * yanked them to the home screen when the role grant restarted the task.
+     */
+    private fun maybePromptSetAsHome() {
+        if (homePromptShownThisLaunch || defaultHomeChecker.isDefault()) return
+        lifecycleScope.launch {
+            val onboardingComplete = onboardingPreferences.isComplete.first()
+            if (promptEligibleThisLaunch == null) {
+                promptEligibleThisLaunch = onboardingComplete
+            }
+            if (onboardingComplete && promptEligibleThisLaunch == true && !homePromptShownThisLaunch) {
+                homePromptShownThisLaunch = true
+                promptSetAsHome()
             }
         }
     }

@@ -18,6 +18,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -103,6 +104,7 @@ fun EasyLinkNavHost(
     startupViewModel: StartupViewModel = hiltViewModel(),
     pendingNavTarget: String? = null,
     onNavTargetConsumed: () -> Unit = {},
+    onHomeScreenResumed: () -> Unit = {},
 ) {
     val isOnboardingComplete by startupViewModel.isOnboardingComplete
         .collectAsStateWithLifecycle()
@@ -201,6 +203,13 @@ fun EasyLinkNavHost(
             ) {
                 // Launcher root: intercept back gesture to prevent activity re-launch or reload.
                 BackHandler(enabled = true) { /* consume — launcher root, back does nothing */ }
+                // Fires when Home is composed while resumed and on each later
+                // resume with Home on top — never on inner screens, so the
+                // set-as-home prompt can't interrupt a task in progress.
+                LifecycleResumeEffect(Unit) {
+                    onHomeScreenResumed()
+                    onPauseOrDispose { }
+                }
                 HomeScreen(
                     onNavigateToApps = { navController.navigate(Routes.APPS) },
                     onNavigateToMagnifier = { navController.navigate(Routes.MAGNIFIER) },
