@@ -58,6 +58,15 @@ class MainActivity : ComponentActivity() {
     /** Currently-visible "set as home" prompt, if any — prevents stacking a new one on every resume. */
     private var homeDialog: AlertDialog? = null
 
+    /**
+     * Whether this session may show the set-as-home prompt, decided once at
+     * first resume: true only when onboarding was ALREADY complete when the
+     * app launched. The session in which onboarding finishes never prompts —
+     * the wizard just asked with its own home-screen step, and asking again
+     * seconds later would nag. The reminder waits for the next launch.
+     */
+    private var promptEligibleThisLaunch: Boolean? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // This app is always dark — force light (white) status bar icons unconditionally.
@@ -101,9 +110,13 @@ class MainActivity : ComponentActivity() {
             homeScreenNotifHelper.cancel()
         } else {
             lifecycleScope.launch {
-                // Onboarding has its own "set as home" step — prompting on top
-                // of the wizard would ask twice on first run.
-                if (onboardingPreferences.isComplete.first()) promptSetAsHome()
+                val onboardingComplete = onboardingPreferences.isComplete.first()
+                if (promptEligibleThisLaunch == null) {
+                    promptEligibleThisLaunch = onboardingComplete
+                }
+                if (onboardingComplete && promptEligibleThisLaunch == true) {
+                    promptSetAsHome()
+                }
             }
         }
     }
