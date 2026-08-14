@@ -193,6 +193,11 @@ fun OnboardingScreen(
         advance()
     }
     val requestHomeRole: () -> Unit = {
+        // Persist completion BEFORE launching the role request: granting the
+        // HOME role makes the system restart the launcher task on the spot,
+        // so the result callback (and any markComplete inside it) may never
+        // run — the relaunched app would start onboarding over from step one.
+        viewModel.markComplete()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val roleManager = context.getSystemService(RoleManager::class.java)
             if (roleManager?.isRoleHeld(RoleManager.ROLE_HOME) == true) {

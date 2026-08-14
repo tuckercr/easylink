@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
@@ -116,8 +117,12 @@ fun EasyLinkNavHost(
         return
     }
 
-    val startDestination =
+    // Frozen at first read: the flag flips to true mid-session when the
+    // onboarding home-role step persists completion early, and a changing
+    // startDestination would rebuild the nav graph out from under the wizard.
+    val startDestination = rememberSaveable {
         if (isOnboardingComplete == true) Routes.HOME else Routes.ONBOARDING
+    }
 
     val navController = rememberNavController()
 
