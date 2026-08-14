@@ -307,24 +307,29 @@ fun AddMedicationScreen(
                 }
             }
 
-            // ── Active toggle ─────────────────────────────────────────────────
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    stringResource(R.string.add_medication_active),
-                    fontSize = 18.sp,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Switch(
-                    checked = state.isActive,
-                    onCheckedChange = { viewModel.onActiveToggled(it) },
-                )
-            }
+            // ── Active toggle (edit only) ─────────────────────────────────────
+            // A brand-new medication is always active — offering the toggle on
+            // the add form just invites accidentally creating a med that never
+            // reminds. Pausing is an edit-time decision.
+            if (state.isEditing) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        stringResource(R.string.add_medication_active),
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Switch(
+                        checked = state.isActive,
+                        onCheckedChange = { viewModel.onActiveToggled(it) },
+                    )
+                }
 
-            Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(8.dp))
+            }
 
             // ── Save button ───────────────────────────────────────────────────
             Button(
