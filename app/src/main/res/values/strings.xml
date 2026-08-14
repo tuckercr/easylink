@@ -128,6 +128,12 @@
     <string name="contacts_permission_denied_body">Contacts access is turned off. Tap below, then choose Permissions → Contacts → Allow. You can also add someone by typing their number in the Enter Manually tab.</string>
     <string name="permission_open_settings">Open App Settings</string>
 
+    <!-- Voice button: microphone permanently denied -->
+    <string name="voice_mic_denied_title">Microphone is turned off</string>
+    <string name="voice_mic_denied_body">\"Say a Command\" needs the microphone to hear you. To use voice commands, allow the Microphone permission in Settings.\n\nIf you don\'t want voice commands, you can hide this button instead — it can be brought back any time from Settings.</string>
+    <string name="voice_mic_hide_button">Hide Voice Button</string>
+    <string name="voice_mic_not_now">Not Now</string>
+
     <!-- Medications -->
     <string name="medications_title">Medications</string>
     <string name="medications_empty_title">No medications today</string>

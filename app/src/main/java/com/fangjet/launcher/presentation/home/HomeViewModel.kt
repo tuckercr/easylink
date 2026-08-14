@@ -146,6 +146,27 @@ class HomeViewModel @Inject constructor(
     }
 
     /** Toggle a home button on/off; persisted to DataStore. */
+
+    /**
+     * Hides the "Say a Command" bar — offered when the microphone permission
+     * is permanently denied. Re-enableable any time from Settings.
+     */
+    fun hideVoiceButton() {
+        viewModelScope.launch { homePrefs.setVoiceButtonEnabled(false) }
+    }
+
+    /** See [HomePreferencesDataSource.micPermissionRequested] for why this exists. */
+    val micPermissionRequested: StateFlow<Boolean> = homePrefs.micPermissionRequested
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = false,
+        )
+
+    fun markMicPermissionRequested() {
+        viewModelScope.launch { homePrefs.markMicPermissionRequested() }
+    }
+
     fun setButtonEnabled(
         button: HomeButton,
         enabled: Boolean,

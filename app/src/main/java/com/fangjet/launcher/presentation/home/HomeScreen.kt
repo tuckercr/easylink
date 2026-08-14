@@ -1,6 +1,7 @@
 package com.fangjet.launcher.presentation.home
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -31,22 +32,29 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -64,6 +72,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.location.LocationManagerCompat
 import androidx.core.net.toUri
@@ -185,20 +194,68 @@ fun HomeScreen(
         if (cleared) viewModel.refreshWeather()
         onPauseOrDispose { }
     }
+    // After a hard denial the system stops showing its permission dialog,
+    // which used to leave the voice bar a dead button. When a request comes
+    // back denied with no rationale available ("don't ask again"), explain
+    // and offer Settings — or hiding the bar for users who never wanted voice.
+    var showMicDeniedDialog by remember { mutableStateOf(false) }
+    val activity = context as? Activity
+    val micRequestedBefore by viewModel.micPermissionRequested.collectAsStateWithLifecycle()
     val audioPermLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
-    ) { granted -> if (granted) voiceViewModel.startListening() }
+    ) { granted ->
+        when {
+            granted -> voiceViewModel.startListening()
+            activity != null &&
+                !ActivityCompat.shouldShowRequestPermissionRationale(
+                    activity,
+                    Manifest.permission.RECORD_AUDIO,
+                ) -> showMicDeniedDialog = true
+        }
+    }
 
     val onMicTapped: () -> Unit = {
         val hasAudio = ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.RECORD_AUDIO,
         ) == PackageManager.PERMISSION_GRANTED
-        if (hasAudio) {
-            voiceViewModel.startListening()
-        } else {
-            audioPermLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        val rationaleAvailable = activity != null &&
+            ActivityCompat.shouldShowRequestPermissionRationale(
+                activity,
+                Manifest.permission.RECORD_AUDIO,
+            )
+        when {
+            hasAudio -> voiceViewModel.startListening()
+            // Permanently denied ("don't ask again"): no rationale AND we have
+            // asked before. Launching now would be silently swallowed by the
+            // system — without even a result callback — so triage here.
+            micRequestedBefore && !rationaleAvailable -> showMicDeniedDialog = true
+            else -> {
+                viewModel.markMicPermissionRequested()
+                audioPermLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            }
         }
+    }
+
+    if (showMicDeniedDialog) {
+        MicPermanentlyDeniedDialog(
+            onOpenSettings = {
+                showMicDeniedDialog = false
+                runCatching {
+                    context.startActivity(
+                        Intent(
+                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            "package:${context.packageName}".toUri(),
+                        ),
+                    )
+                }
+            },
+            onHideVoiceButton = {
+                showMicDeniedDialog = false
+                viewModel.hideVoiceButton()
+            },
+            onDismiss = { showMicDeniedDialog = false },
+        )
     }
 
     // ── Display Size neutralization ──────────────────────────────────────────
@@ -993,6 +1050,79 @@ private fun HomeActionButton(
             )
         }
     }
+}
+
+// ── Mic permanently-denied dialog ─────────────────────────────────────────────
+
+/**
+ * Shown when the microphone permission is permanently denied and the voice bar
+ * would otherwise be a dead button: offers the app's Settings page (to allow
+ * the permission) or hiding the voice bar entirely (restorable in Settings).
+ * Elder-facing: large text, tall full-width buttons, no side-by-side actions.
+ */
+@Composable
+private fun MicPermanentlyDeniedDialog(
+    onOpenSettings: () -> Unit,
+    onHideVoiceButton: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(R.string.voice_mic_denied_title),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = stringResource(R.string.voice_mic_denied_body),
+                    fontSize = 18.sp,
+                    lineHeight = 26.sp,
+                )
+                Spacer(Modifier.height(4.dp))
+                Button(
+                    onClick = onOpenSettings,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp),
+                ) {
+                    Text(
+                        stringResource(R.string.permission_open_settings),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+                OutlinedButton(
+                    onClick = onHideVoiceButton,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp),
+                ) {
+                    Text(
+                        stringResource(R.string.voice_mic_hide_button),
+                        fontSize = 18.sp,
+                    )
+                }
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp),
+                ) {
+                    Text(
+                        stringResource(R.string.voice_mic_not_now),
+                        fontSize = 18.sp,
+                    )
+                }
+            }
+        },
+        confirmButton = {},
+    )
 }
 
 // ── Auto-sizing button label ──────────────────────────────────────────────────
