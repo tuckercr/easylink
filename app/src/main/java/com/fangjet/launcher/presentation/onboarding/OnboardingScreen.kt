@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.role.RoleManager
 import android.content.Intent
 import android.os.Build
+import android.os.SystemClock
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -29,6 +30,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -72,6 +76,12 @@ private data class OnboardingStep(
     /** True for the final step, which requests the HOME role instead of a permission. */
     val isHomeRoleStep: Boolean = false,
 )
+
+/**
+ * Taps closer together than this are treated as one — tremor double-taps
+ * arrive well inside it, while a deliberate next-step tap comes later.
+ */
+private const val TAP_DEBOUNCE_MS = 750L
 
 private val STEPS: List<OnboardingStep> = buildList {
     add(
@@ -176,11 +186,33 @@ fun OnboardingScreen(
         }
     }
 
+    // ── Double-tap guard ──────────────────────────────────────────────────────
+    // Shaky hands double-tap. Without this, the second tap of a rapid pair can
+    // land before the system dialog opens — on this step's button again, or
+    // (after advance) on the NEXT step's button, which sits at the same screen
+    // position — answering or skipping a step the user never read.
+    //
+    // Two layers: a shared time debounce for every action button, and a hard
+    // lock while a permission/role request is in flight (its dialog can take
+    // longer than any debounce window to appear; the result callback unlocks).
+    var lastTapAt by remember { mutableLongStateOf(0L) }
+    var awaitingSystemDialog by remember { mutableStateOf(false) }
+    val guarded: (() -> Unit) -> () -> Unit = { action ->
+        {
+            val now = SystemClock.elapsedRealtime()
+            if (!awaitingSystemDialog && now - lastTapAt >= TAP_DEBOUNCE_MS) {
+                lastTapAt = now
+                action()
+            }
+        }
+    }
+
     // Single launcher handles every step's permissions — registered once,
     // called with each step's list when the user taps Allow.
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) {
+        awaitingSystemDialog = false
         advance()
     }
 
@@ -190,6 +222,7 @@ fun OnboardingScreen(
     val homeRoleLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) {
+        awaitingSystemDialog = false
         advance()
     }
     val requestHomeRole: () -> Unit = {
@@ -203,6 +236,7 @@ fun OnboardingScreen(
             if (roleManager?.isRoleHeld(RoleManager.ROLE_HOME) == true) {
                 advance()
             } else {
+                awaitingSystemDialog = true
                 homeRoleLauncher.launch(roleManager.createRequestRoleIntent(RoleManager.ROLE_HOME))
             }
         } else {
@@ -264,11 +298,14 @@ fun OnboardingScreen(
             // ── Allow button ──────────────────────────────────────────────────
             val isLastStep = currentStep == STEPS.lastIndex
             Button(
-                onClick = {
+                onClick = guarded {
                     when {
                         step.isHomeRoleStep -> requestHomeRole()
                         step.permissions.isEmpty() -> advance()
-                        else -> permissionLauncher.launch(step.permissions.toTypedArray())
+                        else -> {
+                            awaitingSystemDialog = true
+                            permissionLauncher.launch(step.permissions.toTypedArray())
+                        }
                     }
                 },
                 shape = RoundedCornerShape(16.dp),
@@ -290,7 +327,7 @@ fun OnboardingScreen(
             Spacer(Modifier.height(8.dp))
 
             // ── Skip link ─────────────────────────────────────────────────────
-            TextButton(onClick = advance) {
+            TextButton(onClick = guarded(advance)) {
                 Text(
                     text = if (isLastStep) {
                         stringResource(R.string.onboarding_skip)
