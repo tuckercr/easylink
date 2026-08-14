@@ -142,12 +142,12 @@ class HomePreferencesDataSourceTest {
     @Test
     fun `enabling multiple optional buttons works independently`() =
         testScope.runTest {
-            dataSource.setButtonEnabled(HomeButton.WEB, true)
+            dataSource.setButtonEnabled(HomeButton.PHOTOS, true)
             dataSource.setButtonEnabled(HomeButton.MAPS, true)
 
             dataSource.enabledButtons.test {
                 val enabled = awaitItem()
-                assertTrue(HomeButton.WEB in enabled)
+                assertTrue(HomeButton.PHOTOS in enabled)
                 assertTrue(HomeButton.MAPS in enabled)
             }
         }
@@ -190,15 +190,15 @@ class HomePreferencesDataSourceTest {
             dataSource.enabledButtons.test {
                 // Initial emission — all default-on, no optional
                 val initial = awaitItem()
-                assertFalse(HomeButton.WEB in initial)
+                assertFalse(HomeButton.PHOTOS in initial)
 
-                dataSource.setButtonEnabled(HomeButton.WEB, true)
+                dataSource.setButtonEnabled(HomeButton.PHOTOS, true)
                 val afterEnable = awaitItem()
-                assertTrue(HomeButton.WEB in afterEnable)
+                assertTrue(HomeButton.PHOTOS in afterEnable)
 
-                dataSource.setButtonEnabled(HomeButton.WEB, false)
+                dataSource.setButtonEnabled(HomeButton.PHOTOS, false)
                 val afterDisable = awaitItem()
-                assertFalse(HomeButton.WEB in afterDisable)
+                assertFalse(HomeButton.PHOTOS in afterDisable)
             }
         }
 

@@ -28,7 +28,7 @@ enum class HomeButton(
     SPEED_DIAL(R.string.people),
     MEDICATIONS(R.string.nav_meds),
     FLASHLIGHT(R.string.flash_light),
-    WEB(R.string.web, defaultEnabled = false),
+    WEB(R.string.web),
     MAPS(R.string.maps, defaultEnabled = false),
     EMAIL(R.string.email, defaultEnabled = false),
     PHOTOS(R.string.photos, defaultEnabled = false),
