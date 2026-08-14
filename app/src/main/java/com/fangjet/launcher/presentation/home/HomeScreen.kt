@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
+import android.location.LocationManager
 import android.provider.MediaStore
 import android.provider.Settings
 import android.view.HapticFeedbackConstants
@@ -63,8 +64,10 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.core.location.LocationManagerCompat
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fangjet.launcher.R
 import com.fangjet.launcher.domain.model.HomeButton
@@ -155,6 +158,32 @@ fun HomeScreen(
 
     // RECORD_AUDIO permission launcher — called when user taps the mic button
     val context = LocalContext.current
+
+    // Auto-recover the weather card when its blocker is cleared OUTSIDE the
+    // card's own tap flow — permission granted from app settings or another
+    // screen, or location services switched back on in quick settings. Runs
+    // when Home resumes and whenever the weather state changes while shown;
+    // without it the card sits on "Tap to enable weather" until tapped.
+    val blockedWeather = ((state as? HomeUiState.Success)?.weather)
+        ?.takeIf { it is WeatherInfo.PermissionNeeded || it is WeatherInfo.LocationDisabled }
+    LifecycleResumeEffect(blockedWeather) {
+        val cleared = when (blockedWeather) {
+            is WeatherInfo.PermissionNeeded ->
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                ) == PackageManager.PERMISSION_GRANTED
+
+            is WeatherInfo.LocationDisabled ->
+                context
+                    .getSystemService(LocationManager::class.java)
+                    ?.let { LocationManagerCompat.isLocationEnabled(it) } == true
+
+            else -> false
+        }
+        if (cleared) viewModel.refreshWeather()
+        onPauseOrDispose { }
+    }
     val audioPermLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted -> if (granted) voiceViewModel.startListening() }
