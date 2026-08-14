@@ -395,6 +395,9 @@
     <string name="voice_command_opening">Opening %1$s…</string>
 
     <!-- Onboarding -->
+    <string name="onboarding_welcome_title">Welcome to EasyLink</string>
+    <string name="onboarding_welcome_desc">EasyLink gives this phone a simple home screen with big, clear buttons — phone calls, camera, medication reminders, weather and more.\n\nThe next few screens ask for the permissions those features need. Every one is optional: you can skip any of them and change your mind later in Settings.</string>
+    <string name="onboarding_get_started">Get Started</string>
     <string name="onboarding_phone_title">Phone &amp; Contacts</string>
     <string name="onboarding_phone_desc">EasyLink Launcher can call your contacts directly and powers Speed Dial and voice commands like \"Call John\".</string>
     <string name="onboarding_sms_title">Text Messages</string>

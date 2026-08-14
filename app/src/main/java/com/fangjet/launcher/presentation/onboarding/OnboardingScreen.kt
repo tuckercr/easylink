@@ -21,8 +21,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -44,6 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -75,6 +78,12 @@ private data class OnboardingStep(
     val permissions: List<String>,
     /** True for the final step, which requests the HOME role instead of a permission. */
     val isHomeRoleStep: Boolean = false,
+    /**
+     * True for the opening step: explains the app and that permission asks
+     * follow. No skip link (there is nothing to skip — the button just
+     * continues) and a privacy-policy link in its place.
+     */
+    val isWelcomeStep: Boolean = false,
 )
 
 /**
@@ -84,6 +93,15 @@ private data class OnboardingStep(
 private const val TAP_DEBOUNCE_MS = 750L
 
 private val STEPS: List<OnboardingStep> = buildList {
+    add(
+        OnboardingStep(
+            emoji = "👋",
+            titleRes = R.string.onboarding_welcome_title,
+            descRes = R.string.onboarding_welcome_desc,
+            permissions = emptyList(),
+            isWelcomeStep = true,
+        ),
+    )
     add(
         OnboardingStep(
             emoji = "📞",
@@ -259,6 +277,12 @@ fun OnboardingScreen(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(0.dp),
+            // Scrolls when the content outgrows the screen (long welcome text
+            // at a large accessibility font scale); centered by the Box when
+            // it fits, so the usual layout is unchanged.
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(vertical = 24.dp),
         ) {
             // ── Progress dots ─────────────────────────────────────────────────
             ProgressDots(total = STEPS.size, current = currentStep)
@@ -315,6 +339,7 @@ fun OnboardingScreen(
             ) {
                 Text(
                     text = when {
+                        step.isWelcomeStep -> stringResource(R.string.onboarding_get_started)
                         step.isHomeRoleStep -> stringResource(R.string.onboarding_home_button)
                         isLastStep -> stringResource(R.string.onboarding_allow_and_start)
                         else -> stringResource(R.string.onboarding_allow_access)
@@ -326,19 +351,38 @@ fun OnboardingScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            // ── Skip link ─────────────────────────────────────────────────────
-            TextButton(onClick = guarded(advance)) {
-                Text(
-                    text = if (isLastStep) {
-                        stringResource(R.string.onboarding_skip)
-                    } else {
-                        stringResource(
-                            R.string.onboarding_skip_for_now,
-                        )
+            if (step.isWelcomeStep) {
+                // ── Privacy policy link (welcome step only) ───────────────────
+                TextButton(
+                    onClick = guarded {
+                        runCatching {
+                            context.startActivity(
+                                Intent(Intent.ACTION_VIEW, "https://easylinkcare.com/privacy".toUri()),
+                            )
+                        }
                     },
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                )
+                ) {
+                    Text(
+                        text = stringResource(R.string.customize_privacy_policy),
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                    )
+                }
+            } else {
+                // ── Skip link ─────────────────────────────────────────────────
+                TextButton(onClick = guarded(advance)) {
+                    Text(
+                        text = if (isLastStep) {
+                            stringResource(R.string.onboarding_skip)
+                        } else {
+                            stringResource(
+                                R.string.onboarding_skip_for_now,
+                            )
+                        },
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                    )
+                }
             }
         }
     }
