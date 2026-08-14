@@ -1,5 +1,10 @@
 package com.fangjet.launcher.presentation.medications.add
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -48,12 +53,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fangjet.launcher.R
@@ -71,6 +78,27 @@ fun AddMedicationScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showTimePicker by remember { mutableStateOf(false) }
+
+    // Contextual notification ask: reminders are the whole point of saving a
+    // medication, so this is the moment the permission makes sense. Saving
+    // proceeds whatever the answer — alarms still fire; only the banner is
+    // suppressed when denied.
+    val context = LocalContext.current
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { viewModel.onSaveTapped() }
+    val saveWithNotificationAsk: () -> Unit = {
+        val needsAsk = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) != PackageManager.PERMISSION_GRANTED
+        if (needsAsk) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            viewModel.onSaveTapped()
+        }
+    }
 
     // Navigate back on success
     LaunchedEffect(state.saveSuccess) {
@@ -268,7 +296,7 @@ fun AddMedicationScreen(
 
             // ── Save button ───────────────────────────────────────────────────
             Button(
-                onClick = { viewModel.onSaveTapped() },
+                onClick = saveWithNotificationAsk,
                 enabled = !state.isSaving,
                 modifier = Modifier
                     .fillMaxWidth()

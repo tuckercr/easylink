@@ -1,9 +1,7 @@
 package com.fangjet.launcher.presentation.main
 
-import android.Manifest
 import android.app.role.RoleManager
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -46,10 +44,6 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.StartActivityForResult(),
     ) { /* re-checked on next onResume */ }
 
-    private val requestNotificationPermission = registerForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { /* showNotification() re-checks permission before posting */ }
-
     private val themeViewModel: ThemeViewModel by viewModels()
 
     /** Route to navigate to on startup, set via [EXTRA_NAVIGATE_TO] intent extra. */
@@ -76,7 +70,6 @@ class MainActivity : ComponentActivity() {
             statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
         )
         pendingNavTarget = intent.getStringExtra(EXTRA_NAVIGATE_TO)
-        requestNotificationPermissionIfNeeded()
         setContent {
             val highContrast by themeViewModel.highContrastEnabled.collectAsStateWithLifecycle()
             EasyLinkTheme(highContrast = highContrast) {
@@ -125,14 +118,6 @@ class MainActivity : ComponentActivity() {
         super.onPause()
         homeDialog?.dismiss()
         homeDialog = null
-    }
-
-    private fun requestNotificationPermissionIfNeeded() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-        ) {
-            requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
     }
 
     private fun promptSetAsHome() {
