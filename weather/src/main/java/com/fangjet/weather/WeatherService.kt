@@ -13,7 +13,6 @@ import com.fangjet.weather.data.WeatherPreferencesDataSource
 import com.fangjet.weather.model.ForecastDay
 import com.fangjet.weather.model.ForecastResult
 import com.fangjet.weather.model.WeatherInfo
-import com.fangjet.weather.model.WeatherUnits
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
@@ -34,7 +33,9 @@ import kotlin.coroutines.resume
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * Fetches weather data from Open-Meteo (open-source, no API key required).
+ * Fetches weather data from Open-Meteo. The endpoint and API key come from
+ * [WeatherApiConfigProvider] — keyless free tier by default, switchable to the
+ * paid keyed endpoint by the consuming app (see [WeatherApiConfig]).
  *
  * ## Location strategy
  *
@@ -58,12 +59,18 @@ import kotlin.time.Duration.Companion.milliseconds
 class WeatherService @Inject constructor(
     @ApplicationContext private val context: Context,
     private val weatherPrefs: WeatherPreferencesDataSource,
+    private val apiConfig: WeatherApiConfigProvider,
+    private val fetchReporter: WeatherFetchReporter,
 ) {
 
     companion object {
         private const val TAG = "WeatherService"
         private const val LOCATION_TIMEOUT_MS = 12_000L
         private const val MAX_CACHE_AGE_MS = 30 * 60 * 1_000L // 30 minutes
+
+        // Telemetry endpoint labels — never the URL, which carries coordinates.
+        private const val ENDPOINT_CURRENT = "current"
+        private const val ENDPOINT_FORECAST = "forecast"
     }
 
     // ── Public API ────────────────────────────────────────────────────────────
@@ -126,9 +133,9 @@ class WeatherService @Inject constructor(
             }
 
             return@withContext try {
-                val url = buildCurrentUrl(lat, lon, units)
-                Log.d(TAG, "Fetching weather: $url (fromCache=$fromCache)")
-                val json = httpGet(url) ?: run {
+                val url = WeatherUrls.current(apiConfig.current(), lat, lon, units)
+                Log.d(TAG, "Fetching current weather (fromCache=$fromCache)")
+                val json = httpGet(url, ENDPOINT_CURRENT) ?: run {
                     Log.w(TAG, "No response from weather API — trying cached weather")
                     return@withContext cachedWeatherFallback(city, fromCache)
                 }
@@ -191,8 +198,8 @@ class WeatherService @Inject constructor(
             }
 
             return@withContext try {
-                val url = buildForecastUrl(lat, lon, units)
-                val json = httpGet(url) ?: return@withContext ForecastResult.Unavailable(
+                val url = WeatherUrls.forecast(apiConfig.current(), lat, lon, units)
+                val json = httpGet(url, ENDPOINT_FORECAST) ?: return@withContext ForecastResult.Unavailable(
                     "No internet connection. Check your network settings and try again.",
                 )
 
@@ -369,39 +376,24 @@ class WeatherService @Inject constructor(
         }
     }
 
-    // ── URL builders ──────────────────────────────────────────────────────────
-
-    private fun buildCurrentUrl(
-        lat: Double,
-        lon: Double,
-        units: WeatherUnits,
-    ) = "https://api.open-meteo.com/v1/forecast" +
-        "?latitude=$lat&longitude=$lon" +
-        "&current=temperature_2m,weather_code" +
-        "&temperature_unit=${units.apiParam}"
-
-    private fun buildForecastUrl(
-        lat: Double,
-        lon: Double,
-        units: WeatherUnits,
-    ) = "https://api.open-meteo.com/v1/forecast" +
-        "?latitude=$lat&longitude=$lon" +
-        "&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max" +
-        "&forecast_days=7" +
-        "&temperature_unit=${units.apiParam}" +
-        "&timezone=auto"
-
     // ── HTTP helper ───────────────────────────────────────────────────────────
 
-    private fun httpGet(urlStr: String): JSONObject? {
+    private fun httpGet(
+        urlStr: String,
+        endpoint: String,
+    ): JSONObject? {
         return try {
             val conn = URL(urlStr).openConnection() as HttpURLConnection
             conn.connectTimeout = 6_000
             conn.readTimeout = 6_000
             val code = conn.responseCode
-            Log.d(TAG, "HTTP $code")
+            Log.d(TAG, "HTTP $code ($endpoint)")
             if (code != 200) {
-                Log.e(TAG, "Non-200: $code")
+                Log.e(TAG, "Non-200: $code ($endpoint)")
+                // Surface API-side failures (rate limiting especially) to the
+                // consuming app's telemetry; plain connectivity problems throw
+                // before a status code exists and stay local.
+                fetchReporter.onHttpError(code, endpoint)
                 return null
             }
             JSONObject(conn.inputStream.bufferedReader().readText())

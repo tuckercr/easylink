@@ -139,7 +139,7 @@ class SettingsDefaultsTest {
     fun `every key is covered by the ALL list`() {
         // Guards against adding a key but forgetting to register it for seeding.
         assertEquals(RemoteConfigKeys.ALL.size, RemoteConfigKeys.ALL.toSet().size)
-        assertEquals(12, RemoteConfigKeys.ALL.size)
+        assertEquals(14, RemoteConfigKeys.ALL.size)
     }
 
     // ── Feature kill switches ────────────────────────────────────────────────
@@ -210,6 +210,60 @@ class SettingsDefaultsTest {
         assertEquals(
             SettingsDefaults.HARDCODED.favoriteAppsCuratedPool,
             SettingsDefaults.from(MapReader(emptyMap())).favoriteAppsCuratedPool,
+        )
+    }
+
+    // ── Weather API endpoint ─────────────────────────────────────────────────
+
+    @Test
+    fun `weather endpoint defaults to the free keyless open-meteo API`() {
+        val result = SettingsDefaults.from(MapReader(emptyMap()))
+        assertEquals("https://api.open-meteo.com", result.weatherApiBaseUrl)
+        assertEquals("", result.weatherApiKey)
+    }
+
+    @Test
+    fun `weather endpoint can be switched to the paid keyed API from the console`() {
+        val reader = MapReader(
+            mapOf(
+                RemoteConfigKeys.WEATHER_API_BASE_URL to "https://customer-api.open-meteo.com",
+                RemoteConfigKeys.WEATHER_API_KEY to "abc123",
+            ),
+        )
+        val result = SettingsDefaults.from(reader)
+        assertEquals("https://customer-api.open-meteo.com", result.weatherApiBaseUrl)
+        assertEquals("abc123", result.weatherApiKey)
+    }
+
+    @Test
+    fun `weather base url is trimmed and stripped of trailing slashes`() {
+        assertEquals(
+            "https://customer-api.open-meteo.com",
+            SettingsDefaults.sanitizeBaseUrl(" https://customer-api.open-meteo.com/ "),
+        )
+    }
+
+    @Test
+    fun `a broken weather base url falls back to the free endpoint`() {
+        // http://, garbage, embedded spaces, or a bare scheme must never brick
+        // weather across the install base.
+        for (bad in listOf("http://insecure.example.com", "not a url", "https://", "https://a b.com", "")) {
+            assertEquals(
+                SettingsDefaults.HARDCODED.weatherApiBaseUrl,
+                SettingsDefaults.from(MapReader(mapOf(RemoteConfigKeys.WEATHER_API_BASE_URL to bad))).weatherApiBaseUrl,
+            )
+        }
+    }
+
+    @Test
+    fun `a whitespace-riddled api key falls back to keyless`() {
+        assertEquals(
+            "",
+            SettingsDefaults.from(MapReader(mapOf(RemoteConfigKeys.WEATHER_API_KEY to "abc 123"))).weatherApiKey,
+        )
+        assertEquals(
+            "abc123",
+            SettingsDefaults.from(MapReader(mapOf(RemoteConfigKeys.WEATHER_API_KEY to "  abc123  "))).weatherApiKey,
         )
     }
 }

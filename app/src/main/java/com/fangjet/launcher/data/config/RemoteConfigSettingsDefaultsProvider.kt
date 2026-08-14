@@ -124,6 +124,8 @@ class RemoteConfigSettingsDefaultsProvider
                     SettingsDefaults.HARDCODED.highContrastFeatureEnabled,
                 RemoteConfigKeys.FAVORITE_APPS_CURATED_POOL to
                     SettingsDefaults.HARDCODED.favoriteAppsCuratedPool.joinToString(","),
+                RemoteConfigKeys.WEATHER_API_BASE_URL to SettingsDefaults.HARDCODED.weatherApiBaseUrl,
+                RemoteConfigKeys.WEATHER_API_KEY to SettingsDefaults.HARDCODED.weatherApiKey,
             )
         }
     }

@@ -59,6 +59,16 @@
       "defaultValue": { "value": "12" },
       "valueType": "NUMBER",
       "description": "How many apps the Home screen's My Apps row shows. Clamped to 4–24 in-app."
+    },
+    "weather_api_base_url": {
+      "defaultValue": { "value": "https://api.open-meteo.com" },
+      "valueType": "STRING",
+      "description": "Weather API base URL. Free keyless Open-Meteo by default. To migrate to the paid plan without an app update: set to https://customer-api.open-meteo.com and set weather_api_key. Must be https; invalid values fall back in-app to the free endpoint."
+    },
+    "weather_api_key": {
+      "defaultValue": { "value": "" },
+      "valueType": "STRING",
+      "description": "Weather API key, appended as &apikey= when non-blank. Blank = keyless free tier. Set together with weather_api_base_url when moving to the paid Open-Meteo plan."
     }
   }
 }

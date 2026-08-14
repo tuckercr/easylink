@@ -29,6 +29,12 @@ object RemoteConfigKeys {
     /** Comma-separated package names: the Apps Row's cold-start fill pool. */
     const val FAVORITE_APPS_CURATED_POOL = "apps_row_curated_pool"
 
+    // Weather API escape hatch — lets us move every installed app from
+    // Open-Meteo's free keyless endpoint to their paid keyed one (same API)
+    // from the console, without shipping an update. See SettingsDefaults.
+    const val WEATHER_API_BASE_URL = "weather_api_base_url"
+    const val WEATHER_API_KEY = "weather_api_key"
+
     /** Every key, so callers can seed in-app defaults and templates without repeating the list. */
     val ALL: List<String> = listOf(
         SOS_BUTTON_VISIBLE_BY_DEFAULT,
@@ -43,5 +49,7 @@ object RemoteConfigKeys {
         FAVORITE_APPS_FEATURE_ENABLED,
         HIGH_CONTRAST_FEATURE_ENABLED,
         FAVORITE_APPS_CURATED_POOL,
+        WEATHER_API_BASE_URL,
+        WEATHER_API_KEY,
     )
 }

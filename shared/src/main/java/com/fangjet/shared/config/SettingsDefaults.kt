@@ -62,6 +62,15 @@ data class SettingsDefaults(
      * so a bigger pool just improves the odds of a sensible row.
      */
     val favoriteAppsCuratedPool: List<String>,
+    /**
+     * Base URL for the weather API. Defaults to Open-Meteo's free keyless
+     * endpoint; flipping this (plus [weatherApiKey]) to their paid keyed
+     * endpoint (`https://customer-api.open-meteo.com`) migrates every
+     * installed app without a release — the paid API is schema-identical.
+     */
+    val weatherApiBaseUrl: String,
+    /** Weather API key, appended when non-blank. Blank = keyless free tier. */
+    val weatherApiKey: String,
 ) {
     companion object {
         /**
@@ -99,6 +108,8 @@ data class SettingsDefaults(
                 "com.google.android.contacts",
                 "com.google.android.deskclock",
             ),
+            weatherApiBaseUrl = "https://api.open-meteo.com",
+            weatherApiKey = "",
         )
 
         /** Lower bound for [sosHoldDurationMs]; a too-short hold defeats the accidental-press guard. */
@@ -136,6 +147,28 @@ data class SettingsDefaults(
                 ?.distinct()
                 ?.take(MAX_CURATED_POOL)
                 ?.takeIf { it.isNotEmpty() }
+
+        /**
+         * Sanitizes a console-entered API base URL: https-only, no whitespace,
+         * trailing slash trimmed (URL builders append `/v1/...`). Returns null
+         * for anything else so a broken value falls back to the free endpoint
+         * rather than silently killing weather for the whole install base.
+         */
+        fun sanitizeBaseUrl(value: String?): String? =
+            value
+                ?.trim()
+                ?.trimEnd('/')
+                ?.takeIf { url ->
+                    url.startsWith("https://") &&
+                        url.length > "https://".length &&
+                        url.none { it.isWhitespace() }
+                }
+
+        /** API keys are opaque tokens: trimmed, must be single-line with no spaces. */
+        fun sanitizeApiKey(value: String?): String? =
+            value
+                ?.trim()
+                ?.takeIf { key -> key.isNotEmpty() && key.none { it.isWhitespace() } }
 
         /**
          * Builds a [SettingsDefaults] from a Remote Config accessor, falling back
@@ -191,6 +224,10 @@ data class SettingsDefaults(
                 favoriteAppsCuratedPool = parseCuratedPool(
                     reader.string(RemoteConfigKeys.FAVORITE_APPS_CURATED_POOL),
                 ) ?: HARDCODED.favoriteAppsCuratedPool,
+                weatherApiBaseUrl = sanitizeBaseUrl(reader.string(RemoteConfigKeys.WEATHER_API_BASE_URL))
+                    ?: HARDCODED.weatherApiBaseUrl,
+                weatherApiKey = sanitizeApiKey(reader.string(RemoteConfigKeys.WEATHER_API_KEY))
+                    ?: HARDCODED.weatherApiKey,
             )
         }
     }
