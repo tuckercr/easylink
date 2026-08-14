@@ -9,6 +9,7 @@ import android.hardware.camera2.CameraManager
 import android.location.LocationManager
 import android.provider.MediaStore
 import android.provider.Settings
+import android.util.DisplayMetrics
 import android.view.HapticFeedbackConstants
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -200,198 +201,214 @@ fun HomeScreen(
         }
     }
 
+    // ── Display Size neutralization ──────────────────────────────────────────
+    // The grid fills the screen by weight, so the system Display Size setting
+    // cannot make its buttons bigger — it only grows every fixed-dp margin and
+    // chrome element (screen padding, weather card, apps row, voice bar),
+    // which physically SQUEEZES the grid and shrinks its icons and labels.
+    // The home screen is already maximized for the physical panel, so render
+    // it at the device's stable density: Display Size affects every other
+    // screen normally, and the separate font-size setting (fontScale) is
+    // still honoured here.
+    val currentDensity = LocalDensity.current
+    val stableDensity = remember { DisplayMetrics.DENSITY_DEVICE_STABLE / 160f }
+
     // ── Root Box allows overlay on top of screen content ─────────────────────
-    Box(Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .swipeUpToOpen(onSwipeUp = onNavigateToApps)
-                .padding(16.dp),
-        ) {
-            when (val s = state) {
-                is HomeUiState.Loading -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                }
-
-                is HomeUiState.Error -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(s.message, color = MaterialTheme.colorScheme.error)
-                    }
-                }
-
-                is HomeUiState.Success -> {
-                    // ── Weather card + Settings ─────────────────────────────
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        WeatherCard(
-                            weather = s.weather,
-                            onRequestPermission = {
-                                locationLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
-                            },
-                            onRefresh = { viewModel.refreshWeather() },
-                            onNavigateToForecast = onNavigateToForecast,
-                            modifier = Modifier.weight(1f),
-                        )
-                        SettingsButton(onClick = onNavigateToSettings)
-                    }
-
-                    Spacer(Modifier.height(12.dp))
-
-                    // ── Apps Row (real apps, real icons, usage-ranked) ──────
-                    val favoriteApps by viewModel.favoriteApps.collectAsStateWithLifecycle()
-                    val badgedPackages by viewModel.badgedPackages.collectAsStateWithLifecycle()
-                    if (favoriteApps.isNotEmpty()) {
-                        FavoriteAppsRow(
-                            apps = favoriteApps,
-                            badgedPackages = badgedPackages,
-                            onAppTapped = { viewModel.onAppTapped(it) },
-                        )
-                        Spacer(Modifier.height(12.dp))
-                    }
-
-                    // ── Dynamic button grid ─────────────────────────────────
-                    val view = LocalView.current
-                    val launchIntent: (Intent) -> Unit = { intent ->
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        try {
-                            context.startActivity(intent)
-                        } catch (_: android.content.ActivityNotFoundException) {
-                            // No app handles this intent — silently ignore
+    CompositionLocalProvider(
+        LocalDensity provides Density(stableDensity, currentDensity.fontScale),
+    ) {
+        Box(Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .swipeUpToOpen(onSwipeUp = onNavigateToApps)
+                    .padding(16.dp),
+            ) {
+                when (val s = state) {
+                    is HomeUiState.Loading -> {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
                         }
                     }
 
-                    val flashlightOnText = stringResource(R.string.flashlight_on)
-                    val flashlightOffText = stringResource(R.string.flashlight_off)
+                    is HomeUiState.Error -> {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(s.message, color = MaterialTheme.colorScheme.error)
+                        }
+                    }
 
-                    ButtonGrid(
-                        modifier = Modifier.weight(1f),
-                        enabledButtons = s.enabledButtons,
-                        isFlashlightOn = s.isFlashlightOn,
-                        onPhone = { launchIntent(Intent(Intent.ACTION_DIAL)) },
-                        onText = {
-                            launchIntent(
-                                Intent(Intent.ACTION_MAIN).apply {
-                                    addCategory(Intent.CATEGORY_APP_MESSAGING)
+                    is HomeUiState.Success -> {
+                        // ── Weather card + Settings ─────────────────────────────
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            WeatherCard(
+                                weather = s.weather,
+                                onRequestPermission = {
+                                    locationLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
                                 },
+                                onRefresh = { viewModel.refreshWeather() },
+                                onNavigateToForecast = onNavigateToForecast,
+                                modifier = Modifier.weight(1f),
                             )
-                        },
-                        onCamera = { launchIntent(Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)) },
-                        onMagnifier = onNavigateToMagnifier,
-                        onAllApps = onNavigateToApps,
-                        onSpeedDial = onNavigateToSpeedDial,
-                        onMedications = onNavigateToMedications,
-                        onFlashlight = { viewModel.toggleFlashlight() },
-                        onWeb = {
-                            // Try Chrome variants first (restores last session without a URL).
-                            // Fall back to ACTION_VIEW on a URL — this opens any installed
-                            // browser (Firefox, Brave, etc.) and is universally supported.
-                            val intent =
-                                context.packageManager.getLaunchIntentForPackage("com.android.chrome")
-                                    ?: context.packageManager.getLaunchIntentForPackage("com.chrome.beta")
-                                    ?: context.packageManager.getLaunchIntentForPackage("com.chrome.dev")
-                                    ?: Intent(Intent.ACTION_VIEW, "https://www.google.com".toUri())
-                            launchIntent(intent)
-                        },
-                        onMaps = { launchIntent(Intent(Intent.ACTION_VIEW, "geo:0,0".toUri())) },
-                        onEmail = {
-                            launchIntent(
-                                Intent(Intent.ACTION_MAIN).apply {
-                                    addCategory(Intent.CATEGORY_APP_EMAIL)
-                                },
-                            )
-                        },
-                        onPhotos = {
-                            launchIntent(
-                                Intent(Intent.ACTION_MAIN).apply {
-                                    addCategory(Intent.CATEGORY_APP_GALLERY)
-                                },
-                            )
-                        },
-                        onYouTube = {
-                            launchIntent(
-                                Intent(
-                                    Intent.ACTION_VIEW,
-                                    "https://www.youtube.com".toUri(),
-                                ),
-                            )
-                        },
-                        onCalculator = {
-                            launchIntent(
-                                Intent(Intent.ACTION_MAIN).apply {
-                                    addCategory(Intent.CATEGORY_APP_CALCULATOR)
-                                },
-                            )
-                        },
-                        onLongPress = { label ->
-                            view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                            ttsViewModel.speak(label)
-                        },
-                        flashlightOnText = flashlightOnText,
-                        flashlightOffText = flashlightOffText,
-                    )
+                            SettingsButton(onClick = onNavigateToSettings)
+                        }
 
-                    // ── Voice command button (only when enabled in Settings) ──
-                    if (s.voiceButtonEnabled) {
                         Spacer(Modifier.height(12.dp))
 
-                        Surface(
-                            onClick = onMicTapped,
-                            color = ColorVoice,
-                            shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(64.dp),
-                        ) {
-                            Row(
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_mic),
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(26.dp),
-                                )
-                                Spacer(Modifier.size(10.dp))
-                                Text(
-                                    stringResource(R.string.home_voice_command_button),
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = Color.White,
-                                )
+                        // ── Apps Row (real apps, real icons, usage-ranked) ──────
+                        val favoriteApps by viewModel.favoriteApps.collectAsStateWithLifecycle()
+                        val badgedPackages by viewModel.badgedPackages.collectAsStateWithLifecycle()
+                        if (favoriteApps.isNotEmpty()) {
+                            FavoriteAppsRow(
+                                apps = favoriteApps,
+                                badgedPackages = badgedPackages,
+                                onAppTapped = { viewModel.onAppTapped(it) },
+                            )
+                            Spacer(Modifier.height(12.dp))
+                        }
+
+                        // ── Dynamic button grid ─────────────────────────────────
+                        val view = LocalView.current
+                        val launchIntent: (Intent) -> Unit = { intent ->
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            try {
+                                context.startActivity(intent)
+                            } catch (_: android.content.ActivityNotFoundException) {
+                                // No app handles this intent — silently ignore
                             }
                         }
-                    }
 
-                    // ── SOS (only when enabled in Settings) ──────────────────
-                    if (s.sosButtonEnabled) {
-                        // 12 dp gap above SOS — same rhythm as the button grid gaps,
-                        // present whether or not the voice button is visible.
-                        Spacer(Modifier.height(12.dp))
+                        val flashlightOnText = stringResource(R.string.flashlight_on)
+                        val flashlightOffText = stringResource(R.string.flashlight_off)
 
-                        SosHoldButton(
-                            onActivate = onNavigateToSos,
-                            holdDurationMs = s.sosHoldDurationMs.toInt(),
+                        ButtonGrid(
+                            modifier = Modifier.weight(1f),
+                            enabledButtons = s.enabledButtons,
+                            isFlashlightOn = s.isFlashlightOn,
+                            onPhone = { launchIntent(Intent(Intent.ACTION_DIAL)) },
+                            onText = {
+                                launchIntent(
+                                    Intent(Intent.ACTION_MAIN).apply {
+                                        addCategory(Intent.CATEGORY_APP_MESSAGING)
+                                    },
+                                )
+                            },
+                            onCamera = { launchIntent(Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)) },
+                            onMagnifier = onNavigateToMagnifier,
+                            onAllApps = onNavigateToApps,
+                            onSpeedDial = onNavigateToSpeedDial,
+                            onMedications = onNavigateToMedications,
+                            onFlashlight = { viewModel.toggleFlashlight() },
+                            onWeb = {
+                                // Try Chrome variants first (restores last session without a URL).
+                                // Fall back to ACTION_VIEW on a URL — this opens any installed
+                                // browser (Firefox, Brave, etc.) and is universally supported.
+                                val intent =
+                                    context.packageManager.getLaunchIntentForPackage("com.android.chrome")
+                                        ?: context.packageManager.getLaunchIntentForPackage("com.chrome.beta")
+                                        ?: context.packageManager.getLaunchIntentForPackage("com.chrome.dev")
+                                        ?: Intent(Intent.ACTION_VIEW, "https://www.google.com".toUri())
+                                launchIntent(intent)
+                            },
+                            onMaps = { launchIntent(Intent(Intent.ACTION_VIEW, "geo:0,0".toUri())) },
+                            onEmail = {
+                                launchIntent(
+                                    Intent(Intent.ACTION_MAIN).apply {
+                                        addCategory(Intent.CATEGORY_APP_EMAIL)
+                                    },
+                                )
+                            },
+                            onPhotos = {
+                                launchIntent(
+                                    Intent(Intent.ACTION_MAIN).apply {
+                                        addCategory(Intent.CATEGORY_APP_GALLERY)
+                                    },
+                                )
+                            },
+                            onYouTube = {
+                                launchIntent(
+                                    Intent(
+                                        Intent.ACTION_VIEW,
+                                        "https://www.youtube.com".toUri(),
+                                    ),
+                                )
+                            },
+                            onCalculator = {
+                                launchIntent(
+                                    Intent(Intent.ACTION_MAIN).apply {
+                                        addCategory(Intent.CATEGORY_APP_CALCULATOR)
+                                    },
+                                )
+                            },
+                            onLongPress = { label ->
+                                view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                                ttsViewModel.speak(label)
+                            },
+                            flashlightOnText = flashlightOnText,
+                            flashlightOffText = flashlightOffText,
                         )
 
-                        Spacer(Modifier.height(8.dp))
+                        // ── Voice command button (only when enabled in Settings) ──
+                        if (s.voiceButtonEnabled) {
+                            Spacer(Modifier.height(12.dp))
+
+                            Surface(
+                                onClick = onMicTapped,
+                                color = ColorVoice,
+                                shape = RoundedCornerShape(16.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(64.dp),
+                            ) {
+                                Row(
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_mic),
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(26.dp),
+                                    )
+                                    Spacer(Modifier.size(10.dp))
+                                    Text(
+                                        stringResource(R.string.home_voice_command_button),
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color.White,
+                                    )
+                                }
+                            }
+                        }
+
+                        // ── SOS (only when enabled in Settings) ──────────────────
+                        if (s.sosButtonEnabled) {
+                            // 12 dp gap above SOS — same rhythm as the button grid gaps,
+                            // present whether or not the voice button is visible.
+                            Spacer(Modifier.height(12.dp))
+
+                            SosHoldButton(
+                                onActivate = onNavigateToSos,
+                                holdDurationMs = s.sosHoldDurationMs.toInt(),
+                            )
+
+                            Spacer(Modifier.height(8.dp))
+                        }
                     }
                 }
             }
-        }
 
-        // ── Voice overlay (rendered on top when active) ───────────────────────
-        if (voiceState !is VoiceUiState.Idle) {
-            VoiceOverlay(
-                state = voiceState,
-                onDismiss = { voiceViewModel.dismiss() },
-                onRetry = { voiceViewModel.retry() },
-            )
+            // ── Voice overlay (rendered on top when active) ───────────────────
+            if (voiceState !is VoiceUiState.Idle) {
+                VoiceOverlay(
+                    state = voiceState,
+                    onDismiss = { voiceViewModel.dismiss() },
+                    onRetry = { voiceViewModel.retry() },
+                )
+            }
         }
     }
 }
