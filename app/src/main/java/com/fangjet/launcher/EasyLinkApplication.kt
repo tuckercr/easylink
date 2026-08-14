@@ -53,10 +53,17 @@ class EasyLinkApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         reminderNotifHelper.createChannel()
-        fallNotifHelper.createChannels()
         homeScreenNotifHelper.createChannel()
         homeScreenCheckScheduler.schedule()
-        restoreFallDetectionIfEnabled()
+        if (BuildConfig.SAFETY_FEATURES) {
+            // Safety flavor only. The standard (Play) build must not register
+            // "Fall Detection" channels — they show up in the system's
+            // notification settings for a feature the app doesn't have — and
+            // its manifest has no FallDetectionService to restart (a restored
+            // safety-flavor preference would crash the start attempt).
+            fallNotifHelper.createChannels()
+            restoreFallDetectionIfEnabled()
+        }
 
         // Pull the latest server-tuned setting defaults. A no-op until Firebase is
         // wired; never blocks startup and swallows its own failures.

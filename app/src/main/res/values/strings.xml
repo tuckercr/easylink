@@ -408,7 +408,8 @@
     <string name="onboarding_camera_title">Camera</string>
     <string name="onboarding_camera_desc">Powers the Magnifier (great for small print) and the Flashlight. Your camera is never used without your knowledge.</string>
     <string name="onboarding_notifications_title">Notifications</string>
-    <string name="onboarding_notifications_desc">Required to deliver medication reminders and fall detection alerts reliably.</string>
+    <!-- Overridden in src/safety/res (adds fall detection). -->
+    <string name="onboarding_notifications_desc">Required to deliver medication reminders reliably.</string>
     <string name="onboarding_microphone_title">Microphone</string>
     <string name="onboarding_microphone_desc">Enables voice commands like \"Call John\", \"Open Camera\", or \"Flashlight on\". The microphone is only active when you tap the voice button.</string>
     <string name="onboarding_home_title">Make This the Home Screen</string>

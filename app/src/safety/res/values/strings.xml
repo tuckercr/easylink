@@ -3,4 +3,5 @@
      which only exists in this flavor. -->
 <resources>
     <string name="onboarding_location_desc">Your location is included in SOS messages so emergency contacts know where to find you. Also powers the weather widget.</string>
+    <string name="onboarding_notifications_desc">Required to deliver medication reminders and fall detection alerts reliably.</string>
 </resources>
