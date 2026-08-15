@@ -81,7 +81,7 @@ class AppListCacheTest {
         }
 
     @Test
-    fun `queryApps excludes packages that declare CATEGORY_HOME`() =
+    fun `queryApps keeps other launchers, deduplicated`() =
         runTest {
             // Rival launcher appears twice — once as a HOME screen, once as a LAUNCHER entry
             givenAllMainActivities(
@@ -92,8 +92,8 @@ class AppListCacheTest {
 
             val result = AppListCache.queryApps(context)
 
-            assertEquals(1, result.size)
-            assertEquals("com.example.notes", result.first().packageName)
+            assertEquals(2, result.size)
+            assertEquals(1, result.count { it.packageName == "com.example.rival.launcher" })
         }
 
     @Test
@@ -127,24 +127,24 @@ class AppListCacheTest {
         }
 
     @Test
-    fun `queryApps excludes host and home apps while keeping regular apps`() =
+    fun `queryApps excludes only the host while keeping other launchers and regular apps`() =
         runTest {
             givenAllMainActivities(
                 launcherApp(pkg = hostPackage, label = "EZ Launcher"),
-                homeApp(pkg = "com.big.launcher.demo"),
-                launcherApp(pkg = "com.big.launcher.demo", label = "Big Launcher"),
+                // A drawer-less stock launcher: HOME activity only
+                homeApp(pkg = "com.stock.launcher"),
                 launcherApp(pkg = "com.example.camera", label = "Camera"),
                 launcherApp(pkg = "com.example.maps", label = "Maps"),
             )
 
             val result = AppListCache.queryApps(context)
 
-            assertEquals(2, result.size)
+            assertEquals(3, result.size)
             val packages = result.map { it.packageName }
             assertTrue("com.example.camera" in packages)
             assertTrue("com.example.maps" in packages)
+            assertTrue("com.stock.launcher" in packages)
             assertFalse(hostPackage in packages)
-            assertFalse("com.big.launcher.demo" in packages)
         }
 
     @Test
@@ -209,7 +209,7 @@ class AppListCacheTest {
 
     /**
      * A [ResolveInfo] whose filter declares [Intent.CATEGORY_HOME] (i.e. a launcher).
-     * These should be excluded from the All Apps grid.
+     * Listed in the All Apps grid like any app — only the host itself is hidden.
      */
     private fun homeApp(pkg: String): ResolveInfo =
         spyk(ResolveInfo()).apply {

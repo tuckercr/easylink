@@ -84,11 +84,14 @@ internal object AppListCache {
     }
 
     /**
-     * Queries the package manager for all user-launchable apps, excluding
-     * the host app itself and any other home-screen launchers.
+     * Queries the package manager for all user-launchable apps, excluding only
+     * the host app itself.
      *
-     * Performs a single query for all activities with ACTION_MAIN and filters
-     * for CATEGORY_LAUNCHER and CATEGORY_HOME in memory for efficiency.
+     * Other home-screen launchers (Pixel Launcher, Nova, …) ARE listed: hiding
+     * them made it look like the previous launcher had vanished from the
+     * phone. CATEGORY_HOME activities count as launchable alongside
+     * CATEGORY_LAUNCHER ones because stock launchers often have no app-drawer
+     * icon of their own.
      */
     internal fun queryApps(context: Context): List<AppInfo> {
         val pm: PackageManager = context.packageManager
@@ -100,16 +103,13 @@ internal object AppListCache {
             PackageManager.GET_RESOLVED_FILTER,
         )
 
-        val homePackages = mutableSetOf<String>()
         val candidates = mutableListOf<ResolveInfo>()
 
         for (ri in allActivities) {
             val filter = ri.filter ?: continue
-            val pkg = ri.activityInfo.packageName
-            if (filter.hasCategory(Intent.CATEGORY_HOME)) {
-                homePackages.add(pkg)
-            }
-            if (filter.hasCategory(Intent.CATEGORY_LAUNCHER)) {
+            if (filter.hasCategory(Intent.CATEGORY_LAUNCHER) ||
+                filter.hasCategory(Intent.CATEGORY_HOME)
+            ) {
                 candidates.add(ri)
             }
         }
@@ -117,8 +117,8 @@ internal object AppListCache {
         return candidates
             .mapNotNull { ri ->
                 val pkg = ri.activityInfo.packageName
-                // Exclude this app and other launchers
-                if (pkg == context.packageName || pkg in homePackages) return@mapNotNull null
+                // Exclude this app — tapping EasyLink inside EasyLink is a no-op trap
+                if (pkg == context.packageName) return@mapNotNull null
 
                 val label = runCatching { ri.loadLabel(pm).toString() }
                     .getOrDefault(pkg) // fall back to package name if label fails
