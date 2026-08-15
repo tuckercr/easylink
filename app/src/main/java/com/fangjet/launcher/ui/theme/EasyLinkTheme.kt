@@ -7,22 +7,26 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
 
-val ColorPhone = Color(0xFF839B3B)
-val ColorText = Color(0xFF4285F4)
-val ColorCamera = Color(0xFF197C72)
-val ColorMagnifier = Color(0xFFD0942B)
+val ColorPhone = Color(0xFF657D21)
+val ColorText = Color(0xFF2F65A7)
+val ColorCamera = Color(0xFF236B63)
+
+val ColorMagnifier = Color(0xFF986315)
 val ColorAllApps = Color(0xFF565989)
-val ColorFlashlight = Color(0xFFDAB129)
-val ColorSos = Color(0xFFDE3226)
+val ColorFlashlight = Color(0xFF927000)
+
 val ColorSpeedDial = Color(0xFF3C6478)
-val ColorMeds = Color(0xFF0093D5)
-val ColorWeb = Color(0xFF34A853)
-val ColorFacebook = Color(0xFF1877F2)
-val ColorMaps = Color(0xFF2E7D32)
-val ColorEmail = Color(0xFF6D4C41)
-val ColorPhotos = Color(0xFF6A1B9A)
-val ColorYouTube = Color(0xFFC62828)
-val ColorCalculator = Color(0xFF00695C)
+val ColorMeds = Color(0xFF0A6F9E)
+
+val ColorWeb = Color(0xFF28773F)
+val ColorFacebook = Color(0xFF1859A9)
+val ColorMaps = Color(0xFF2E6F3D)
+
+val ColorEmail = Color(0xFF795548)
+val ColorPhotos = Color(0xFF71378F)
+val ColorYouTube = Color(0xFF803B3B)
+
+val ColorCalculator = Color(0xFF0E665D)
 
 private val DarkColors = darkColorScheme(
     primary = Color(0xFF90CAF9),
