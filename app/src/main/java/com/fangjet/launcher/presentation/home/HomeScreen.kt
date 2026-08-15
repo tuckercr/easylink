@@ -86,7 +86,6 @@ import com.fangjet.launcher.presentation.voice.VoiceCommandViewModel
 import com.fangjet.launcher.presentation.voice.VoiceEffect
 import com.fangjet.launcher.presentation.voice.VoiceOverlay
 import com.fangjet.launcher.presentation.voice.VoiceUiState
-import com.fangjet.launcher.ui.theme.ColorAllApps
 import com.fangjet.launcher.ui.theme.ColorCalculator
 import com.fangjet.launcher.ui.theme.ColorCamera
 import com.fangjet.launcher.ui.theme.ColorEmail
@@ -392,7 +391,6 @@ fun HomeScreen(
                             },
                             onCamera = { launchIntent(Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)) },
                             onMagnifier = onNavigateToMagnifier,
-                            onAllApps = onNavigateToApps,
                             onSpeedDial = onNavigateToSpeedDial,
                             onMedications = onNavigateToMedications,
                             onFlashlight = { viewModel.toggleFlashlight() },
@@ -495,6 +493,28 @@ fun HomeScreen(
                             )
 
                             Spacer(Modifier.height(8.dp))
+                        }
+
+                        // ── All Apps handle ──────────────────────────────────
+                        // Fixed and deliberately not customizable: every phone
+                        // function lives behind it, so there is no scenario
+                        // where a user or carer should be able to remove it.
+                        // Mirrors the swipe-up gesture, which opens the same
+                        // screen.
+                        Spacer(Modifier.height(4.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 48.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable(onClick = onNavigateToApps),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_all_apps_handle),
+                                contentDescription = stringResource(R.string.apps),
+                                tint = Color.White.copy(alpha = 0.9f),
+                            )
                         }
                     }
                 }
@@ -742,7 +762,6 @@ private fun ButtonGrid(
     onText: () -> Unit,
     onCamera: () -> Unit,
     onMagnifier: () -> Unit,
-    onAllApps: () -> Unit,
     onSpeedDial: () -> Unit,
     onMedications: () -> Unit,
     onFlashlight: () -> Unit,
@@ -795,7 +814,6 @@ private fun ButtonGrid(
                                 onText = onText,
                                 onCamera = onCamera,
                                 onMagnifier = onMagnifier,
-                                onAllApps = onAllApps,
                                 onSpeedDial = onSpeedDial,
                                 onMedications = onMedications,
                                 onFlashlight = onFlashlight,
@@ -831,7 +849,6 @@ private fun SingleHomeButton(
     onText: () -> Unit,
     onCamera: () -> Unit,
     onMagnifier: () -> Unit,
-    onAllApps: () -> Unit,
     onSpeedDial: () -> Unit,
     onMedications: () -> Unit,
     onFlashlight: () -> Unit,
@@ -894,18 +911,6 @@ private fun SingleHomeButton(
                 color = ColorMagnifier,
                 modifier = modifier,
                 onClick = onMagnifier,
-                onLongClick = { onLongPress(label) },
-            )
-        }
-
-        HomeButton.ALL_APPS -> {
-            val label = stringResource(R.string.apps)
-            HomeActionButton(
-                label = label,
-                iconRes = R.drawable.ic_apps_grid,
-                color = ColorAllApps,
-                modifier = modifier,
-                onClick = onAllApps,
                 onLongClick = { onLongPress(label) },
             )
         }

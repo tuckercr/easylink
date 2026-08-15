@@ -28,6 +28,10 @@ val ColorYouTube = Color(0xFF803B3B)
 
 val ColorCalculator = Color(0xFF0E665D)
 
+// Not a home-tile colour: used by the safety flavor's SOS button and
+// countdown screen. Red stays reserved for emergency UI.
+val ColorSos = Color(0xFFC8322D)
+
 private val DarkColors = darkColorScheme(
     primary = Color(0xFF90CAF9),
     onPrimary = Color(0xFF00315F),
