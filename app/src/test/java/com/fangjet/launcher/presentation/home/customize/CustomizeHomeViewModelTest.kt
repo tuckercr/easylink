@@ -3,6 +3,7 @@ package com.fangjet.launcher.presentation.home.customize
 import app.cash.turbine.test
 import com.fangjet.launcher.data.apps.FavoriteAppsMode
 import com.fangjet.launcher.data.apps.FavoriteAppsPreferences
+import com.fangjet.launcher.data.apps.InstalledAppChecker
 import com.fangjet.launcher.data.config.FakeSettingsDefaultsProvider
 import com.fangjet.launcher.data.fall.FallDetectionManager
 import com.fangjet.launcher.data.home.DefaultHomeChecker
@@ -35,6 +36,7 @@ class CustomizeHomeViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
 
     private lateinit var homePrefs: HomePreferencesDataSource
+    private lateinit var installedAppChecker: InstalledAppChecker
     private lateinit var fallPrefs: FallDetectionPreferences
     private lateinit var fallManager: FallDetectionManager
     private lateinit var defaultHomeChecker: DefaultHomeChecker
@@ -70,8 +72,11 @@ class CustomizeHomeViewModelTest {
         defaultHomeChecker = mockk(relaxed = true)
         every { defaultHomeChecker.isDefault() } returns true
         every { defaultHomeChecker.defaultHomeLabel() } returns "EasyLink"
+        installedAppChecker = mockk(relaxed = true)
+        every { installedAppChecker.isInstalled(any()) } returns false
         viewModel = CustomizeHomeViewModel(
             homePrefs,
+            installedAppChecker,
             fallPrefs,
             fallManager,
             favoritePrefs,
