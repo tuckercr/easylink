@@ -43,7 +43,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -380,6 +379,8 @@ fun HomeScreen(
                         ButtonGrid(
                             modifier = Modifier.weight(1f),
                             enabledButtons = s.enabledButtons,
+                            showVoiceButton = s.voiceButtonEnabled,
+                            onVoiceTapped = onMicTapped,
                             isFlashlightOn = s.isFlashlightOn,
                             onPhone = { launchIntent(Intent(Intent.ACTION_DIAL)) },
                             onText = {
@@ -448,39 +449,6 @@ fun HomeScreen(
                             flashlightOffText = flashlightOffText,
                         )
 
-                        // ── Voice command button (only when enabled in Settings) ──
-                        if (s.voiceButtonEnabled) {
-                            Spacer(Modifier.height(12.dp))
-
-                            Surface(
-                                onClick = onMicTapped,
-                                color = ColorVoice,
-                                shape = RoundedCornerShape(16.dp),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(64.dp),
-                            ) {
-                                Row(
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_mic),
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(26.dp),
-                                    )
-                                    Spacer(Modifier.size(10.dp))
-                                    Text(
-                                        stringResource(R.string.home_voice_command_button),
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = Color.White,
-                                    )
-                                }
-                            }
-                        }
-
                         // ── SOS (only when enabled in Settings) ──────────────────
                         if (s.sosButtonEnabled) {
                             // 12 dp gap above SOS — same rhythm as the button grid gaps,
@@ -505,13 +473,13 @@ fun HomeScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .heightIn(min = 48.dp)
+                                .heightIn(min = 64.dp)
                                 .clip(RoundedCornerShape(12.dp))
                                 .clickable(onClick = onNavigateToApps),
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.ic_all_apps_handle),
+                                painter = painterResource(R.drawable.ic_apps_grid),
                                 contentDescription = stringResource(R.string.apps),
                                 tint = Color.White.copy(alpha = 0.9f),
                             )
@@ -754,9 +722,25 @@ private fun WeatherCard(
 
 // ── Dynamic button grid ───────────────────────────────────────────────────────
 
+/**
+ * One cell in the grid — either a persisted [HomeButton] or the voice command
+ * tile, which is driven by its own Remote Config + user-preference flow
+ * ([HomeUiState.Success.voiceButtonEnabled]) rather than the generic
+ * enable/disable list, but renders as an equal-sized tile alongside the rest.
+ */
+private sealed interface GridTile {
+    data class ButtonTile(
+        val button: HomeButton,
+    ) : GridTile
+
+    data object VoiceTile : GridTile
+}
+
 @Composable
 private fun ButtonGrid(
     enabledButtons: List<HomeButton>,
+    showVoiceButton: Boolean,
+    onVoiceTapped: () -> Unit,
     isFlashlightOn: Boolean,
     onPhone: () -> Unit,
     onText: () -> Unit,
@@ -777,7 +761,13 @@ private fun ButtonGrid(
     flashlightOffText: String,
     modifier: Modifier = Modifier,
 ) {
-    if (enabledButtons.isEmpty()) return
+    // Voice sorts last so its position doesn't reshuffle the buttons the user
+    // already knows the location of when the feature toggles on/off.
+    val tiles: List<GridTile> = buildList {
+        addAll(enabledButtons.map { GridTile.ButtonTile(it) })
+        if (showVoiceButton) add(GridTile.VoiceTile)
+    }
+    if (tiles.isEmpty()) return
 
     // Cap font scale so button labels stay legible at max accessibility settings.
     val density = LocalDensity.current
@@ -789,7 +779,7 @@ private fun ButtonGrid(
     ) {
         // modifier carries weight(1f) from the parent Column so the grid expands
         // to fill all available vertical space between the weather card and the
-        // voice/SOS buttons. Each row then takes an equal share of that space.
+        // SOS button / All Apps handle. Each row then takes an equal share.
         BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
             // Adaptive column count: 3 on phones, up to 5 on wide/landscape
             // tablets, so buttons stay button-sized instead of stretching into
@@ -799,39 +789,53 @@ private fun ButtonGrid(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                enabledButtons.chunked(buttonsPerRow).forEach { rowButtons ->
+                tiles.chunked(buttonsPerRow).forEach { rowTiles ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        rowButtons.forEach { button ->
-                            SingleHomeButton(
-                                button = button,
-                                isFlashlightOn = isFlashlightOn,
-                                onPhone = onPhone,
-                                onText = onText,
-                                onCamera = onCamera,
-                                onMagnifier = onMagnifier,
-                                onSpeedDial = onSpeedDial,
-                                onMedications = onMedications,
-                                onFlashlight = onFlashlight,
-                                onWeb = onWeb,
-                                onFacebook = onFacebook,
-                                onMaps = onMaps,
-                                onEmail = onEmail,
-                                onPhotos = onPhotos,
-                                onYouTube = onYouTube,
-                                onCalculator = onCalculator,
-                                onLongPress = onLongPress,
-                                flashlightOnText = flashlightOnText,
-                                flashlightOffText = flashlightOffText,
-                                modifier = Modifier.weight(1f),
-                            )
+                        rowTiles.forEach { tile ->
+                            when (tile) {
+                                is GridTile.ButtonTile -> SingleHomeButton(
+                                    button = tile.button,
+                                    isFlashlightOn = isFlashlightOn,
+                                    onPhone = onPhone,
+                                    onText = onText,
+                                    onCamera = onCamera,
+                                    onMagnifier = onMagnifier,
+                                    onSpeedDial = onSpeedDial,
+                                    onMedications = onMedications,
+                                    onFlashlight = onFlashlight,
+                                    onWeb = onWeb,
+                                    onFacebook = onFacebook,
+                                    onMaps = onMaps,
+                                    onEmail = onEmail,
+                                    onPhotos = onPhotos,
+                                    onYouTube = onYouTube,
+                                    onCalculator = onCalculator,
+                                    onLongPress = onLongPress,
+                                    flashlightOnText = flashlightOnText,
+                                    flashlightOffText = flashlightOffText,
+                                    modifier = Modifier.weight(1f),
+                                )
+
+                                GridTile.VoiceTile -> {
+                                    val label = stringResource(R.string.home_voice_command_button)
+                                    HomeActionButton(
+                                        label = label,
+                                        iconRes = R.drawable.ic_mic,
+                                        color = ColorVoice,
+                                        modifier = Modifier.weight(1f),
+                                        onClick = onVoiceTapped,
+                                        onLongClick = { onLongPress(label) },
+                                    )
+                                }
+                            }
                         }
                         // Fill empty slots so partial rows keep consistent button widths
-                        repeat(buttonsPerRow - rowButtons.size) {
+                        repeat(buttonsPerRow - rowTiles.size) {
                             Spacer(Modifier.weight(1f))
                         }
                     }

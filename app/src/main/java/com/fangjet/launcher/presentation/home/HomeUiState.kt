@@ -16,7 +16,7 @@ sealed class HomeUiState {
         /** Ordered list of buttons the user has enabled (display order preserved). */
         val enabledButtons: List<HomeButton> = HomeButton.entries.filter { it.defaultEnabled },
         val weather: WeatherInfo = WeatherInfo.Loading,
-        /** Whether the full-width "Say a Command" bar is shown. Default OFF. */
+        /** Whether the "Say a Command" grid tile is shown. Default OFF. */
         val voiceButtonEnabled: Boolean = false,
         /** Whether the full-width SOS button is shown. Default ON. */
         val sosButtonEnabled: Boolean = true,

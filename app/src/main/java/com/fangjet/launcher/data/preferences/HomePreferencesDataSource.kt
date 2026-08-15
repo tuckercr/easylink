@@ -61,7 +61,7 @@ class HomePreferencesDataSource @Inject constructor(
         }
 
     /**
-     * Whether the full-width voice command button is shown on the Home screen.
+     * Whether the voice command tile is shown on the Home screen.
      * The Remote Config kill switch ([SettingsDefaults.voiceCommandsFeatureEnabled])
      * overrides everything — including an explicit user preference — so the
      * feature can be withdrawn server-side if it proves problematic.
