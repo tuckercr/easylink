@@ -161,6 +161,15 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch { homePrefs.setVoiceButtonEnabled(false) }
     }
 
+    /** See [HomePreferencesDataSource.voiceIntroShown]. */
+    val voiceIntroShown: StateFlow<Boolean> =
+        homePrefs.voiceIntroShown
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    fun markVoiceIntroShown() {
+        viewModelScope.launch { homePrefs.markVoiceIntroShown() }
+    }
+
     /** See [PermissionAskPreferences] for why asked-before flags exist. */
     val micPermissionRequested: StateFlow<Boolean> =
         permissionAsks

@@ -215,7 +215,7 @@ fun HomeScreen(
         }
     }
 
-    val onMicTapped: () -> Unit = {
+    val proceedToMic: () -> Unit = {
         val hasAudio = ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.RECORD_AUDIO,
@@ -238,6 +238,21 @@ fun HomeScreen(
         }
     }
 
+    // First-ever tap shows a one-time explainer with usage examples before
+    // falling through to the normal permission/listening flow. Marked shown
+    // the moment the dialog appears (not on confirm) so it truly never shows
+    // twice, even if the user backs out instead of proceeding.
+    var showVoiceIntroDialog by remember { mutableStateOf(false) }
+    val voiceIntroShown by viewModel.voiceIntroShown.collectAsStateWithLifecycle()
+    val onMicTapped: () -> Unit = {
+        if (voiceIntroShown) {
+            proceedToMic()
+        } else {
+            viewModel.markVoiceIntroShown()
+            showVoiceIntroDialog = true
+        }
+    }
+
     val openAppSettings: () -> Unit = {
         runCatching {
             context.startActivity(
@@ -247,6 +262,16 @@ fun HomeScreen(
                 ),
             )
         }
+    }
+
+    if (showVoiceIntroDialog) {
+        VoiceIntroDialog(
+            onStart = {
+                showVoiceIntroDialog = false
+                proceedToMic()
+            },
+            onDismiss = { showVoiceIntroDialog = false },
+        )
     }
 
     if (showMicDeniedDialog) {
@@ -1175,6 +1200,63 @@ private fun PermissionDeniedDialog(
                     ) {
                         Text(secondaryActionLabel, fontSize = 18.sp)
                     }
+                }
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp),
+                ) {
+                    Text(
+                        stringResource(R.string.voice_mic_not_now),
+                        fontSize = 18.sp,
+                    )
+                }
+            }
+        },
+        confirmButton = {},
+    )
+}
+
+/**
+ * One-time explainer shown the first time the voice tile is tapped: what to
+ * expect and a few example phrases, before falling through to the normal
+ * permission/listening flow. See [HomePreferencesDataSource.voiceIntroShown].
+ */
+@Composable
+private fun VoiceIntroDialog(
+    onStart: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(R.string.voice_intro_title),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = stringResource(R.string.voice_intro_body),
+                    fontSize = 18.sp,
+                    lineHeight = 26.sp,
+                )
+                Spacer(Modifier.height(4.dp))
+                Button(
+                    onClick = onStart,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp),
+                ) {
+                    Text(
+                        stringResource(R.string.voice_intro_start),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    )
                 }
                 TextButton(
                     onClick = onDismiss,

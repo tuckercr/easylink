@@ -135,6 +135,11 @@
     <string name="voice_mic_hide_button">Hide Voice Button</string>
     <string name="voice_mic_not_now">Not Now</string>
 
+    <!-- Voice: one-time first-use explainer -->
+    <string name="voice_intro_title">Try Saying a Command</string>
+    <string name="voice_intro_body">After you tap below, wait for \"Listening…\" and speak clearly. Try things like:\n\n• \"Call John\"\n• \"Text Mary\"\n• \"Open Camera\"\n• \"Flashlight On\"\n• \"Go Home\"</string>
+    <string name="voice_intro_start">Try It Now</string>
+
     <!-- Weather card: location permanently denied -->
     <string name="weather_location_denied_title">Location is turned off</string>
     <string name="weather_location_denied_body">Weather uses your general location to show the conditions where you are. To turn on weather, allow the Location permission in Settings.</string>

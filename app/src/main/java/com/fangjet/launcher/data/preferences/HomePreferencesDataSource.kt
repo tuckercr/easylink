@@ -38,6 +38,7 @@ class HomePreferencesDataSource @Inject constructor(
         private val ENABLED_OPTIONAL_BUTTONS =
             stringSetPreferencesKey("enabled_optional_home_buttons")
         private val VOICE_BUTTON_ENABLED = booleanPreferencesKey("voice_button_enabled")
+        private val VOICE_INTRO_SHOWN = booleanPreferencesKey("voice_intro_shown")
 
         // Default ON — SOS is a core safety feature that should be visible by default.
         private val SOS_BUTTON_ENABLED = booleanPreferencesKey("sos_button_enabled")
@@ -75,6 +76,19 @@ class HomePreferencesDataSource @Inject constructor(
 
     suspend fun setVoiceButtonEnabled(enabled: Boolean) {
         dataStore.edit { prefs -> prefs[VOICE_BUTTON_ENABLED] = enabled }
+    }
+
+    /**
+     * Whether the one-time "how to use voice commands" explainer has been
+     * shown. Set the moment the explainer is displayed (not when the user
+     * confirms it) so it truly shows only once, even if they back out.
+     */
+    val voiceIntroShown: Flow<Boolean> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { prefs -> prefs[VOICE_INTRO_SHOWN] ?: false }
+
+    suspend fun markVoiceIntroShown() {
+        dataStore.edit { prefs -> prefs[VOICE_INTRO_SHOWN] = true }
     }
 
     /**
@@ -133,6 +147,7 @@ class HomePreferencesDataSource @Inject constructor(
             prefs.remove(DISABLED_BUTTONS)
             prefs.remove(ENABLED_OPTIONAL_BUTTONS)
             prefs.remove(VOICE_BUTTON_ENABLED)
+            prefs.remove(VOICE_INTRO_SHOWN)
             prefs.remove(SOS_BUTTON_ENABLED)
             prefs.remove(HIGH_CONTRAST_ENABLED)
         }
