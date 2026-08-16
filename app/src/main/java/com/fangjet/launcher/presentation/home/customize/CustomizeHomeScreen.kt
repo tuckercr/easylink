@@ -7,6 +7,7 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,7 +20,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -54,13 +54,14 @@ import com.fangjet.launcher.R
 import com.fangjet.launcher.domain.model.FallSensitivity
 import com.fangjet.launcher.presentation.common.BigBackButton
 
-// Larger type scale tuned for elderly readability.
-private val LABEL_SIZE = 26.sp
-private val DESC_SIZE = 18.sp
-private val ROW_PADDING = 16.dp
+// Larger type scale tuned for elderly readability. Internal (not private) so
+// HomeButtonsSettingsScreen, in the same package, can match this screen's look.
+internal val LABEL_SIZE = 26.sp
+internal val DESC_SIZE = 18.sp
+internal val ROW_PADDING = 16.dp
 
 // Bigger, easier-to-hit toggles.
-private val SwitchModifier = Modifier.scale(1.3f)
+internal val SwitchModifier = Modifier.scale(1.3f)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,6 +70,7 @@ fun CustomizeHomeScreen(
     onNavigateToEmergencyContacts: () -> Unit = {},
     onNavigateToConnectFamily: () -> Unit = {},
     onNavigateToFavoritePicker: () -> Unit = {},
+    onNavigateToHomeButtons: () -> Unit = {},
     viewModel: CustomizeHomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -127,50 +129,17 @@ fun CustomizeHomeScreen(
             }
 
             // ── Section: Home buttons ─────────────────────────────────────────
+            // The full toggle list (13+ rows, plus Voice and SOS) now lives on
+            // its own screen — this row is just the entry point, so the main
+            // Settings list isn't dominated by it.
             item {
                 SectionHeader(stringResource(R.string.customize_home_buttons_header))
-                Text(
-                    stringResource(R.string.customize_home_buttons_description),
-                    fontSize = DESC_SIZE,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 8.dp),
-                )
-            }
-
-            items(state.buttons, key = { it.button.name }) { item ->
-                ToggleRow(
-                    label = stringResource(item.labelRes),
-                    checked = item.isEnabled,
-                    onCheckedChange = { viewModel.toggle(item.button, it) },
+                NavigationRow(
+                    label = stringResource(R.string.customize_home_buttons_manage),
+                    description = stringResource(R.string.customize_home_buttons_description),
+                    onClick = onNavigateToHomeButtons,
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
-            }
-
-            // ── Voice command button toggle (absent when the Remote Config
-            //    kill switch has withdrawn the feature) ──────────────────────
-            if (state.voiceFeatureEnabled) {
-                item {
-                    ToggleRow(
-                        label = stringResource(R.string.customize_voice_button_label),
-                        description = stringResource(R.string.customize_voice_button_description),
-                        checked = state.voiceButtonEnabled,
-                        onCheckedChange = { viewModel.setVoiceButtonEnabled(it) },
-                    )
-                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
-                }
-            }
-
-            // ── SOS button toggle (safety flavor only) ────────────────────────
-            if (BuildConfig.SAFETY_FEATURES) {
-                item {
-                    ToggleRow(
-                        label = stringResource(R.string.customize_sos_button_label),
-                        description = stringResource(R.string.customize_sos_button_description),
-                        checked = state.sosButtonEnabled,
-                        onCheckedChange = { viewModel.setSosButtonEnabled(it) },
-                    )
-                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
-                }
             }
 
             // ── Section: Apps Row (absent when the Remote Config kill switch
@@ -439,7 +408,7 @@ fun CustomizeHomeScreen(
 // ── Toggle row ────────────────────────────────────────────────────────────────
 
 @Composable
-private fun ToggleRow(
+internal fun ToggleRow(
     label: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
@@ -473,6 +442,47 @@ private fun ToggleRow(
             checked = checked,
             onCheckedChange = onCheckedChange,
             modifier = SwitchModifier,
+        )
+    }
+}
+
+// ── Navigation row (links to a child settings screen) ──────────────────────────
+
+@Composable
+private fun NavigationRow(
+    label: String,
+    onClick: () -> Unit,
+    description: String? = null,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = ROW_PADDING),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                fontSize = LABEL_SIZE,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            if (description != null) {
+                Text(
+                    text = description,
+                    fontSize = DESC_SIZE,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+            }
+        }
+        Spacer(Modifier.size(16.dp))
+        Text(
+            "›",
+            fontSize = 28.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -583,7 +593,7 @@ private fun FallDetectionCard(
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 @Composable
-private fun SectionHeader(title: String) {
+internal fun SectionHeader(title: String) {
     Text(
         text = title,
         fontSize = 16.sp,

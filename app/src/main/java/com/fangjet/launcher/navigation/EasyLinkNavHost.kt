@@ -35,6 +35,7 @@ import com.fangjet.launcher.presentation.forecast.ForecastScreen
 import com.fangjet.launcher.presentation.home.HomeScreen
 import com.fangjet.launcher.presentation.home.customize.CustomizeHomeScreen
 import com.fangjet.launcher.presentation.home.customize.FavoriteAppsPickerScreen
+import com.fangjet.launcher.presentation.home.customize.HomeButtonsSettingsScreen
 import com.fangjet.launcher.presentation.magnifier.MagnifierScreen
 import com.fangjet.launcher.presentation.medications.MedicationsScreen
 import com.fangjet.launcher.presentation.medications.add.AddMedicationScreen
@@ -66,6 +67,7 @@ object Routes {
     const val ADD_MEDICATION = "add_medication"
     const val EDIT_MEDICATION = "edit_medication/{medicationId}"
     const val CUSTOMIZE_HOME = "customize_home"
+    const val HOME_BUTTONS_SETTINGS = "home_buttons_settings"
     const val FORECAST = "weather_forecast"
     const val EMERGENCY_CONTACTS = "emergency_contacts"
     const val CONNECT_FAMILY = "connect_family"
@@ -254,7 +256,13 @@ fun EasyLinkNavHost(
                     onNavigateToFavoritePicker = {
                         navController.navigateIfSettled(Routes.FAVORITE_APPS_PICKER)
                     },
+                    onNavigateToHomeButtons = {
+                        navController.navigateIfSettled(Routes.HOME_BUTTONS_SETTINGS)
+                    },
                 )
+            }
+            composable(Routes.HOME_BUTTONS_SETTINGS) {
+                HomeButtonsSettingsScreen(onBack = { navController.popIfSettled() })
             }
             composable(Routes.FAVORITE_APPS_PICKER) {
                 FavoriteAppsPickerScreen(onBack = { navController.popIfSettled() })

@@ -299,6 +299,7 @@
     <string name="customize_high_contrast_description">Brighter colors and pure black background for easier reading.</string>
     <string name="customize_home_buttons_header">Home Screen Buttons</string>
     <string name="customize_home_buttons_description">Choose which quick-action buttons appear on the Home screen.</string>
+    <string name="customize_home_buttons_manage">Manage Buttons</string>
     <string name="customize_voice_button_label">Voice Command Button</string>
     <string name="customize_voice_button_description">Show the \"Say a Command\" button on the Home screen.</string>
     <string name="customize_sos_button_label">SOS Button</string>
