@@ -12,7 +12,7 @@ val ColorText = Color(0xFF2F65A7)
 val ColorCamera = Color(0xFF236B63)
 
 val ColorMagnifier = Color(0xFF986315)
-val ColorAllApps = Color(0xFF565989)
+val ColorContacts = Color(0xFF565989)
 val ColorFlashlight = Color(0xFF927000)
 
 val ColorSpeedDial = Color(0xFF3C6478)

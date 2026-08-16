@@ -25,6 +25,7 @@ enum class HomeButton(
     CAMERA(R.string.camera),
     MAGNIFIER(R.string.magnifier),
     SPEED_DIAL(R.string.people),
+    CONTACTS(R.string.contacts, defaultEnabled = false),
     MEDICATIONS(R.string.nav_meds),
     FLASHLIGHT(R.string.flash_light),
     WEB(R.string.web),

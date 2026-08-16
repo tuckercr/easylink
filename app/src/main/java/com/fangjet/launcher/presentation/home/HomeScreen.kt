@@ -87,6 +87,7 @@ import com.fangjet.launcher.presentation.voice.VoiceOverlay
 import com.fangjet.launcher.presentation.voice.VoiceUiState
 import com.fangjet.launcher.ui.theme.ColorCalculator
 import com.fangjet.launcher.ui.theme.ColorCamera
+import com.fangjet.launcher.ui.theme.ColorContacts
 import com.fangjet.launcher.ui.theme.ColorEmail
 import com.fangjet.launcher.ui.theme.ColorFacebook
 import com.fangjet.launcher.ui.theme.ColorFlashlight
@@ -418,6 +419,13 @@ fun HomeScreen(
                             onCamera = { launchIntent(Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)) },
                             onMagnifier = onNavigateToMagnifier,
                             onSpeedDial = onNavigateToSpeedDial,
+                            onContacts = {
+                                launchIntent(
+                                    Intent(Intent.ACTION_MAIN).apply {
+                                        addCategory(Intent.CATEGORY_APP_CONTACTS)
+                                    },
+                                )
+                            },
                             onMedications = onNavigateToMedications,
                             onFlashlight = { viewModel.toggleFlashlight() },
                             onWeb = {
@@ -772,6 +780,7 @@ private fun ButtonGrid(
     onCamera: () -> Unit,
     onMagnifier: () -> Unit,
     onSpeedDial: () -> Unit,
+    onContacts: () -> Unit,
     onMedications: () -> Unit,
     onFlashlight: () -> Unit,
     onWeb: () -> Unit,
@@ -831,6 +840,7 @@ private fun ButtonGrid(
                                     onCamera = onCamera,
                                     onMagnifier = onMagnifier,
                                     onSpeedDial = onSpeedDial,
+                                    onContacts = onContacts,
                                     onMedications = onMedications,
                                     onFlashlight = onFlashlight,
                                     onWeb = onWeb,
@@ -879,6 +889,7 @@ private fun SingleHomeButton(
     onCamera: () -> Unit,
     onMagnifier: () -> Unit,
     onSpeedDial: () -> Unit,
+    onContacts: () -> Unit,
     onMedications: () -> Unit,
     onFlashlight: () -> Unit,
     onWeb: () -> Unit,
@@ -949,11 +960,25 @@ private fun SingleHomeButton(
             val ttsText = stringResource(R.string.home_tts_people)
             HomeActionButton(
                 label = label,
-                iconRes = R.drawable.ic_contact_placeholder,
+                iconRes = R.drawable.ic_star,
                 color = ColorSpeedDial,
                 modifier = modifier,
                 onClick = onSpeedDial,
                 onLongClick = { onLongPress(ttsText) },
+            )
+        }
+
+        HomeButton.CONTACTS -> {
+            val label = stringResource(R.string.contacts)
+            HomeActionButton(
+                label = label,
+                // Favorites' old icon — repurposed here so the two stay
+                // visually distinct now that Favorites has its own star.
+                iconRes = R.drawable.ic_contact_placeholder,
+                color = ColorContacts,
+                modifier = modifier,
+                onClick = onContacts,
+                onLongClick = { onLongPress(label) },
             )
         }
 
