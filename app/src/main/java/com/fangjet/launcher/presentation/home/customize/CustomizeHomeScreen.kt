@@ -146,7 +146,6 @@ fun CustomizeHomeScreen(
             //    has withdrawn the feature) ──────────────────────────────────
             if (favoriteState.featureEnabled) {
                 item {
-                    Spacer(Modifier.height(28.dp))
                     SectionHeader(stringResource(R.string.customize_my_apps_header))
                     Text(
                         stringResource(R.string.customize_my_apps_description),
@@ -216,7 +215,6 @@ fun CustomizeHomeScreen(
             // ── Sections: Fall Detection + Emergency Contacts (safety only) ───
             if (BuildConfig.SAFETY_FEATURES) {
                 item {
-                    Spacer(Modifier.height(28.dp))
                     SectionHeader(stringResource(R.string.customize_fall_detection_header))
                     Text(
                         stringResource(R.string.customize_fall_detection_description),
@@ -231,8 +229,6 @@ fun CustomizeHomeScreen(
                         onToggle = { viewModel.setFallDetectionEnabled(it) },
                         onSensitivity = { viewModel.setFallSensitivity(it) },
                     )
-
-                    Spacer(Modifier.height(28.dp))
                 }
 
                 item {
@@ -268,7 +264,6 @@ fun CustomizeHomeScreen(
                             color = Color.White,
                         )
                     }
-                    Spacer(Modifier.height(28.dp))
                 }
             }
 
@@ -295,7 +290,6 @@ fun CustomizeHomeScreen(
                             fontWeight = FontWeight.Bold,
                         )
                     }
-                    Spacer(Modifier.heightIn(min = 28.dp))
                 }
             }
 
@@ -360,7 +354,6 @@ fun CustomizeHomeScreen(
                         )
                     }
                 }
-                Spacer(Modifier.height(28.dp))
             }
 
             // ── Section: About ────────────────────────────────────────────────
