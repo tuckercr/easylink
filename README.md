@@ -15,7 +15,7 @@ help. Their family gets to configure that phone, and know they're okay, from the
 
 | EasyLink Launcher — the elder's phone | EasyLink Care — the caregiver's phone |
 |---|---|
-| ![Home screen](screenshots/home_page.png) | ![Care dashboard](screenshots/care_dashboard.png) |
+| ![Home screen](screenshots/home_screen.png) | ![Care dashboard](screenshots/care_dashboard.png) |
 
 ---
 
@@ -133,9 +133,32 @@ Codes expire after 15 minutes and are single-use — redemption clears them.
 
 ## Launcher features
 
+Everything below ships in the **standard** flavor (the one on Google Play) unless
+marked **Safety build only** — see [Launcher flavors](#launcher-flavors) for exactly
+what that split means and why it exists.
+
+### Onboarding
+A seven-step wizard asks for each permission right before explaining the feature it
+unlocks — phone/contacts, location, camera, notifications, microphone — then offers to
+set EasyLink as the home screen. Every step can be skipped and granted later from
+Settings. Because a tremor can turn one tap into two, every button in the flow is
+time-debounced and locks while a system permission dialog is on screen, so a double-tap
+can't fire the same action twice or race two dialogs at once.
+
+| 1. Welcome | 2. Phone & Contacts | 3. Location | 4. Camera |
+|---|---|---|---|
+| ![Welcome](screenshots/onboarding_1_welcome.png) | ![Phone permission](screenshots/onboarding_2_phone.png) | ![Location permission](screenshots/onboarding_3_location.png) | ![Camera permission](screenshots/onboarding_4_camera.png) |
+
+| 5. Notifications | 6. Microphone | 7. Set as Home |
+|---|---|---|
+| ![Notifications permission](screenshots/onboarding_5_notifications.png) | ![Microphone permission](screenshots/onboarding_6_microphone.png) | ![Set as home screen](screenshots/onboarding_7_set_home.png) |
+
 ### Home screen
 Large, colour-coded quick-action buttons in a grid that scales to fill the screen; each
-can be shown or hidden in Settings. Long-pressing a button reads its label aloud.
+can be shown or hidden from **Settings → Manage Buttons**. Long-pressing a button reads
+its label aloud.
+
+![Home screen](screenshots/home_screen.png)
 
 | Button | What it does | Default |
 |---|---|---|
@@ -143,15 +166,21 @@ can be shown or hidden in Settings. Long-pressing a button reads its label aloud
 | **Text** | Opens the default messaging app | Enabled |
 | **Camera** | Launches the system camera | Enabled |
 | **Magnifier** | Built-in magnifier (camera zoom) | Enabled |
-| **All Apps** | Every installed app (also: swipe up) | Enabled |
-| **People** | Photo speed dial for favourites | Enabled |
+| **Favorites** | Photo speed dial for favourite contacts | Enabled |
 | **Meds** | Medication schedule | Enabled |
 | **Flashlight** | Toggles the rear torch | Enabled |
-| **Web · Maps · Email · Photos · YouTube · Calculator** | Launch the matching app | Optional |
+| **Web** | Launches the browser | Enabled |
+| **Contacts** | Opens the system Contacts app | Optional |
+| **Facebook** | Launches Facebook — only offered if it's actually installed | Optional |
+| **Say a Command** | Voice commands (below) | Enabled — Remote Config kill switch |
+| **Maps · Email · Photos · YouTube · Calculator** | Launch the matching app | Optional |
 
-Navigation is deliberately flat: the grid, a swipe up for all apps, and a settings gear
-beside the weather card. Every sub-screen has a full-width **Back** bar rather than a
-small system chevron.
+A fixed handle at the bottom of the grid — tap it, or swipe up from anywhere on the
+Home screen — always opens the full app drawer. It's chrome, not a button: there's no
+scenario where removing it would leave a usable way back to it, so unlike everything
+else on the grid it isn't customizable.
+
+![All apps](screenshots/all_apps.png)
 
 ### My Apps row
 A horizontally scrollable row of the user's **real apps with their real icons** —
@@ -165,9 +194,7 @@ Spotify, Audible, WhatsApp — directly on the home screen.
   system settings page.
 - Row length is Remote Config-tunable (default 12).
 
-![My Apps settings](screenshots/settings_my_apps.png)
-
-### SOS
+### SOS — *Safety build only*
 The red **SOS** button must be held for 3 seconds — a white sweep fills the button as it
 is held, so a stray touch in a pocket can't trigger it. Completing the hold opens a
 countdown screen with a large **Cancel**. If it isn't cancelled, EasyLink:
@@ -182,24 +209,26 @@ both Remote Config-tunable.
 
 ![SOS](screenshots/sos_initiated.png)
 
-### Fall detection
+### Fall detection — *Safety build only*
 An opt-in foreground service watches the accelerometer for a sharp impact followed by
 inactivity, then shows a full-screen alert with a 30-second countdown and an **"I'm OK"**
 button. If the countdown ends, it calls the primary emergency contact. Sensitivity is
 adjustable (Low / Medium / High).
 
-### People (speed dial)
+### Favorites
 Favourite contacts as large photo cards — tap to call. Phone numbers are hidden to keep
 the screen calm; long-press opens an edit sheet with delete inside it. Photos can be
 picked from the gallery and are copied into app storage so they survive.
 
-![People](screenshots/speed_dial.png)
+![Favorites](screenshots/favorites.png)
 
 ### Medication reminders
 Medications with one or more daily reminder times. Notifications carry **Take** and
 **Snooze** actions, and alarms survive reboot.
 
-![Medications](screenshots/medications.png)
+| Medication list | Add a medication |
+|---|---|
+| ![Medications](screenshots/medications.png) | ![Add medication](screenshots/add_medication.png) |
 
 ### Weather
 A card at the top of the home screen — current temperature, conditions, and city from
@@ -210,8 +239,10 @@ shared. Lives in the reusable `:weather` module.
 ![Weather forecast](screenshots/weather_forecast.png)
 
 ### Voice commands
-An optional **"Say a Command"** bar. The microphone is only live while the overlay is
-visible.
+An optional **"Say a Command"** tile — a regular grid button now, not a full-width bar.
+The first tap ever shows a one-time set of examples and explains what "Listening…" means
+before the microphone starts; it never shows again after that. The microphone itself is
+only live while the listening overlay is visible.
 
 | Say | Result |
 |---|---|
@@ -222,7 +253,7 @@ visible.
 | "Flashlight on" / "off" | Sets the torch |
 | "Go home" | Returns to the home screen |
 
-![Voice commands](screenshots/voice_commands.png)
+![Voice command intro](screenshots/voice_command_intro.png)
 
 ### Magnifier
 Full-screen camera preview with pinch-to-zoom for reading small print, with a big back
@@ -231,11 +262,17 @@ bar and no top chrome.
 ![Magnifier](screenshots/magnifier.png)
 
 ### Settings
-One screen, oversized type and switches: show/hide each home button, the My Apps row and
-its dots, voice and SOS buttons, high-contrast mode, fall detection and sensitivity,
-emergency contacts, and **Connect Family**.
+The main list is now just section entry points — oversized type throughout, high
+contrast mode, the My Apps row and its dots, fall detection and sensitivity *(safety
+build)*, emergency contacts and Connect Family *(safety build)*, and Home App. The
+per-button toggles for every quick-action on the grid — plus, in the safety build, the
+Say a Command and SOS kill switches — moved off this list into their own **Manage
+Buttons** screen, so the list a first-time user sees stays short enough to scan at a
+glance.
 
-![Settings](screenshots/settings_1.png)
+| Settings | Manage Buttons |
+|---|---|
+| ![Settings](screenshots/settings_main.png) | ![Manage Buttons](screenshots/settings_home_buttons.png) |
 
 ---
 
@@ -284,7 +321,7 @@ The launcher builds in two distribution flavors (`app/build.gradle.kts`):
 | | `standard` | `safety` |
 |---|---|---|
 | SOS button, fall detection | — | ✅ |
-| Voice commands, speed dial, meds, magnifier, My Apps row | ✅ | ✅ |
+| Voice commands, Favorites, meds, magnifier, My Apps row | ✅ | ✅ |
 | `SEND_SMS`, `ACCESS_FINE_LOCATION`, health foreground service | not in manifest | requested |
 | Distribution | Play Store | sideload (pending Play declarations) |
 
